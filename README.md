@@ -19,6 +19,17 @@ I think any code related to reconstruction pipelines should not be in this repo 
 
 The utilities need to be sufficient to allow users to make use of Parakeet to create and investigate their datasets but should make use of Parakeet as an external piece of software.
 
+--Maarten
+My proposal would be to generally split the toolset into three parts:
+1. preparation of trajectory for Parakeet
+This requires sampling the trajectory and saving them into a (list of) temporary .pdb or .mmcif files to allow parakeet to run with this as an input. Sampling can be done equispaced or through waymarking. The user would have to set the number of frame to save or a condition for when a frame should be saved if waymarking. 
+2. running Parakeet
+A default run of the program should perhaps output something like a set of N micrographs containing a total of K particles. The parameters used for all micrographs can be constant, except the defocus which must vary between micrographs. We then need to make a choice on how the frames from the trajectory are distributed across the micrographs. By default, in my scripts K=n_frames, meaning each frame is only turned into a single particle in the data set. We could also allow frames to be present multiple times in the data set, or even multiple times in a single micrograph.
+3. validation and visualisation
+In addition to what Joel proposed, it may also be useful to mimic some of the processing steps in RELION/cryosparc such as CTF estimation and 3D refinement by plotting what the ground truth of these steps should look like (i.e. the Fourier transform of the micrographs and the ditribution of orientations).
+
+In general I think it should not be too hard to port Joel's and my code if we agree on some structure for the final product.
+
 ## Plan of Action (updated 9/12/22)
 1. Upload scripts 
 2. Identify and agree on intended utilities in repo
