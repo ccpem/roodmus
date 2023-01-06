@@ -2,6 +2,11 @@
 # configutation class to setup the parameters for Parakeet
 
 ### imports
+# general
+import yaml
+import numpy as np
+
+# parakeet
 from parakeet import config
 
 ### configuration class
@@ -15,6 +20,7 @@ class configuration(object):
         self.defocus = defocus              # average defocus in A
         
         # initialise the config file for Parakeet
+        self.config_filename = config_filename
         self.Config = config.new(filename = config_filename, full=True)
         self._set_config()
         
@@ -34,14 +40,18 @@ class configuration(object):
         self.Config.sample.shape.cuboid.length_z = self.box_z
         self.Config.sample.shape.type = "cuboid"
         
-    def add_molecule(self, pdb_file, n=1, position=[], orientation=[]):
+    def _save_config(self):
+        with open(self.config_filename, "w") as f:
+            yaml.safe_dump(self.Config.dict(), f)
+        
+    def _add_molecule(self, pdb_file, n=1, position=[], orientation=[]):
         """
         add a molecule to the configuration file
         
         pdb_file: str
             path to the pdb file
         n: int (default: 1)
-            number of instances of the molecule
+            number of instances of the frame
         position: list (default: [])
             positions of the molecule in A
         orientation: list (default: [])
@@ -88,5 +98,35 @@ class configuration(object):
             config.LocalMolecule(filename=pdb_file, instances=instance)
         )
 
+    def add_molecules(self, frames, instances):
+        for frame, instance in zip(frames, instances):
+            self._add_molecule(frame, n=instance)
+            
+        self._save_config()
+
+    def update_config(self, Sample):
+        """
+        updates the configuration file with the generated positions and orientations
         
+        Sample: parakeet.sample.Sample
+            sample object from Parakeet
+        """
+
+        frame_idx = 0
+        for molecule in Sample.molecules:
+            _, positions, orientations = Sample.get_molecule(molecule)
+
+            self.Config.sample.molecules.local[frame_idx].instances = []
+
+            for position, orientation in zip(positions, orientations):
+                self.Config.sample.molecules.local[frame_idx].instances.append(config.MoleculePose())
+                self.Config.sample.molecules.local[frame_idx].instances[-1].position = [float(p) for p in position]
+                
+                # the orientation can contain negative values, which are not allowed in the configuration file. 
+                self.Config.sample.molecules.local[frame_idx].instances[-1].orientation = [float((o+(2*np.pi))%(2*np.pi)) for o in orientation]
+                
+                
+            frame_idx += 1
+       
+        self._save_config()
 
