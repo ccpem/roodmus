@@ -35,6 +35,7 @@ import parakeet
 
 # roodmus
 from configuration import configuration
+from orientation_generator import orientation_generator
 
 ### functions
 def sample_defocus(defocus):
@@ -72,6 +73,14 @@ def get_instances(pdb_files, n_molecules):
         
 ### main
 def main(args):
+    
+    ## the main function loops over the number of images to generate. For each image, parakeet is configured and a number of .pdb files is selected. 
+    ## The number of instances gets determined based on the number of .pdb files. If there are less .pdb files than molecules to generate, some of the
+    ## .pdb files are repeated. If there are more .pdb files than molecules to generate, some of the .pdb files are removed. 
+    ## The orientations can be sampled, or left to parakeet to generate.
+    ## Then we run parakeet and save the mrc files. From the Sample object we can pull the orientations and positions of the molecules. 
+    ## These, along with the optical parameters, are saved in a .yaml file.
+    
     config_filename = "config.yaml"	
     sample_filename = "sample.h5"
     exit_wave_filename = "exit_wave.h5"
@@ -85,7 +94,8 @@ def main(args):
     
         # sample the defocus around the specified value
         defocus = sample_defocus(args.defocus[defocus_idx])
-        
+        defocus_idx = (defocus_idx + 1) % len(args.defocus)
+
         # initialise the configuration
         Config = configuration(
             config_filename=config_filename,
@@ -103,15 +113,15 @@ def main(args):
         
         # add the molecules to the configuration
         for pdb_file, n_instance in zip(pdb_files, n_instances):
-            Config.add_molecule(pdb_file, n_instance)
+            Config.add_molecule(pdb_file, n_instance, orientation=orientation_generator.generate_inplane(n_instance))
             
         # save the configuration
-        with open("config.yaml", "w") as f:
+        with open(config_filename, "w") as f:
             yaml.safe_dump(Config.Config.dict(), f)
 
         # run parakeet
-        Sample = parakeet.sample.new(config_filename, sample_file="sample.h5")
-        Sample = parakeet.sample.add_molecules(config_filename, sample_file="sample.h5")
+        Sample = parakeet.sample.new(config_filename, sample_file=sample_filename)
+        Sample = parakeet.sample.add_molecules(config_filename, sample_file=sample_filename)
         parakeet.simulate.exit_wave(config_filename, sample_filename, exit_wave_file=exit_wave_filename)
         parakeet.simulate.optics(config_filename, exit_wave_file=exit_wave_filename, optics_file=optics_filename)
         parakeet.simulate.image(config_filename, optics_file=optics_filename, image_file=image_filename)
@@ -130,6 +140,8 @@ def main(args):
             "voltage": args.voltage,
             "exposure": args.exposure,
             "pixel_size": args.pixel_size,
+            "box_xy" : args.box_xy,
+            "box_z" : args.box_z,
             "mrc_path": mrc_path,
             "molecules": {},           
         }
@@ -150,7 +162,6 @@ def main(args):
         with open(os.path.join(args.mrc_dir, f"{n_image}".zfill(6)+".yaml"), "w") as f:
             yaml.safe_dump(metadata, f)
             
-        defocus_idx = (defocus_idx + 1) % len(args.defocus)
             
         progressbar.update(1)
         

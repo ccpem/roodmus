@@ -43,9 +43,9 @@ class configuration(object):
         n: int (default: 1)
             number of instances of the molecule
         position: list (default: [])
-            position of the molecule in A
+            positions of the molecule in A
         orientation: list (default: [])
-            orientation of the molecule in degrees
+            orientations of the molecule in degrees
         """
         
         ## the molecule can be specified by only the number of instances, in which case parakeet generates the orientation and position
@@ -57,19 +57,28 @@ class configuration(object):
 
         # if the orientation and position are specified            
         elif position and orientation:
-            instance = config.MoleculePose()
-            instance.position = position
-            instance.orientation = orientation
+            instance = []
+            for p, o in zip(position, orientation):
+                pose = config.MoleculePose()
+                pose.position = p
+                pose.orientation = o
+                instance.append(pose)
             
         # if the orientation is specified but not the position
         elif orientation and not position:
-            instance = config.MoleculePose()
-            instance.orientation = orientation
+            instance = []
+            for o in orientation:
+                pose = config.MoleculePose()
+                pose.orientation = o
+                instance.append(pose)
             
         # if the position is specified but not the orientation
         elif position and not orientation:
-            instance = config.MoleculePose()
-            instance.position = position
+            instance = []
+            for p in position:
+                pose = config.MoleculePose()
+                pose.position = p
+                instance.append(pose)
             
         # if none of the above, raise an error
         else:
