@@ -41,4 +41,7 @@ In general I think it should not be too hard to port Joel's and my code if we ag
 # Licensing
 Need to figure out what kind of license we want and when/how we need to get it for the repo. 
 
+# flow chart of current structure of Roodmus
+![flowchart](flowchart.png)
+
 
