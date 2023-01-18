@@ -13,10 +13,8 @@ class orientation_generator(object):
         poses = []
         for i in range(n):
             phi = 0
-            theta = np.pi/2
+            theta = 0
             psi = np.random.uniform(0, 2*np.pi)
             poses.append((phi, theta, psi))
         return poses
-        
-        
         

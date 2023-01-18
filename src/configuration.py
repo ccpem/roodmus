@@ -9,6 +9,9 @@ import numpy as np
 # parakeet
 from parakeet import config
 
+# roodmus
+from orientation_generator import orientation_generator
+
 ### configuration class
 class configuration(object):
     def __init__(self, config_filename, exposure=100,  voltage=300, box_xy=4000, box_z=200, pixel_size=1, defocus=-5000):
@@ -100,7 +103,7 @@ class configuration(object):
 
     def add_molecules(self, frames, instances):
         for frame, instance in zip(frames, instances):
-            self._add_molecule(frame, n=instance)
+            self._add_molecule(frame, n=instance, orientation=orientation_generator.generate_inplane())
             
         self._save_config()
 

@@ -55,10 +55,12 @@ def get_instances(pdb_files, n_molecules):
             
     # if the number of structures is greater than or equal to the number of molecules, the number of instances is 1 and we may need to remove some of the structures
     else:
-        # sample the pdb files without replacement
-        pdb_files = np.random.choice(pdb_files, n_molecules, replace=False)
+        if num_structures > n_molecules:
+            # sample the pdb files without replacement
+            pdb_files = np.random.choice(pdb_files, n_molecules, replace=False)
+            pdb_files = [str(pdb_file) for pdb_file in pdb_files]
         n_instances = [1]*n_molecules
-        
+    
     return pdb_files, n_instances
         
 ### main
