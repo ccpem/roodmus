@@ -18,14 +18,8 @@ def main():
         roodmus.trajectory.waymarking,
         roodmus.analysis.compare_ctf,
     ]
-
-    def get_string_name(module):
-        return os.path.splitext(os.path.basename(module.__file__))[0]
     
     for module in modules:
-        print(get_string_name(module))
-        print(module.get_name())
-        print(module.__file__)
         this_parser = subparsers.add_parser(module.get_name(), help=module.__doc__)
         module.add_arguments(this_parser)
         this_parser.set_defaults(func=module.main)
