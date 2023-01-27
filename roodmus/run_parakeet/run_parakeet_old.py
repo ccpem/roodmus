@@ -1,24 +1,21 @@
-"""configration and main function for running parakeet from the command line"""
 
 # script to run parakeet from the command line
 
 ### arguments
-def add_arguments(parser):
-    parser.add_argument("--pdb-dir", type=str, help="path to the directory containing the pdb files")
-    parser.add_argument("--mrc-dir", type=str, help="path to the directory in which to save the mrc files")
-    parser.add_argument("-n", "--n-images", type=int, help="number of images to generate", default=1)
-    parser.add_argument("-m", "--n-molecules", type=int, help="number of molecules to generate in each image", default=1)
-    cfg = parser.add_argument_group("configuration")
-    cfg.add_argument("--exposure", help="exposure [e/A^2]", type=float, default=40)
-    cfg.add_argument("--voltage", help="voltage [kV]", type=float, default=300)
-    cfg.add_argument("--box_xy", help="box size in xy direction [A]", type=float, default=4000)
-    cfg.add_argument("--box_z", help="box size in z direction [A]", type=float, default=200)
-    cfg.add_argument("--pixel_size", help="pixel size [A]", type=float, default=1)
-    cfg.add_argument("--defocus", help="defocus", type=float, default=[5000], nargs="+")
-    return parser
-
-def get_name():
-    return "run_parakeet"
+import argparse
+parser = argparse.ArgumentParser(description='Run parakeet')
+parser.add_argument("--pdb-dir", type=str, help="path to the directory containing the pdb files")
+parser.add_argument("--mrc-dir", type=str, help="path to the directory in which to save the mrc files")
+parser.add_argument("-n", "--n-images", type=int, help="number of images to generate", default=1)
+parser.add_argument("-m", "--n-molecules", type=int, help="number of molecules to generate in each image", default=1)
+cfg = parser.add_argument_group("configuration")
+cfg.add_argument("--exposure", help="exposure [e/A^2]", type=float, default=40)
+cfg.add_argument("--voltage", help="voltage [kV]", type=float, default=300)
+cfg.add_argument("--box_xy", help="box size in xy direction [A]", type=float, default=4000)
+cfg.add_argument("--box_z", help="box size in z direction [A]", type=float, default=200)
+cfg.add_argument("--pixel_size", help="pixel size [A]", type=float, default=1)
+cfg.add_argument("--defocus", help="defocus", type=float, default=[5000], nargs="+")
+args = parser.parse_args()
 
 ### imports
 # general
@@ -30,7 +27,7 @@ from tqdm import tqdm
 import parakeet
 
 # roodmus
-from roodmus.run_parakeet.configuration import configuration
+from configuration import configuration
 
 ### functions
 def sample_defocus(defocus):
@@ -138,6 +135,4 @@ def main(args):
     progressbar.close()
 
 if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description=__doc__)
-    main(add_arguments(parser).parse_args())
+    main(args)

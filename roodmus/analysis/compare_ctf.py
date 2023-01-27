@@ -1,11 +1,14 @@
+"""script to compare estimated CTF values from RELION or CryoSPARC to the ground-truth CTF values used in Parakeet data generation"""
 
 ### arguments
-import argparse
-parser = argparse.ArgumentParser(description="script to compare estimated CTF values from RELION or CryoSPARC to the ground-truth CTF values used in Parakeet data generation")
-parser.add_argument("--mrc-dir", help="directory with .mrc files and .yaml config files", type=str)
-parser.add_argument("--meta-file", help="particle metadata file. Can be .star (RELION) or .cs (CryoSPARC)", type=str)
-parser.add_argument("--plot-file", help="output file name", type=str, default="ctf.png")
-args = parser.parse_args()
+def add_arguments(parser):
+    parser.add_argument("--mrc-dir", help="directory with .mrc files and .yaml config files", type=str)
+    parser.add_argument("--meta-file", help="particle metadata file. Can be .star (RELION) or .cs (CryoSPARC)", type=str)
+    parser.add_argument("--plot-file", help="output file name", type=str, default="ctf.png")
+    return parser
+
+def get_name():
+    return "compare_ctf"
 
 ### imports
 # general
@@ -14,7 +17,7 @@ import os
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 # roodmus
-from utils import IO
+from roodmus.analysis.utils import IO
 
 ### functions
 def load_metadata(meta_file):

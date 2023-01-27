@@ -10,7 +10,7 @@ import numpy as np
 from parakeet import config
 
 # roodmus
-from orientation_generator import orientation_generator
+from roodmus.run_parakeet.orientation_generator import orientation_generator
 
 ### configuration class
 class configuration(object):

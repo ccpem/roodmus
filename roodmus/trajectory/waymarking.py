@@ -13,6 +13,66 @@ from typing import Tuple
 import argparse
 import os
 
+def add_arguments(parser):
+    parser.add_argument(
+        "--trajfiles_dir_path",
+        help="Path to directory holding (dcd) trajectory files which make up the whole trajectory.",
+        type=str,
+        default="/mnt/parakeet_storage/trajectories/DESRES-Trajectory_sarscov2-13795965-no-water/sarscov2-13795965-no-water"
+    )
+
+    parser.add_argument(
+        "--topfile_path",
+        help="The pdb holding the structure of molecule (no solvent)",
+        type=str,
+        default="/mnt/parakeet_storage/trajectories/DESRES-Trajectory_sarscov2-13795965-no-water/sarscov2-13795965-no-water/DESRES-Trajectory_sarscov2-13795965-no-water.pdb"
+    )
+
+    parser.add_argument(
+        "--debug",
+        help="Whether to print debugging statements",
+        type=bool,
+        default=False
+    )
+
+    parser.add_argument(
+        "--sampling_method",
+        help="Choose whether to sample a trajectory uniformly in time (even_sampling) or by >rmsd threshold (waymark)",
+        type=str,
+        default='even_sampling'
+    )
+
+    parser.add_argument(
+        "--n_conformations",
+        help="Number of conformations to make when sampling evenly in time from trajectory",
+        type=int,
+        default=2
+    )
+
+    parser.add_argument(
+        "--limit_n_traj_subfiles",
+        help="Limit the sampling to the first N dcd files. By default no limit is imposed.",
+        type=int,
+        default=None
+    )
+
+    parser.add_argument(
+        "--traj_extension",
+        help="File extension of the trajectory files. Default is .dcd",
+        type=str,
+        default=".dcd"
+    )
+
+    parser.add_argument(
+        "--output_dir",
+        help="Directory to save the sampled conformations to. Default is local dir!",
+        type=str,
+        default='.'
+    )
+    return parser
+
+def get_name():
+    return "waymarking"
 
 # TOPFILE = '/mnt/parakeet_storage/trajectories/DESRES-Trajectory_sarscov2-13795965-no-water/system.pdb'
 TOPFILE = '/mnt/parakeet_storage/trajectories/DESRES-Trajectory_sarscov2-13795965-no-water/sarscov2-13795965-no-water/DESRES-Trajectory_sarscov2-13795965-no-water.pdb'
@@ -312,7 +372,7 @@ def get_traj_indices(traj_steps:np.uint64, steps_per_file: list[np.uint64], debu
 
     return traj_indices
 
-def run_main(args):
+def main(args):
 
     trajfiles = get_trajfiles(args.trajfiles_dir_path, args.debug, args.traj_extension)
     if args.limit_n_traj_subfiles:
@@ -375,67 +435,11 @@ def run_main(args):
 
 
 if __name__=='__main__':
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        "--trajfiles_dir_path",
-        help="Path to directory holding (dcd) trajectory files which make up the whole trajectory.",
-        type=str,
-        default="/mnt/parakeet_storage/trajectories/DESRES-Trajectory_sarscov2-13795965-no-water/sarscov2-13795965-no-water"
-    )
-
-    parser.add_argument(
-        "--topfile_path",
-        help="The pdb holding the structure of molecule (no solvent)",
-        type=str,
-        default="/mnt/parakeet_storage/trajectories/DESRES-Trajectory_sarscov2-13795965-no-water/sarscov2-13795965-no-water/DESRES-Trajectory_sarscov2-13795965-no-water.pdb"
-    )
-
-    parser.add_argument(
-        "--debug",
-        help="Whether to print debugging statements",
-        type=bool,
-        default=False
-    )
-
-    parser.add_argument(
-        "--sampling_method",
-        help="Choose whether to sample a trajectory uniformly in time (even_sampling) or by >rmsd threshold (waymark)",
-        type=str,
-        default='even_sampling'
-    )
-
-    parser.add_argument(
-        "--n_conformations",
-        help="Number of conformations to make when sampling evenly in time from trajectory",
-        type=int,
-        default=2
-    )
-
-    parser.add_argument(
-        "--limit_n_traj_subfiles",
-        help="Limit the sampling to the first N dcd files. By default no limit is imposed.",
-        type=int,
-        default=None
-    )
-
-    parser.add_argument(
-        "--traj_extension",
-        help="File extension of the trajectory files. Default is .dcd",
-        type=str,
-        default=".dcd"
-    )
-
-    parser.add_argument(
-        "--output_dir",
-        help="Directory to save the sampled conformations to. Default is local dir!",
-        type=str,
-        default='.'
-    )
-
+    parser = argparse.ArgumentParser(description=__doc__)
+    add_arguments(parser)
     args = parser.parse_args()
     if args.debug:
         for arg in vars(args):
             print('{}, {}'.format(arg, getattr(args, arg)))
-    run_main(args)
+    main(args)
     
