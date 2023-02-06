@@ -1,3 +1,5 @@
+"""Sampling a molecular dynamics trajectory and saving the conformations to PDB files."""
+
 import numpy as np
 from matplotlib import pyplot as plt
 import mdtraj as mdt

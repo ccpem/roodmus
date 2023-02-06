@@ -84,11 +84,12 @@ def main(args):
     exit_wave_filename = "exit_wave.h5"
     optics_filename = "optics.h5"
     image_filename = "image.h5"
+    images_in_directory = len([r for r in os.listdir(args.mrc_dir) if r.endswith(".mrc")]) # number of images already in the directory
     
     ## loop over the number of images to generate
     progressbar = tqdm(range(args.n_images))
     defocus_idx = 0
-    for n_image in range(args.n_images):
+    for n_image in range(images_in_directory, args.n_images+images_in_directory):
         
         mrc_filename = f"{n_image}".zfill(6) + ".mrc"
         mrc_path = os.path.join(args.mrc_dir, mrc_filename) # full path to where the current image will be saved
