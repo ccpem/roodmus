@@ -37,9 +37,9 @@ class IO(object):
         return np.stack([defocusU, defocusV, kV, Cs, amp, Bfac], axis=1)
 
     @classmethod
-    def get_position_cs(self, metadata_cs):
+    def get_positions_cs(self, metadata_cs):
         ugraph_shape = metadata_cs["location/micrograph_shape"]
-        print(type(ugraph_shape), len(ugraph_shape), ugraph_shape.shape)
+        # print(type(ugraph_shape), len(ugraph_shape), ugraph_shape.shape)
         x = metadata_cs["location/center_x_frac"]
         y = metadata_cs["location/center_y_frac"]
         # convert to absolute coordinates
@@ -50,26 +50,34 @@ class IO(object):
         return pos
 
     # loading .star files and parsing the ctf parameters, the particle positions and orientations
+    @classmethod
     def load_star(self, star_path):
          return RelionStarFile(star_path)
-        
+    
+    @classmethod
     def get_ugraph_star(self, metadata_star):
         particles = metadata_star.get_block("particles")
-        ugraph_paths = particles.column_as_list("_rlnMicrographName")
+        ugraph_paths = metadata_star.column_as_list("particles", "_rlnMicrographName")
         # convert to basename and remove index
-        ugraph_paths = [os.path.basename(path).decode("utf-8").split("_")[-1] for path in ugraph_paths]
+        ugraph_paths = [os.path.basename(path).split("_")[-1] for path in ugraph_paths]
         return ugraph_paths
-    
-    def get_ctf_star(self, metadata_star):
-        optics = metadata_star.get_block("optics")
-        kV = optics.column_as_list("_rlnVoltage")
-        Cs = optics.column_as_list("_rlnSphericalAberration")
-        amp = optics.column_as_list("_rlnAmplitudeContrast")
 
-        particles = metadata_star.get_block("particles")
-        defocusU = particles.column_as_list("_rlnDefocusU")
-        defocusV = particles.column_as_list("_rlnDefocusV")
-        return np.stack([defocusU, defocusV, kV, Cs, amp], axis=1)
+    @classmethod
+    def get_ctf_star(self, metadata_star):
+        kV = [float(r) for r in metadata_star.column_as_list("optics", "_rlnVoltage")]
+        Cs = [float(r) for r in metadata_star.column_as_list("optics", "_rlnSphericalAberration")]
+        amp = [float(r) for r in metadata_star.column_as_list("optics", "_rlnAmplitudeContrast")]
+
+        defocusU = [float(r) for r in metadata_star.column_as_list("particles", "_rlnDefocusU")]
+        defocusV = [float(r) for r in metadata_star.column_as_list("particles", "_rlnDefocusV")]
+        return np.stack([defocusU, defocusV, kV*len(defocusU), Cs*len(defocusU), amp*len(defocusU)], axis=1)
+
+    @classmethod
+    def get_positions_star(self, metadata_star):
+        x = [float(r) for r in metadata_star.column_as_list("particles", "_rlnCoordinateX")]
+        y = [float(r) for r in metadata_star.column_as_list("particles", "_rlnCoordinateY")]
+        pos = np.stack([x, y], axis=1)
+        return pos
 
     # loading the config file
     @classmethod
