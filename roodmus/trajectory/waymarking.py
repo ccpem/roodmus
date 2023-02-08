@@ -4,13 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import mdtraj as mdt
 import glob2 as glob
-from Bio.PDB.PDBParser import PDBParser
-from Bio.PDB import parse_pdb_header
-from Bio.PDB.MMCIFParser import MMCIFParser
-from Bio.PDB.MMCIF2Dict import MMCIF2Dict
-from Bio.PDB.mmcifio import MMCIFIO
 from gemmi import cif
-import pandas as pd
 from typing import Tuple
 import argparse
 import os

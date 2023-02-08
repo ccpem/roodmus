@@ -183,10 +183,8 @@ import argparse
 import os
 
 from typing import Tuple, Optional
-import pprint
 
 import yaml
-import pandas as pd
 import numpy as np
 import mrcfile
 import matplotlib.pyplot as plt
