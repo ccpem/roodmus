@@ -1,0 +1,9 @@
+numpy==1.23.1
+matplotlib==3.5.2
+pyyaml==6.0
+mdtraj==1.9.7
+glob2==0.7
+gemmi==0.5.5
+scipy==1.9.3
+tqdm==4.64.0
+mrcfile==1.4.2
