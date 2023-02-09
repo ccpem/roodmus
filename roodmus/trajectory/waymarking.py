@@ -4,13 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import mdtraj as mdt
 import glob2 as glob
-from Bio.PDB.PDBParser import PDBParser
-from Bio.PDB import parse_pdb_header
-from Bio.PDB.MMCIFParser import MMCIFParser
-from Bio.PDB.MMCIF2Dict import MMCIF2Dict
-from Bio.PDB.mmcifio import MMCIFIO
 from gemmi import cif
-import pandas as pd
 from typing import Tuple
 import argparse
 import os
@@ -382,7 +376,6 @@ def main(args):
     
     topfile = get_topfile(args.topfile_path, args.debug)
 
-    read_pdb_header(topfile, args.debug)
     traj_steps, steps_per_file = get_traj_steps(trajfiles, topfile, args.debug)
     if args.debug:
         if len(np.unique(steps_per_file))!=1:

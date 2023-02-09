@@ -4,7 +4,7 @@ def main():
     import argparse
     import os
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="%(prog)s 0.1")    
+    parser.add_argument("--version", action="version", version="%(prog)s 0.1.1")    
     
     subparsers = parser.add_subparsers(title="subcommands", description="valid subcommands", help="additional help")
     subparsers.required = True
