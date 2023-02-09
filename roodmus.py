@@ -20,7 +20,6 @@ def main():
         roodmus.trajectory.waymarking,
         roodmus.analysis.analyse_ctf,
         roodmus.analysis.analyse_picking,
-        roodmus.analysis.analyse_alignment,
     ]
     
     for module in modules:
