@@ -1,3 +1,4 @@
 *.log
 *_requirements.txt
 *freeze.yaml
+*_example

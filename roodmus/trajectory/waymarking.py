@@ -10,25 +10,27 @@ import argparse
 import os
 
 def add_arguments(parser):
+    
     parser.add_argument(
         "--trajfiles_dir_path",
         help="Path to directory holding (dcd) trajectory files which make up the whole trajectory.",
         type=str,
-        default="/mnt/parakeet_storage/trajectories/DESRES-Trajectory_sarscov2-13795965-no-water/sarscov2-13795965-no-water"
+        default=""
     )
 
     parser.add_argument(
         "--topfile_path",
         help="The pdb holding the structure of molecule (no solvent)",
         type=str,
-        default="/mnt/parakeet_storage/trajectories/DESRES-Trajectory_sarscov2-13795965-no-water/sarscov2-13795965-no-water/DESRES-Trajectory_sarscov2-13795965-no-water.pdb"
+        default=""
     )
 
     parser.add_argument(
         "--debug",
         help="Whether to print debugging statements",
-        type=bool,
-        default=False
+        action="store_true",
+        default=False,
+        required=False,
     )
 
     parser.add_argument(
@@ -42,7 +44,7 @@ def add_arguments(parser):
         "--n_conformations",
         help="Number of conformations to make when sampling evenly in time from trajectory",
         type=int,
-        default=2
+        default=1
     )
 
     parser.add_argument(
@@ -65,18 +67,51 @@ def add_arguments(parser):
         type=str,
         default='.'
     )
+
+    parser.add_argument(
+        "--random_startpoint_seed",
+        help="Seed to use to select a random startpoint in the trajectory",
+        type=int,
+        default=500,
+        required=False
+    )
+
+    parser.add_argument(
+        "--rnd_start",
+        help="Whether to randomly select a startpoint in the trajectory",
+        action="store_true",
+        default=False,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--use_contiguous_conformations",
+        help="Whether to ensure sampled conformations are contiguous or not",
+        action="store_true",
+        default=False,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--investigate_trajectory_files",
+        help="Whether to only investigate a trajectory dataset",
+        action="store_true",
+        default=False,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--rmsd",
+        help="RMSD in nm to use for waymark sampling",
+        type=float,
+        default=0.3,
+        required=False,
+    )
     return parser
 
 def get_name():
-    return "waymarking"
 
-# TOPFILE = '/mnt/parakeet_storage/trajectories/DESRES-Trajectory_sarscov2-13795965-no-water/system.pdb'
-TOPFILE = '/mnt/parakeet_storage/trajectories/DESRES-Trajectory_sarscov2-13795965-no-water/sarscov2-13795965-no-water/DESRES-Trajectory_sarscov2-13795965-no-water.pdb'
-# TRAJFILES = '/mnt/parakeet_storage/trajectories/DESRES-Trajectory_sarscov2-13795965-no-water/sarscov2-13795965-no-water/*.dcd'
-TRAJFILESDIR = '/mnt/parakeet_storage/trajectories/DESRES-Trajectory_sarscov2-13795965-no-water/sarscov2-13795965-no-water'
-DEBUG = True
-WAYMARK = False
-EVEN_SAMPLING = True
+    return "waymarking"
 
 
 def get_trajfiles(trajfiles_dir_path: str, debug:bool, traj_extension: str='.dcd') -> list[str]:
@@ -99,25 +134,9 @@ def get_topfile(topfile_path:str, debug:bool) -> str:
 def load_traj(trajfile: str, topfile: str, debug: bool):
     t = mdt.load(trajfile, top=topfile)
     if debug:
-        print('mdt.load retruns type: {}'.format(type(t)))
+        print('mdt.load returns type: {}'.format(type(t)))
     return t
 
-def read_pdb_header(filename: str, debug: bool):
-    # filename: str, structure_id: str, debug: bool
-    """
-    Wonderful quote from BioPython docs:
-    You can extract the header and trailer (simple lists of strings) of the PDB file from the PDBParser object
-    with the get header and get trailer methods. Note however that many PDB files contain headers with
-    incomplete or erroneous information. Many of the errors have been fixed in the equivalent mmCIF files.
-    Hence, if you are interested in the header information, it is a good idea to extract information from mmCIF
-    files using the MMCIF2Dict tool described above, instead of parsing the PDB header
-    But all I got is a PDB
-    """
-    with open(filename, "r") as handle:
-        header_dict = parse_pdb_header(handle)
-    if debug:
-        print(header_dict)
-        
 def waymark(trajfiles: list[str], topfile: str, rmsd: float, debug: bool, atom_indices=None)\
  -> Tuple[list[list[int]], list[list[np.int64]], list[np.ndarray[np.int64,np.int64]], mdt.Trajectory, list[int]]:
     '''
@@ -134,7 +153,7 @@ def waymark(trajfiles: list[str], topfile: str, rmsd: float, debug: bool, atom_i
     waymarks = [] # list[list[int]]], with one entry per traj file (.dcd)
     counts = [] # list[list[np.int64]], with one entry per traj file
     assignments = [] # list[np.ndarray[np.int64, np.int64]] with one entry per traj file
-    non_redundant_confs_counter_list = [] # counts number of confirmations which are non redundant at end of each traj file processing
+    non_redundant_confs_counter_list = [] # counts number of conformations which are non-redundant at end of each traj file processing
     
     # keep hold of all the conformations which are rmsd different by more than rmsd thresh
     non_redundant_confs = None
@@ -162,10 +181,10 @@ def waymark(trajfiles: list[str], topfile: str, rmsd: float, debug: bool, atom_i
         r = mdt.rmsd(traj, traj, frame=0, atom_indices=atom_indices)
         # grab the indices of the conformations which were different by >rmsd threshold
         j = np.argmax(r > rmsd)
-        # convert array to at least 2d (not sure why...)
+        # convert array to at least 2d
         rlist = np.atleast_2d(r)
 
-        # using j>0 while loop  with argmax still works for multiple dcd file method as reference trajectory still includes first conformation
+        # using j>0 while loop with argmax still works for multiple dcd file method as reference trajectory still includes first conformation
         # from the first trajectory file 
         while j > 0:
             # only append to the non_redundant list of conformations if it is not already going to be in there! (this wastes some computation but oh well for now)
@@ -184,47 +203,9 @@ def waymark(trajfiles: list[str], topfile: str, rmsd: float, debug: bool, atom_i
         counts.append([(rlist.argmin(axis=0)==i).sum() for i in range(len(jlist))])
         non_redundant_confs_counter_list.append(non_redundant_confs_counter)
 
-        # if debug:
-        print('By end of file {} there are {} conformations using rmsd {}'.format(traj_file_n, non_redundant_confs_counter, rmsd))
+        print('By end of file {} there are {} non-redundant conformations using rmsd {}'.format(traj_file_n, non_redundant_confs_counter, rmsd))
 
     return waymarks, counts, assignments, non_redundant_confs, non_redundant_confs_counter
-
-        
-
-    """
-    #--------------------------------------------------
-    traj = load_traj(trajfiles[0], topfile, debug)
-
-    # get the rmsd of structure from its original conformation, traj0 (which is 1d np array of rmsd of each traj from the frame'th conformation in the dcd file)
-    r = mdt.rmsd(traj, traj, frame=0, atom_indices=atom_indices)
-    # make a list of the indices of the maximum rmsd values found
-    j = np.argmax(r > rmsd)
-    # convert array to at least 2d (not sure why...)
-    rlist = np.atleast_2d(r)
-    # start a list and fill it with the initial conformation to begin with
-    jlist = [0]
-    # while loop which seems to be intended to fill:
-    # jlist with the trajectory frames which constitute a new conformation
-    # counts with the number of frames respectively assigned to each conformation
-    # assignments with the indices of 
-    # I think rlist in a 2d array where axis0 is scanned by different traj frames and axis1 is ...???
-    while j > 0:
-        jlist.append(j)
-        r = mdt.rmsd(traj, traj, frame=j, atom_indices=atom_indices)
-        rlist = np.append(rlist, np.atleast_2d(r), axis=0)
-        j = np.argmax(rlist.min(axis=0) > rmsd)
-    
-    waymarks = jlist
-    assignments = rlist.argmin(axis=0)
-    counts = [(assignments==i).sum() for i in range(len(jlist))]
-    if debug:
-        print('assigments shape: {}'.format(assignments.shape))
-        print('waymarks entries: {}\ncounts entries: {}\nassignments entries: {}'.format(len(waymarks), len(counts), len(assignments)))
-        print('waymarks type: {}\t{}\ncounts type: {}\t{}\nassigments type: {}\t{}'.format(type(waymarks), type(waymarks[0]), type(counts), type(counts[0]), type(assignments), type(assignments[0])))
-        print('waymarks: {}\ncounts: {}\nassignments: {}'.format(waymarks, counts, assignments))
-    return waymarks, counts, assignments
-    #--------------------------------
-    """
 
 def plot_waymarking(traj_steps: np.uint64, waymarks: list[int], suffix: str=None):
     snapshots = []
@@ -250,12 +231,6 @@ def plot_waymarking(traj_steps: np.uint64, waymarks: list[int], suffix: str=None
 def list_waymark_occupancy(traj_steps: np.uint64, counts, suffix: str=None):
     for i_way in np.argsort(counts)[::-1]:
         print('Waymark {} {:2d}: {:5.2f}%'.format( suffix, i_way, counts[i_way] * 100 / traj_steps))
-    return
-
-def write_waymark_pdbs(t: mdt.core.trajectory.Trajectory, waymarks):
-    waytraj = t[waymarks]
-    for i_way, traj in enumerate(waytraj):
-        traj.save('waymark_{:06d}.pdb'.format(i_way))
     return
 
 def write_non_redundant_confs(non_redundant_confs: mdt.core.trajectory.Trajectory, output_dir: str):
@@ -340,15 +315,35 @@ def sample_dcd_evenly(trajfiles: list[str], topfile: str, traj_indices: list[lis
 
     return
 
-def get_traj_indices(traj_steps:np.uint64, steps_per_file: list[np.uint64], debug: bool, n_conformations: np.uint64=1)->list[list[int]]:
+def get_traj_indices(traj_steps:np.uint64, steps_per_file: list[np.uint64], debug: bool, n_conformations: np.uint64=1, rnd_start: bool=False, seed: int=1385737, contiguous: bool=False)->list[list[int]]:
     # check you have enough conformations to satisfy the number requested
     if np.uint64(traj_steps)<np.uint64(n_conformations):
         print('Number of conformations requested ({}) is larger than number in trajectory ({}). Exiting.'.format(n_conformations, traj_steps))
         exit(1)
     
-    # now select them as evenly in time as you can, with the assumption that all time steps are equal
-    # get the indexes equally spaced starting at 0
-    overall_indices = np.round(np.linspace(0, traj_steps-1, n_conformations)).astype(int)
+    # check if user wants to randomify starting point of trajectory and if so, 
+    # adjust traj_steps and steps_per_file as if you started from there. If there are then keep trying until
+    # you can satisfy the number of conformations user requested
+    if rnd_start:
+        # grab rnd int in range of traj_steps
+        start_int = traj_steps+1
+        np.random.seed(seed)
+        # make sure enough conformations still exist if using this number, else regen and try again
+        while int(traj_steps-start_int)<int(n_conformations):
+            start_int = np.random.randint(0, high=traj_steps)
+    else:
+        start_int = 0
+
+    if debug:
+        print('Start integer is {}'.format(start_int))
+    
+    # ensure all conformations are contiguous
+    if contiguous:
+        overall_indices = np.round(np.arange(start_int, start_int+n_conformations, 1))
+    else:
+        # now select them as evenly in time as you can, with the assumption that all time steps are equal
+        # get the indexes equally spaced starting at 0 or random int
+        overall_indices = np.round(np.linspace(start_int, traj_steps-1, n_conformations)).astype(int)
     
     # now assign each index to a traj file and pick out the index in the respective traj file
     conformation_counter = 0
@@ -383,27 +378,27 @@ def main(args):
             for idx, confs in enumerate(steps_per_file):
                 print('Traj file: {} has {} conformations'.format(idx,confs))
 
+    if args.investigate_trajectory_files:
+        print("Finished investigation of trajectory files. Cmd line arg --investigate_trajectory_files gives no output files")
+        return
+
     if args.sampling_method=='even_sampling':
         # create function to get indices of N conformations to sample from entire trajectory
         # output is list[list[int]]
-        traj_indices = get_traj_indices(traj_steps, steps_per_file, args.debug, n_conformations=args.n_conformations)
+        traj_indices = get_traj_indices(traj_steps, steps_per_file, args.debug, n_conformations=args.n_conformations, rnd_start=args.rnd_start, seed=args.random_startpoint_seed, contiguous=args.use_contiguous_conformations)
 
         # create functio to take list[list[int]] and save the pdbs to file
         sample_dcd_evenly(trajfiles, topfile, traj_indices, args.debug, args.output_dir)
 
     if args.sampling_method=='waymark':
-        # currently wayfinding code is only set up for a single dcd file
         # load initial trajectory
         t = load_traj(trajfiles[0], topfile, args.debug)
-        # setting rmsd cut of 0.3nm
-        r_cut = 0.3
+        
         # we want to get: Tuple[list[int], list[np.int64], np.ndarray[np.int64,np.int64]]
         # First is waymarks (jlist -> the trajectory frames which constitute a new conformation)
         # Second is counts (the number of frames assigned to each conformation
         # Third is )
-
-        waymarks_list, counts_list, assignments_list, non_redundant_confs, non_redundant_confs_counter_list = waymark(trajfiles, topfile, r_cut, args.debug) # still only set up for 1 dcd
-        
+        waymarks_list, counts_list, assignments_list, non_redundant_confs, non_redundant_confs_counter_list = waymark(trajfiles, topfile, args.rmsd, args.debug)
         # All we really care about here is getting the list of non-redundant conformations,
         # which we should now have
 
@@ -421,9 +416,8 @@ def main(args):
         # Unless we only care about file-level granularity it the plot
         list_waymark_occupancy(cumulative_steps_per_file[-1], counts_list[:][-1], suffix='allfiles')
         
-        # no longer need to write out pdbs using write_waymark_pdbs as we have a mdt.Trajectory
-        # which holds all the non-redundant conformations. So we write out all of those instead.
-        # write_waymark_pdbs(t, waymarks)
+        # We now have a mdt.Trajectory which holds all the non-redundant conformations.
+        # Let's write them out
         write_non_redundant_confs(non_redundant_confs, args.output_dir)
     
     return
