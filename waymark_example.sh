@@ -1,3 +1,5 @@
+#!/usr/bin/bash
+
 TRAJFILES_DIR_PATH=$"/mnt/parakeet_storage/trajectories/DESRES-Trajectory_sarscov2-13795965-no-water/sarscov2-13795965-no-water"
 TOPFILE_PATH=$"/mnt/parakeet_storage/trajectories/DESRES-Trajectory_sarscov2-13795965-no-water/sarscov2-13795965-no-water/DESRES-Trajectory_sarscov2-13795965-no-water.pdb"
 #DEBUG is toggled on by use of --debug
