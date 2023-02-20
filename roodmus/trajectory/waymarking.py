@@ -110,9 +110,7 @@ def add_arguments(parser):
     return parser
 
 def get_name():
-
     return "waymarking"
-
 
 def get_trajfiles(trajfiles_dir_path: str, debug:bool, traj_extension: str='.dcd') -> list[str]:
 

@@ -1,9 +1,9 @@
 
-### imports
 # general
 import os
 import yaml
 import numpy as np
+
 # pipeliner
 from pipeliner.jobstar_reader import RelionStarFile
 

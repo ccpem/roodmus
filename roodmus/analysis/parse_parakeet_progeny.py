@@ -4,6 +4,21 @@ by Joel Greer (STFC) from a .ipynb written by
 Beatriz Costa Gomes (Alan Turing Institute) - thanks Bea!
 """
 
+import argparse
+import os
+
+from typing import Tuple, Optional
+import pprint
+
+import yaml
+import pandas as pd
+import numpy as np
+import mrcfile
+import matplotlib.pyplot as plt
+from matplotlib import patches
+import glob2 as glob
+from gemmi import cif
+from scipy.spatial import cKDTree as ckdtree
 
 ### arguments
 def add_arguments(parser):
@@ -178,23 +193,6 @@ def add_arguments(parser):
 def get_name():
     return "compare_picking"   
 
-
-import argparse
-import os
-
-from typing import Tuple, Optional
-import pprint
-
-import yaml
-import pandas as pd
-import numpy as np
-import mrcfile
-import matplotlib.pyplot as plt
-from matplotlib import patches
-import glob2 as glob
-from gemmi import cif
-from scipy.spatial import cKDTree as ckdtree
-
 def read_from_log(args)->Tuple[dict, int]:
 
     # Open and read the file which includes the parakeet log info
@@ -229,7 +227,7 @@ def read_from_log(args)->Tuple[dict, int]:
             particles[str(micrograph_ind).zfill(6)]["psi"] = []
         # check if this is one of the lines to parse and if so, grab the info from it
         """
-        Example outut from line.split():
+        Example output from line.split():
         0: placing 
         1: /mnt/parakeet_storage3/ConformationSampling/DESRES-Trajectory_sarscov2-13795965-no-water/even_sampling/even_sampling_10000/conformation_000020.pdb
         2: at 

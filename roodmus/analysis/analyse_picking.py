@@ -1,5 +1,20 @@
 """script to analyse the result of particle picking, compared to the ground-truth particle positions."""
 
+# general
+import os
+from typing import Tuple, Optional
+import yaml
+from tqdm import tqdm
+import numpy as np
+import mrcfile
+import matplotlib.pyplot as plt
+from matplotlib import patches
+from scipy.spatial import cKDTree as ckdtree
+
+# roodmus
+from roodmus.analysis.utils import IO
+
+
 ### arguments
 def add_arguments(parser):
     parser.add_argument("--mrc-dir", help="directory with .mrc files and .yaml config files", type=str)
@@ -21,21 +36,6 @@ def add_arguments(parser):
 def get_name():
     return "analyse_picking"
 
-### imports
-# general
-import os
-from typing import Tuple, Optional
-import yaml
-from tqdm import tqdm
-import numpy as np
-import mrcfile
-import matplotlib.pyplot as plt
-from matplotlib import patches
-from scipy.spatial import cKDTree as ckdtree
-# roodmus
-from roodmus.analysis.utils import IO
-
-### functions
 def load_metadata(meta_file: str, verbose: bool=False)->dict:
     if meta_file.endswith(".star"):
         metadata = IO.load_star(meta_file)

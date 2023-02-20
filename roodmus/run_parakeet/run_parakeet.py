@@ -1,26 +1,5 @@
 """configration and main function for running parakeet from the command line"""
 
-# script to run parakeet from the command line
-
-### arguments
-def add_arguments(parser):
-    parser.add_argument("--pdb-dir", type=str, help="path to the directory containing the pdb files")
-    parser.add_argument("--mrc-dir", type=str, help="path to the directory in which to save the mrc files")
-    parser.add_argument("-n", "--n-images", type=int, help="number of images to generate", default=1)
-    parser.add_argument("-m", "--n-molecules", type=int, help="number of molecules to generate in each image", default=1)
-    cfg = parser.add_argument_group("configuration")
-    cfg.add_argument("--exposure", help="exposure [e/A^2]", type=float, default=40)
-    cfg.add_argument("--voltage", help="voltage [kV]", type=float, default=300)
-    cfg.add_argument("--box_xy", help="box size in xy direction [A]", type=float, default=4000)
-    cfg.add_argument("--box_z", help="box size in z direction [A]", type=float, default=200)
-    cfg.add_argument("--pixel_size", help="pixel size [A]", type=float, default=1)
-    cfg.add_argument("--defocus", help="defocus", type=float, default=[5000], nargs="+")
-    return parser
-
-def get_name():
-    return "run_parakeet"
-
-### imports
 # general
 import os
 import numpy as np
@@ -32,9 +11,773 @@ import parakeet
 # roodmus
 from roodmus.run_parakeet.configuration import configuration
 
-### functions
-def sample_defocus(defocus):
-    return np.random.normal(defocus, 200)# value for sigma chosen arbitrarily, could be a parameter
+### arguments
+def add_arguments(run_parakeet_parser):
+    run_parakeet_parser.add_argument("--pdb-dir", type=str, help="path to the directory containing the pdb files")
+    run_parakeet_parser.add_argument("--mrc-dir", type=str, help="path to the directory in which to save the mrc files")
+    run_parakeet_parser.add_argument("-n", "--n-images", type=int, help="number of images to generate", default=1)
+    run_parakeet_parser.add_argument("-m", "--n-molecules", type=int, help="number of molecules to generate in each image", default=1)
+    
+    parser = parser.add_argument_group("configuration")
+    parser.add_argument(
+        "--max_workers",
+        help=(
+            "Maximum number of worker processes to use on a cluster. Must specify"
+            " cluster method."
+        ),
+        type=int,
+        default=1,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--method",
+        help=(
+            "Maximum number of worker processes to use on a cluster. Must specify"
+            " cluster method."
+        ),
+        type=str,
+        default=None,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--device",
+        help=(
+            "An enumeration to set whether to run on the GPU or CPU."
+            " Options are 'cpu' or 'gpu'. Defaults to gpu"
+        ),
+        type=str,
+        default="gpu",
+        required=False,
+    )
+
+    parser.add_argument(
+        "--acceleration_voltage_spread",
+        help=("The acceleration voltage spread (dV/V)." " Defaults to 8.0e-07"),
+        type=float,
+        default=8.0e-7,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--electrons_per_angstrom",
+        help=(
+            "Dose of electrons per square angstrom to use in Parakeet simulation"
+            "Defaults to 45.0"
+        ),
+        type=float,
+        default=45.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--energy",
+        help=(
+            "Electron beam energy (kV) to use in Parakeet simulation"
+            " Defaults to 300.0kV"
+        ),
+        type=float,
+        default=300.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--energy_spread",
+        help=("Electron beam energy spread (dE/E)" " Defaults to 2.66e-6"),
+        type=float,
+        default=2.66e-6,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--source_spread",
+        help=("The source spread (mrad)." " Defaults to 0.1"),
+        type=float,
+        default=0.1,
+        required=False,
+    )
+
+    """
+    parser.add_argument(
+        "--illumination_semiangle",
+        help=("The illumination semiangle (mrad)."),
+        type=float,
+        default=0.02,
+        required=False,
+    )
+    """
+
+    parser.add_argument(
+        "--phi",
+        help=("The beam tilt phi angle (deg)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--theta",
+        help=("The beam tilt theta angle (deg)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--dqe",
+        help=("Use the DQE model (True/False)" " Defaults to False"),
+        type=bool,
+        default=False,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--nx",
+        help=(
+            "Number of pixels along the x"
+            " axis of the image(s) to be"
+            " simulated using Parakeet"
+        ),
+        type=int,
+        default=1000,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--ny",
+        help=(
+            "Number of pixels along the y"
+            " axis of the image(s) to be"
+            " simulated using Parakeet"
+        ),
+        type=int,
+        default=1000,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--origin_x",
+        help=(
+            "Origin of detector along the x"
+            " axis in lab fram (A)"
+            " simulated using Parakeet"
+        ),
+        type=int,
+        default=0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--origin_y",
+        help=(
+            "Origin of detector along the y"
+            " axis in lab fram (A)"
+            " simulated using Parakeet"
+        ),
+        type=int,
+        default=0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--pixel_size",
+        help=(
+            "Pixel size (angstroms) to use"
+            " in Parakeet simulation."
+            " All pixels are square."
+            " Defaults to 1.0"
+        ),
+        type=float,
+        default=1.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--Detector_origin_x",
+        help=(
+            "Detector origin along x axis" " in pixels wrt lab frame." " Defaults to 0"
+        ),
+        type=int,
+        default=0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--Detector_origin_y",
+        help=(
+            "Detector origin along y axis" " in pixels wrt lab frame." " Defaults to 0"
+        ),
+        type=int,
+        default=0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--phase_plate",
+        help=(
+            "Whether to use a"
+            " phase plate in"
+            " Parakeet simulation"
+            " Defaults to False"
+        ),
+        type=bool,
+        default=False,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--c_10",
+        help=(
+            "Average defocus value (A) (input a negative number for"
+            " underfocus) to use in Parakeet simulation."
+        ),
+        type=float,
+        default=[-20000],
+        required=False,
+        nargs="+",
+    )
+
+    parser.add_argument(
+        "--c_10_stddev",
+        help=(
+            "Standard deviation of defocus value (A)"
+            " to use in Parakeet simulation."
+        ),
+        type=float,
+        default=[5000],
+        required=False,
+        nargs="+",
+    )
+
+    parser.add_argument(
+        "--c_12",
+        help=("The 2-fold astigmatism (A)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--phi_12",
+        help=("The Azimuthal angle of 2-fold astigmatism (rad)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--c_21",
+        help=("The Axial coma (A)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--phi_21",
+        help=("The Azimuthal angle of axial coma (rad)", " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--c_23",
+        help=("The 3-fold astigmatism (A)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--phi_23",
+        help=("The Azimuthal angle of 3-fold astigmatism (rad)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--c_30",
+        help=("Spherical aberration (A)" " Defaults to 2.7"),
+        type=float,
+        default=2.7,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--c_32",
+        help=("The Axial star aberration (A)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--phi_32",
+        help=("The Azimuthal angle of axial star aberration (rad)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--c_34",
+        help=("The 4-fold astigmatism (A)", " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--phi_34",
+        help=(
+            "The Azimuthal angle of 4-fold astigmatism (rad)",
+            " Defaults to 0",
+        ),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--c_41",
+        help=("The 4th order axial coma (A)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--phi_41",
+        help=("The Azimuthal angle of 4th order axial coma (rad)", " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--c_43",
+        help=("The 3-lobe aberration (A)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--phi_43",
+        help=("The Azimuthal angle of 3-lobe aberration (rad)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--c_45",
+        help=("The 5-fold astigmatism (A)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--phi_45",
+        help=("The Azimuthal angle of 5-fold astigmatism (rad)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--c_50",
+        help=("The 5th order spherical aberration (A)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--c_52",
+        help=("The 5th order axial star aberration (A)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--phi_52",
+        help=(
+            "The Azimuthal angle of 5th order axial star aberration (rad)"
+            " Defaults to 0"
+        ),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--c_54",
+        help=("The 5th order rosette aberration (A)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--phi_54",
+        help=(
+            "The Azimuthal angle of 5th order rosette aberration (rad)" " Defaults to 0"
+        ),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--c_56",
+        help=("The 6-fold astigmatism (A)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--phi_56",
+        help=("The Azimuthal angle of 6-fold astigmatism (rad)" " Defaults to 0"),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--c_c",
+        help=("Chromatic aberration (A)" " Defaults to 2.7"),
+        type=float,
+        default=2.7,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--current_spread",
+        help=("The current spread (dI/I)" " Defaults to 0.33e-6"),
+        type=float,
+        default=0.33e-6,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--model",
+        help=(
+            "Use commercial microscope ('talos' or 'krios')"
+            " instead of user-provided microscope values."
+            " Defaults to None (user-provided values)"
+        ),
+        type=str,
+        default=None,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--box_x",
+        help=("Sample box size along x axis (Angstroms)" " Defaults to 1000"),
+        type=float,
+        default=1000.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--box_y",
+        help=("Sample box size along y axis (Angstroms)" " Defaults to 1000"),
+        type=float,
+        default=1000.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--box_z",
+        help=("Sample box size along z axis (Angstroms)" " Defaults to 500"),
+        type=float,
+        default=500.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--centre_x",
+        help=(
+            "Center of tomographic rotation around sample x axis (A)" " Defaults to 500"
+        ),
+        type=float,
+        default=500.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--centre_y",
+        help=(
+            "Center of tomographic rotation around sample y axis (A)" " Defaults to 500"
+        ),
+        type=float,
+        default=500.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--centre_z",
+        help=(
+            "Center of tomographic rotation around sample z axis (A)" " Defaults to 250"
+        ),
+        type=float,
+        default=250.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--slow_ice",
+        help=(
+            "Generate the (very slow) atomic ice model instead of fast GRF?"
+            " Defaults to None (not used)"
+        ),
+        type=bool,
+        default=None,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--type",
+        help=(
+            "An enumeration of sample shape types."
+            " Options are 'cube', 'cuboid' or 'cylinder'."
+            " Defaults to cuboid"
+        ),
+        type=str,
+        default="cuboid",
+        required=False,
+    )
+
+    parser.add_argument(
+        "--cube_length",
+        help=("The cube side length (A)" " Defaults to 1000"),
+        type=float,
+        default=1000.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--cuboid_length_x",
+        help=("The cuboid X side length (A)" " Defaults to 1000"),
+        type=float,
+        default=1000.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--cuboid_length_y",
+        help=("The cuboid Y side length (A)" " Defaults to 1000"),
+        type=float,
+        default=1000.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--cuboid_length_z",
+        help=("The cuboid Z side length (A)" " Defaults to 1000"),
+        type=float,
+        default=500.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--cylinder_length",
+        help=("The cylinder length (A)" " Defaults to 1000"),
+        type=float,
+        default=1000.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--cylinder_radius",
+        help=("The cylinder radius (A)" " Defaults to 500"),
+        type=float,
+        default=500.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--margin_x",
+        help=(
+            "The x axis margin used to define how close to the edges particles"
+            " should be placed (A)"
+            " Default value is 0"
+        ),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--margin_y",
+        help=(
+            "The y axis margin used to define how close to the edges particles"
+            " should be placed (A)"
+            " Default value is 0"
+        ),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--margin_z",
+        help=(
+            "The z axis margin used to define how close to the edges particles"
+            " should be placed (A)"
+            " Default value is 0"
+        ),
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--fast_ice",
+        help=(
+            "Use the Gaussian Random Field ice model (True/False)." " Defaults to False"
+        ),
+        type=bool,
+        default=False,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--simulation_margin",
+        help=("The margin around the image." " Defaults to 100"),
+        type=int,
+        default=100,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--inelastic_model",
+        help=("The inelastic model parameters." " Defaults to None"),
+        type=str,
+        default=None,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--mp_loss_position",
+        help=("The MPL energy filter position." " Defaults to peak"),
+        type=str,
+        default="peak",
+        required=False,
+    )
+
+    parser.add_argument(
+        "--mp_loss_width",
+        help=("The MPL energy filter width (eV)." " Defaults to 50"),
+        type=float,
+        default=None,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--simulation_padding",
+        help=("Additional padding." " Defaults to 100"),
+        type=int,
+        default=100,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--radiation_damage_model",
+        help=("Use the radiation damage model?" " Defaults to False"),
+        type=bool,
+        default=False,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--sensitivity_coefficient",
+        help=(
+            "The radiation damage model sensitivity coefficient." " Defaults to 0.022"
+        ),
+        type=float,
+        default=0.022,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--slice_thickness",
+        help=("The multislice thickness (A)." " Defaults to 3.0"),
+        type=float,
+        default=3.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--pdb_source",
+        help=(
+            "Whether to use local or parakeet dir as source of molecule(s)."
+            " Defaults to pdb"
+        ),
+        choices=["local", "pdb"],
+        nargs="?",
+        type=str,
+        default="pdb",
+        required=False,
+    )
+
+    parser.add_argument(
+        "--pdb_filepaths",
+        help=("The filename(s) of the atomic coordinates to use (*.pdb, *.cif)"),
+        nargs="+",
+        type=str,
+        default=["4v1w"],
+        required=False,
+    )
+
+    parser.add_argument(
+        "--pdb_instances",
+        help=(
+            "The instances of the molecule to put into the sample model. This "
+            "field can be set as either an integer or a list of MoleculePose "
+            "objects. If it is set to an integer == 1 then the molecule will be "
+            "positioned in the centre of the sample volume; any other integer "
+            "will result in the molecules being positioned at random positions "
+            "and orientations in the volume. If a list of MoleculePose objects "
+            "is given then an arbitrary selection of random and assigned "
+            "positions and poses can be set"
+        ),
+        nargs="+",
+        type=int,
+        default=[1],
+        required=False,
+    )
+
+    parser.add_argument(
+        "--config_yaml_filename",
+        help=("Filename for parakeet configuration file"),
+        type=str,
+        default="config.yaml",
+        required=False,
+    )
+
+    parser.add_argument(
+        "--leading_zeros",
+        help=("Number of decimal integers to use for image filenames"),
+        type=int,
+        default=6,
+        required=False,
+    )
+
+    return run_parakeet_parser
+
+def get_name():
+    return "run_parakeet"
+
+def sample_defocus(c_10, c_10_stddev):
+    return np.random.normal(c_10, c_10_stddev)
 
 def get_pdb_files(pdb_dir):
     pdb_dir = os.path.abspath(pdb_dir)
@@ -72,7 +815,7 @@ def main(args):
     ## The number of instances gets determined based on the number of .pdb files. If there are less .pdb files than molecules to generate, some of the
     ## .pdb files are repeated. If there are more .pdb files than molecules to generate, some of the .pdb files are removed. 
     ## The orientations can be sampled, or left to parakeet to generate.
-    ## Then we run parakeet and save the mrc files. From the Sample object we can pull the orientations and positions of the molecules. 
+    ## Then we run parakeet and save the mrc files. From the sample object we can pull the orientations and positions of the molecules. 
     ## These, along with the optical parameters, are saved in a .yaml file.
     
     ## nomenclature
@@ -80,59 +823,48 @@ def main(args):
     ## instance: multiplicity of a frame in the simulated image. if there are 10 frames and 100 molecules, each frame is an instance 10 times
     ## molecule: a single particle in the the simulated image
     
-    sample_filename = "sample.h5"
-    exit_wave_filename = "exit_wave.h5"
-    optics_filename = "optics.h5"
-    image_filename = "image.h5"
     images_in_directory = len([r for r in os.listdir(args.mrc_dir) if r.endswith(".mrc")]) # number of images already in the directory
     
+    # get the pdb files
+    frames = get_pdb_files(args.pdb_dir)
+
     ## loop over the number of images to generate
     progressbar = tqdm(range(args.n_images))
     defocus_idx = 0
     for n_image in range(images_in_directory, args.n_images+images_in_directory):
-        
-        mrc_filename = f"{n_image}".zfill(6) + ".mrc"
-        mrc_path = os.path.join(args.mrc_dir, mrc_filename) # full path to where the current image will be saved
-        config_filename = f"{n_image}".zfill(6) + ".yaml"
-        config_path = os.path.join(args.mrc_dir, config_filename) # full path to where the current configuration will be saved
-    
-        # sample the defocus around the specified value
-        defocus = sample_defocus(args.defocus[defocus_idx])
-        defocus_idx = (defocus_idx + 1) % len(args.defocus) # in case there are multiple defocus values, we loop over them
 
         # initialise the configuration
-        Config = configuration(
-            config_filename=config_path,
-            exposure=args.exposure,
-            voltage=args.voltage,
-            box_xy=args.box_xy,
-            box_z=args.box_z,
-            pixel_size=args.pixel_size,
-            defocus = defocus        
-        )
+        config = configuration(args=args)
         
-        # get the pdb files and determine the number of instances we need of each structure
-        frames = get_pdb_files(args.pdb_dir)
-        frames, n_instances = get_instances(frames, args.n_molecules)
-        
+        mrc_filename = f"{n_image}".zfill(config.leading_zeros) + ".mrc"
+        mrc_path = os.path.join(args.mrc_dir, mrc_filename) # full path to where the current image will be saved
+        config_filename = f"{n_image}".zfill(config.leading_zeros) + ".yaml"
+        config_path = os.path.join(args.mrc_dir, config_filename) # full path to where the current configuration will be saved
+
+        # sample the defocus around the specified value
+        config.config.microscope.lens.c_10 = sample_defocus(args.c_10[defocus_idx], args.c_10_stddev[defocus_idx])
+        defocus_idx = (defocus_idx + 1) % len(args.c_10) # in case there are multiple defocus values, we loop over them
+
+        # determine the number of instances we need of each structure
+        chosen_frames, n_instances = get_instances(frames, args.n_molecules)
         # add the molecules to the configuration
-        Config.add_molecules(frames, n_instances)
+        config.add_molecules(chosen_frames, n_instances)
             
         # run parakeet
-        Sample = parakeet.sample.new(config_path, sample_file=sample_filename)
-        Sample = parakeet.sample.add_molecules(config_path, sample_file=sample_filename)
-        parakeet.simulate.exit_wave(config_path, sample_filename, exit_wave_file=exit_wave_filename)
-        parakeet.simulate.optics(config_path, exit_wave_file=exit_wave_filename, optics_file=optics_filename)
-        parakeet.simulate.image(config_path, optics_file=optics_filename, image_file=image_filename)
+        sample = parakeet.sample.new(config_path, sample_file=config.sample_filename)
+        sample = parakeet.sample.add_molecules(config_path, sample_file=config.sample_filename)
+        parakeet.simulate.exit_wave(config_path, config.sample_filename, exit_wave_file=config.exit_wave_filename)
+        parakeet.simulate.optics(config_path, exit_wave_file=config.exit_wave_filename, optics_file=config.optics_filename)
+        parakeet.simulate.image(config_path, optics_file=config.optics_filename, image_file=config.image_filename)
 
         # save the image
-        os.system(f"parakeet.export image.h5 -o {mrc_path}")
+        os.system(f"parakeet.export {config.image_filename} -o {mrc_path}")
         
         # remove the intermediate files
-        os.system(f"rm {sample_filename} {exit_wave_filename} {optics_filename} {image_filename}")
+        os.system(f"rm {config.sample_filename} {config.exit_wave_filename} {config.optics_filename} {config.image_filename}")
         
         # update the config from the sample
-        Config.update_config(Sample)
+        config.update_config(sample)
             
         progressbar.update(1)
         

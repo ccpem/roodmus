@@ -1,6 +1,3 @@
-
-
-### imports
 import numpy as np
 
 ### class to generate orientations for a given molecule based on some specifications

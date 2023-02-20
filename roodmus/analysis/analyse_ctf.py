@@ -1,5 +1,14 @@
 """script to compare estimated CTF values from RELION or CryoSPARC to the ground-truth CTF values used in Parakeet data generation"""
 
+# general
+import numpy as np
+import os
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+
+# roodmus
+from roodmus.analysis.utils import IO
+
 ### arguments
 def add_arguments(parser):
     parser.add_argument("--mrc-dir", help="directory with .mrc files and .yaml config files", type=str)
@@ -11,16 +20,6 @@ def add_arguments(parser):
 def get_name():
     return "analyse_ctf"
 
-### imports
-# general
-import numpy as np
-import os
-import matplotlib.pyplot as plt
-from tqdm import tqdm
-# roodmus
-from roodmus.analysis.utils import IO
-
-### functions
 def load_metadata(meta_file):
     if meta_file.endswith(".star"):
         metadata = IO.load_star(meta_file)

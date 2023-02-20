@@ -1,19 +1,20 @@
 """ Roodmus: a tool to generate cryo-EM images from MD trajectories using Parakeet"""
 
+import argparse
+import os
+
+import roodmus.run_parakeet.run_parakeet
+import roodmus.trajectory.waymarking
+import roodmus.analysis.analyse_ctf
+import roodmus.analysis.analyse_picking
+import roodmus.analysis.analyse_alignment
+
 def main():
-    import argparse
-    import os
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--version", action="version", version="%(prog)s 0.1.1")    
     
     subparsers = parser.add_subparsers(title="subcommands", description="valid subcommands", help="additional help")
     subparsers.required = True
-    
-    import roodmus.run_parakeet.run_parakeet
-    import roodmus.trajectory.waymarking
-    import roodmus.analysis.analyse_ctf
-    import roodmus.analysis.analyse_picking
-    import roodmus.analysis.analyse_alignment
     
     modules = [
         roodmus.run_parakeet.run_parakeet,
