@@ -461,8 +461,6 @@ def save_image(args, micrograph_file: str)->None:
     return
 
 
-
-
 def label_micrograph_truth(args, micrograph_file: str, particles: dict, plot_truth_centres: bool=False)->None:
 
     # Open up a mrc file to overlay the boxes with
@@ -534,6 +532,7 @@ def label_micrograph_picked(args, micrograph_file: str, picked_particles: dict)-
         plt.savefig('{}_plot_picked_boxes.pdf'.format(ugraph_index), dpi=300)
         plt.clf()
     return
+
 
 def label_micrograph_truth_and_picked(args, micrograph_file: str, particles: dict, picked_particles: dict)->None:
     """Label and save a micrograph image with truth and picked particles

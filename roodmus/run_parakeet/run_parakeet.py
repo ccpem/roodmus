@@ -1,24 +1,50 @@
 """configration and main function for running parakeet from the command line"""
 
-# general
 import os
+import argparse
+from Typing import Tuple
+
 import numpy as np
 from tqdm import tqdm
 
-# parakeet
 import parakeet
-
-# roodmus
 from roodmus.run_parakeet.configuration import configuration
 
 ### arguments
 def add_arguments(run_parakeet_parser):
-    run_parakeet_parser.add_argument("--pdb-dir", type=str, help="path to the directory containing the pdb files")
-    run_parakeet_parser.add_argument("--mrc-dir", type=str, help="path to the directory in which to save the mrc files")
-    run_parakeet_parser.add_argument("-n", "--n-images", type=int, help="number of images to generate", default=1)
-    run_parakeet_parser.add_argument("-m", "--n-molecules", type=int, help="number of molecules to generate in each image", default=1)
+    run_parakeet_parser.add_argument(
+        "--pdb_dir",
+        help="path to the directory containing the pdb files",
+        type=str,
+        required=True,
+    )
+
+    run_parakeet_parser.add_argument(
+        "--mrc_dir",
+        help=("path to the directory in which to save the mrc files"),
+        type=str,
+        required=True,
+    )
+
+    run_parakeet_parser.add_argument(
+        "-n",
+        "--n_images",
+        help="number of images to generate",
+        type=int,
+        default=1,
+        required=False,
+    )
+
+    run_parakeet_parser.add_argument(
+        "-m",
+        "--n_molecules",
+        help="number of molecules to generate in each image",
+        type=int,
+        default=1,
+        required=False,
+    )
     
-    parser = parser.add_argument_group("configuration")
+    parser = run_parakeet_parser.add_argument_group("configuration")
     parser.add_argument(
         "--max_workers",
         help=(
@@ -129,7 +155,7 @@ def add_arguments(run_parakeet_parser):
         help=("Use the DQE model (True/False)" " Defaults to False"),
         type=bool,
         default=False,
-        required=False,
+        action="store_true",
     )
 
     parser.add_argument(
@@ -194,26 +220,6 @@ def add_arguments(run_parakeet_parser):
     )
 
     parser.add_argument(
-        "--Detector_origin_x",
-        help=(
-            "Detector origin along x axis" " in pixels wrt lab frame." " Defaults to 0"
-        ),
-        type=int,
-        default=0,
-        required=False,
-    )
-
-    parser.add_argument(
-        "--Detector_origin_y",
-        help=(
-            "Detector origin along y axis" " in pixels wrt lab frame." " Defaults to 0"
-        ),
-        type=int,
-        default=0,
-        required=False,
-    )
-
-    parser.add_argument(
         "--phase_plate",
         help=(
             "Whether to use a"
@@ -223,7 +229,7 @@ def add_arguments(run_parakeet_parser):
         ),
         type=bool,
         default=False,
-        required=False,
+        action="store_true"
     )
 
     parser.add_argument(
@@ -540,7 +546,7 @@ def add_arguments(run_parakeet_parser):
         ),
         type=bool,
         default=None,
-        required=False,
+        action="store_true",
     )
 
     parser.add_argument(
@@ -646,7 +652,7 @@ def add_arguments(run_parakeet_parser):
         ),
         type=bool,
         default=False,
-        required=False,
+        action="store_true",
     )
 
     parser.add_argument(
@@ -694,7 +700,7 @@ def add_arguments(run_parakeet_parser):
         help=("Use the radiation damage model?" " Defaults to False"),
         type=bool,
         default=False,
-        required=False,
+        action="store_true",
     )
 
     parser.add_argument(
@@ -756,19 +762,19 @@ def add_arguments(run_parakeet_parser):
     )
 
     parser.add_argument(
-        "--config_yaml_filename",
-        help=("Filename for parakeet configuration file"),
-        type=str,
-        default="config.yaml",
-        required=False,
-    )
-
-    parser.add_argument(
         "--leading_zeros",
         help=("Number of decimal integers to use for image filenames"),
         type=int,
         default=6,
         required=False,
+    )
+
+    parser.add_argument(
+        "--no_replacement",
+        help=("Disable sampling with replacement"),
+        type=bool,
+        default=True,
+        action="store_false",
     )
 
     return run_parakeet_parser
@@ -787,24 +793,41 @@ def get_pdb_files(pdb_dir):
             pdb_files.append(os.path.join(pdb_dir, file))
     return pdb_files
 
-def get_instances(pdb_files, n_molecules):
+def get_instances(pdb_files: list[str], n_molecules: int, replace=True)->Tuple[list[str], list[int]]:
+    """Determine the molecules to simulate in a given image and the number of occurrences of each
+     in the image
+
+    Args:
+        pdb_files list[str]: List of pdb files sample molecules for simulation from
+        n_molecules int: Total number of molecules to simulate in each image
+        replace (bool, optional): _description_. Defaults to True.
+
+    Returns:
+        Tuple[list[str], list[int]]: Same length lists of molecules
+         to simulate and # instances of the molecule
+    """
     num_structures = len(pdb_files)
         
     # if the number of structures is less than the number of molecules, we need to repeat some of the structures
     if num_structures < n_molecules:
         # start by adding each structure the same number of times to get as close to the number of molecules as possible
         n_instances = [n_molecules//num_structures]*num_structures
-        # then randomly add one to some of the structures until we reach the number of molecules
+        # then randomly add another copy of any pdb until we reach the number of molecules
         for n in range(n_molecules - sum(n_instances)):
             n_instances[np.random.randint(num_structures)] += 1
             
-    # if the number of structures is greater than or equal to the number of molecules, the number of instances is 1 and we may need to remove some of the structures
+    # if the number of structures is greater than or equal to the number of molecules, randomly sample them
     else:
         if num_structures > n_molecules:
             # sample the pdb files without replacement
-            pdb_files = np.random.choice(pdb_files, n_molecules, replace=False)
-            pdb_files = [str(pdb_file) for pdb_file in pdb_files]
-        n_instances = [1]*n_molecules
+            pdb_files, n_instances = np.unique(
+                np.random.choice(
+                    pdb_files, n_molecules, replace=replace
+                ),
+                return_counts=True
+            )
+            pdb_files = pdb_files.tolist()
+            n_instances = n_instances.tolist()
     
     return pdb_files, n_instances
         
@@ -846,7 +869,7 @@ def main(args):
         defocus_idx = (defocus_idx + 1) % len(args.c_10) # in case there are multiple defocus values, we loop over them
 
         # determine the number of instances we need of each structure
-        chosen_frames, n_instances = get_instances(frames, args.n_molecules)
+        chosen_frames, n_instances = get_instances(frames, args.n_molecules, args.no_replacement)
         # add the molecules to the configuration
         config.add_molecules(chosen_frames, n_instances)
             
@@ -859,11 +882,11 @@ def main(args):
 
         # save the image
         os.system(f"parakeet.export {config.image_filename} -o {mrc_path}")
-        
+
         # remove the intermediate files
         os.system(f"rm {config.sample_filename} {config.exit_wave_filename} {config.optics_filename} {config.image_filename}")
         
-        # update the config from the sample
+        # update the config from the sample and save/overwrite it
         config.update_config(sample)
             
         progressbar.update(1)
@@ -871,6 +894,5 @@ def main(args):
     progressbar.close()
 
 if __name__ == "__main__":
-    import argparse
     parser = argparse.ArgumentParser(description=__doc__)
     main(add_arguments(parser).parse_args())

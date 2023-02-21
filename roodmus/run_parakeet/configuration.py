@@ -1,14 +1,10 @@
 
 # configutation class to setup the parameters for Parakeet
 
-# general
 import yaml
 import numpy as np
 
-# parakeet
 from parakeet import config
-
-# roodmus
 from roodmus.run_parakeet.orientation_generator import orientation_generator
 
 ### configuration class
@@ -210,26 +206,26 @@ class configuration(object):
             
         self._save_config()
 
-    def update_config(self, Sample):
+    def update_config(self, sample):
         """
         updates the configuration file with the generated positions and orientations
         
-        Sample: parakeet.sample.Sample
+        sample: parakeet.sample.Sample
             sample object from Parakeet
         """
 
         frame_idx = 0
-        for molecule in Sample.molecules:
-            _, positions, orientations = Sample.get_molecule(molecule)
+        for molecule in sample.molecules:
+            _, positions, orientations = sample.get_molecule(molecule)
 
-            self.Config.sample.molecules.local[frame_idx].instances = []
+            self.config.sample.molecules.local[frame_idx].instances = []
 
             for position, orientation in zip(positions, orientations):
-                self.Config.sample.molecules.local[frame_idx].instances.append(config.MoleculePose())
-                self.Config.sample.molecules.local[frame_idx].instances[-1].position = [float(p) for p in position]
+                self.config.sample.molecules.local[frame_idx].instances.append(config.MoleculePose())
+                self.config.sample.molecules.local[frame_idx].instances[-1].position = [float(p) for p in position]
                 
                 # the orientation can contain negative values, which are not allowed in the configuration file. 
-                self.Config.sample.molecules.local[frame_idx].instances[-1].orientation = [float((o+(2*np.pi))%(2*np.pi)) for o in orientation]
+                self.config.sample.molecules.local[frame_idx].instances[-1].orientation = [float((o+(2*np.pi))%(2*np.pi)) for o in orientation]
                 
                 
             frame_idx += 1

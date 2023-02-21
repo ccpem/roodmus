@@ -1,12 +1,11 @@
 """script to compare estimated CTF values from RELION or CryoSPARC to the ground-truth CTF values used in Parakeet data generation"""
 
-# general
-import numpy as np
 import os
+
+import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-# roodmus
 from roodmus.analysis.utils import IO
 
 ### arguments

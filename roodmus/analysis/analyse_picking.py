@@ -1,8 +1,8 @@
 """script to analyse the result of particle picking, compared to the ground-truth particle positions."""
 
-# general
 import os
 from typing import Tuple, Optional
+
 import yaml
 from tqdm import tqdm
 import numpy as np
@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 from matplotlib import patches
 from scipy.spatial import cKDTree as ckdtree
 
-# roodmus
 from roodmus.analysis.utils import IO
 
 

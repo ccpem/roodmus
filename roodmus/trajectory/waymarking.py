@@ -1,13 +1,15 @@
 """Sampling a molecular dynamics trajectory and saving the conformations to PDB files."""
 
+import os
+from typing import Tuple
+import argparse
+
 import numpy as np
 from matplotlib import pyplot as plt
 import mdtraj as mdt
 import glob2 as glob
 from gemmi import cif
-from typing import Tuple
-import argparse
-import os
+
 
 def add_arguments(parser):
     

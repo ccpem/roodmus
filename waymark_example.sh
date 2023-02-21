@@ -13,5 +13,6 @@ RANDOM_STARTPOINT_SEED=99
 # USE_CONTIGUOUS_CONFORMATIONS= toggled on if use_contiguous_conformations is pased as arg
 # INVESTIGATE_TRAJECTORY_FILES toggled on if --investigate_trajectory_files is passed as arg
 #RMSD=0.5
+LOGFILE=$"waymark_example.log"
 
-nohup python roodmus.py waymarking --trajfiles_dir_path $TRAJFILES_DIR_PATH --topfile_path $TOPFILE_PATH --debug --sampling_method $SAMPLING_METHOD --n_conformations $N_CONFORMATIONS --limit_n_traj_subfiles $LIMIT_N_TRAJ_SUBFILES --traj_extension $TRAJ_EXTENSION --output_dir $OUTPUT_DIR --random_startpoint_seed $RANDOM_STARTPOINT_SEED --rnd_start --use_contiguous_conformations > waymark_example.log 2>&1 &
+nohup python roodmus.py waymarking --trajfiles_dir_path $TRAJFILES_DIR_PATH --topfile_path $TOPFILE_PATH --debug --sampling_method $SAMPLING_METHOD --n_conformations $N_CONFORMATIONS --limit_n_traj_subfiles $LIMIT_N_TRAJ_SUBFILES --traj_extension $TRAJ_EXTENSION --output_dir $OUTPUT_DIR --random_startpoint_seed $RANDOM_STARTPOINT_SEED --rnd_start --use_contiguous_conformations > $LOGFILE 2>&1 &
