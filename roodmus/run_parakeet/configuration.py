@@ -9,24 +9,31 @@ from roodmus.run_parakeet.orientation_generator import orientation_generator
 
 ### configuration class
 class configuration(object):
-    def __init__(self, args=None):
+    def __init__(self, config_filename, args=None):
         # intermediate file names
         self.sample_filename = "sample.h5"
         self.exit_wave_filename = "exit_wave.h5"
         self.optics_filename = "optics.h5"
         self.image_filename = "image.h5"
 
+        # default value for the leading zeros
         self.leading_zeros = 6
 
         # initialise the config file for Parakeet
-        self.config_filename = args.config_yaml_filename
+        self.config_filename = config_filename
 
         self.config = config.new(filename = self.config_filename, full=True)
         if args:
             self.leading_zeros = args.leading_zeros
             self._set_config(args)
         
-    def _set_config(self, args):
+    def _set_config(self, args: argparse.ArgumentParser):
+        """Set the general configuration parameters using user-provided
+        inputs and/or defaults 
+
+        Args:
+            args (argparse.ArgumentParser): Parsed arguments and defaults
+        """
         # cluster
         self.config.cluster.method = args.method
         self.config.cluster.max_workers = args.max_workers
@@ -42,7 +49,8 @@ class configuration(object):
         self.config.microscope.beam.energy = args.energy
         self.config.microscope.beam.energy_spread = args.energy_spread
         self.config.microscope.beam.acceleration_voltage_spread = args.acceleration_voltage_spread
-        self.config.microscope.beam.total_electrons_per_angstrom = args.electrons_per_angstrom
+        self.config.microscope.beam.electrons_per_angstrom = args.electrons_per_angstrom
+        # (newer defn) self.config.microscope.beam.total_electrons_per_angstrom = args.electrons_per_angstrom
         # self.config.microscope.beam.illumination_semiangle = args.illumination_semiangle
         self.config.microscope.beam.phi = args.phi
         self.config.microscope.beam.theta = args.theta
@@ -88,14 +96,16 @@ class configuration(object):
         self.config.sample.centre = (args.centre_x, args.centre_y, args.centre_z)
         
         # sample->ice
+        self.config.sample.ice = config.Ice()
         self.config.sample.ice.generate = args.slow_ice
-        # self.config.sample.ice.density = 
+        self.config.sample.ice.density = args.slow_ice_density
 
         # sample->coords
         # self.config.sample.coords = 
 
         # sample->molecules
-        self.config.sample.molecules = None
+        self.config.sample.molecules = config.Molecules()
+        self.config.sample.molecules.local = []
 
         # sample->shape
         self.config.sample.shape.type = args.type
@@ -104,7 +114,7 @@ class configuration(object):
         self.config.sample.shape.cuboid.length_y = args.cuboid_length_y
         self.config.sample.shape.cuboid.length_z = args.cuboid_length_z
         self.config.sample.shape.cylinder.length = args.cylinder_length
-        self.config.sample.cshape.ylinder.radius = args.cylinder_radius
+        self.config.sample.shape.cylinder.radius = args.cylinder_radius
         self.config.sample.shape.margin = (args.margin_x, args.margin_y, args.margin_z)
 
         # sample->sputter (not yet supported as user input)
@@ -142,21 +152,19 @@ class configuration(object):
         self.config.simulation.mp_loss_position = args.mp_loss_position
         
     def _save_config(self):
-        with open(self.config_filename, "w") as f:
-            yaml.safe_dump(self.Config.dict(), f)
-        
-    def _add_molecule(self, pdb_file, n=1, position=[], orientation=[]):
+        """Save the configuration file to disk
         """
-        add a molecule to the configuration file
+        with open(self.config_filename, "w") as f:
+            yaml.safe_dump(self.config.dict(), f)
         
-        pdb_file: str
-            path to the pdb file
-        n: int (default: 1)
-            number of instances of the frame
-        position: list (default: [])
-            positions of the molecule in A
-        orientation: list (default: [])
-            orientations of the molecule in degrees
+    def _add_molecule(self, pdb_file: str, n: int=1, position: list=[], orientation: list=[]):        
+        """
+        Add a molecule to the configuration file
+        
+        pdb_file (str): Molecule filepath to add to configuration file
+        n (int): number of instances of the conformation. Defaults to 1.
+        position (list): Positions of the molecule in A. Defaults to [].
+        orientation (list): Orientations of the molecule in degrees. Defaults to [].
         """
         
         ## the molecule can be specified by only the number of instances, in which case parakeet generates the orientation and position
@@ -195,11 +203,17 @@ class configuration(object):
         else:
             raise ValueError("At least one of the following must be specified: n, position, orientation")
         
-        self.Config.sample.molecules.local.append(
+        self.config.sample.molecules.local.append(
             config.LocalMolecule(filename=pdb_file, instances=instance)
         )
 
-    def add_molecules(self, frames, instances):
+    def add_molecules(self, frames: str, instances: int):
+        """Add molecules to the configuration file.
+
+        Args:
+            frames (str): Filepath of molecule to add to configuration file
+            instances (int): Number of instances of molecule to add to configuration file 
+        """
         for frame, instance in zip(frames, instances):
             # self._add_molecule(frame, n=instance, orientation=orientation_generator.generate_inplane())
             self._add_molecule(frame, n=instance)
@@ -208,12 +222,10 @@ class configuration(object):
 
     def update_config(self, sample):
         """
-        updates the configuration file with the generated positions and orientations
+        Updates the configuration file with the generated positions and orientations
         
-        sample: parakeet.sample.Sample
-            sample object from Parakeet
+        sample (parakeet.sample.Sample): Sample object from Parakeet
         """
-
         frame_idx = 0
         for molecule in sample.molecules:
             _, positions, orientations = sample.get_molecule(molecule)
@@ -227,8 +239,5 @@ class configuration(object):
                 # the orientation can contain negative values, which are not allowed in the configuration file. 
                 self.config.sample.molecules.local[frame_idx].instances[-1].orientation = [float((o+(2*np.pi))%(2*np.pi)) for o in orientation]
                 
-                
             frame_idx += 1
-       
         self._save_config()
-

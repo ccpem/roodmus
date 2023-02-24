@@ -2,7 +2,7 @@
 
 import os
 import argparse
-from Typing import Tuple
+from typing import Tuple
 
 import numpy as np
 from tqdm import tqdm
@@ -10,18 +10,28 @@ from tqdm import tqdm
 import parakeet
 from roodmus.run_parakeet.configuration import configuration
 
-### arguments
-def add_arguments(run_parakeet_parser):
+def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.ArgumentParser:
+    """Set up arguments for parsing, including both those for whole dataset
+     to-be-generated and those for the configuration for each image in dataset
+
+    Args:
+        parser (argparse.ArgumentParser): 
+        argparse.ArgumentParser:  Running parakeet argument parser
+
+    Returns:
+        argparse.ArgumentParser:  Running parakeet argument parser with arguments
+    """
+    
     run_parakeet_parser.add_argument(
         "--pdb_dir",
-        help="path to the directory containing the pdb files",
+        help="Path to the directory containing the pdb files",
         type=str,
         required=True,
     )
 
     run_parakeet_parser.add_argument(
         "--mrc_dir",
-        help=("path to the directory in which to save the mrc files"),
+        help=("Path to the directory in which to save the mrc files"),
         type=str,
         required=True,
     )
@@ -29,7 +39,7 @@ def add_arguments(run_parakeet_parser):
     run_parakeet_parser.add_argument(
         "-n",
         "--n_images",
-        help="number of images to generate",
+        help="Number of images to generate",
         type=int,
         default=1,
         required=False,
@@ -38,10 +48,24 @@ def add_arguments(run_parakeet_parser):
     run_parakeet_parser.add_argument(
         "-m",
         "--n_molecules",
-        help="number of molecules to generate in each image",
+        help="Number of molecules to generate in each image",
         type=int,
         default=1,
         required=False,
+    )
+
+    run_parakeet_parser.add_argument(
+        "--no_replacement",
+        help=("Disable sampling with replacement"),
+        default=True,
+        action="store_false",
+    )
+
+    run_parakeet_parser.add_argument(
+        "--tqdm",
+        help=("Turn on progress bar"),
+        default=False,
+        action="store_true"
     )
     
     parser = run_parakeet_parser.add_argument_group("configuration")
@@ -153,7 +177,6 @@ def add_arguments(run_parakeet_parser):
     parser.add_argument(
         "--dqe",
         help=("Use the DQE model (True/False)" " Defaults to False"),
-        type=bool,
         default=False,
         action="store_true",
     )
@@ -227,7 +250,6 @@ def add_arguments(run_parakeet_parser):
             " Parakeet simulation"
             " Defaults to False"
         ),
-        type=bool,
         default=False,
         action="store_true"
     )
@@ -544,9 +566,18 @@ def add_arguments(run_parakeet_parser):
             "Generate the (very slow) atomic ice model instead of fast GRF?"
             " Defaults to None (not used)"
         ),
-        type=bool,
-        default=None,
+        default=False,
         action="store_true",
+    )
+
+    parser.add_argument(
+        "--slow_ice_density",
+        help=(
+            "Density of molecular ice (slow ice simulation) in kg/m3"
+        ),
+        type=float,
+        default=940.0,
+        required=False,
     )
 
     parser.add_argument(
@@ -650,7 +681,6 @@ def add_arguments(run_parakeet_parser):
         help=(
             "Use the Gaussian Random Field ice model (True/False)." " Defaults to False"
         ),
-        type=bool,
         default=False,
         action="store_true",
     )
@@ -698,7 +728,6 @@ def add_arguments(run_parakeet_parser):
     parser.add_argument(
         "--radiation_damage_model",
         help=("Use the radiation damage model?" " Defaults to False"),
-        type=bool,
         default=False,
         action="store_true",
     )
@@ -735,33 +764,6 @@ def add_arguments(run_parakeet_parser):
     )
 
     parser.add_argument(
-        "--pdb_filepaths",
-        help=("The filename(s) of the atomic coordinates to use (*.pdb, *.cif)"),
-        nargs="+",
-        type=str,
-        default=["4v1w"],
-        required=False,
-    )
-
-    parser.add_argument(
-        "--pdb_instances",
-        help=(
-            "The instances of the molecule to put into the sample model. This "
-            "field can be set as either an integer or a list of MoleculePose "
-            "objects. If it is set to an integer == 1 then the molecule will be "
-            "positioned in the centre of the sample volume; any other integer "
-            "will result in the molecules being positioned at random positions "
-            "and orientations in the volume. If a list of MoleculePose objects "
-            "is given then an arbitrary selection of random and assigned "
-            "positions and poses can be set"
-        ),
-        nargs="+",
-        type=int,
-        default=[1],
-        required=False,
-    )
-
-    parser.add_argument(
         "--leading_zeros",
         help=("Number of decimal integers to use for image filenames"),
         type=int,
@@ -769,23 +771,32 @@ def add_arguments(run_parakeet_parser):
         required=False,
     )
 
-    parser.add_argument(
-        "--no_replacement",
-        help=("Disable sampling with replacement"),
-        type=bool,
-        default=True,
-        action="store_false",
-    )
-
     return run_parakeet_parser
 
 def get_name():
     return "run_parakeet"
 
-def sample_defocus(c_10, c_10_stddev):
+def sample_defocus(c_10: float, c_10_stddev: float)->float:
+    """Generate a defocus value from a Gaussian distribution
+
+    Args:
+        c_10 (float): Mean defocus value
+        c_10_stddev (float): Std deviation to use
+
+    Returns:
+        float: Defocus value
+    """
     return np.random.normal(c_10, c_10_stddev)
 
-def get_pdb_files(pdb_dir):
+def get_pdb_files(pdb_dir: str)->list[str]:
+    """Grab a list of molecule/structure definition files (such as PDBs) to add to micrographs
+
+    Args:
+        pdb_dir (str): Path to directory containing all molecules to use
+
+    Returns:
+        list[str]: List of molecules file paths
+    """
     pdb_dir = os.path.abspath(pdb_dir)
     pdb_files = []
     for file in os.listdir(pdb_dir):
@@ -800,7 +811,7 @@ def get_instances(pdb_files: list[str], n_molecules: int, replace=True)->Tuple[l
     Args:
         pdb_files list[str]: List of pdb files sample molecules for simulation from
         n_molecules int: Total number of molecules to simulate in each image
-        replace (bool, optional): _description_. Defaults to True.
+        replace (bool, optional): Toggle sampling with replacement on or off. Defaults to True.
 
     Returns:
         Tuple[list[str], list[int]]: Same length lists of molecules
@@ -831,9 +842,7 @@ def get_instances(pdb_files: list[str], n_molecules: int, replace=True)->Tuple[l
     
     return pdb_files, n_instances
         
-### main
 def main(args):
-    
     ## the main function loops over the number of images to generate. For each image, parakeet is configured and a number of .pdb files is selected. 
     ## The number of instances gets determined based on the number of .pdb files. If there are less .pdb files than molecules to generate, some of the
     ## .pdb files are repeated. If there are more .pdb files than molecules to generate, some of the .pdb files are removed. 
@@ -845,24 +854,32 @@ def main(args):
     ## frame: .pdb file containing the structure of a molecule from a single frame in the MD trajectory
     ## instance: multiplicity of a frame in the simulated image. if there are 10 frames and 100 molecules, each frame is an instance 10 times
     ## molecule: a single particle in the the simulated image
+
+    # create mrc-dir for output images if it doesn't already exist
+    if not os.path.exists(args.mrc_dir):
+        os.makedirs(args.mrc_dir)
     
-    images_in_directory = len([r for r in os.listdir(args.mrc_dir) if r.endswith(".mrc")]) # number of images already in the directory
+    # check how many images are already in the mrc_dir
+    images_in_directory = len([r for r in os.listdir(args.mrc_dir) if r.endswith(".mrc")])
     
     # get the pdb files
     frames = get_pdb_files(args.pdb_dir)
 
     ## loop over the number of images to generate
-    progressbar = tqdm(range(args.n_images))
+    progressbar = None
+    if args.tqdm:
+        progressbar = tqdm(range(args.n_images))
     defocus_idx = 0
     for n_image in range(images_in_directory, args.n_images+images_in_directory):
+        
+        # full path to where the current image will be saved
+        mrc_filename = os.path.join(args.mrc_dir, f"{n_image}".zfill(args.leading_zeros) + ".mrc")
+
+        # full path to where the current configuration will be saved
+        config_filename = os.path.join(args.mrc_dir, f"{n_image}".zfill(args.leading_zeros) + ".yaml")
 
         # initialise the configuration
-        config = configuration(args=args)
-        
-        mrc_filename = f"{n_image}".zfill(config.leading_zeros) + ".mrc"
-        mrc_path = os.path.join(args.mrc_dir, mrc_filename) # full path to where the current image will be saved
-        config_filename = f"{n_image}".zfill(config.leading_zeros) + ".yaml"
-        config_path = os.path.join(args.mrc_dir, config_filename) # full path to where the current configuration will be saved
+        config = configuration(config_filename, args=args)
 
         # sample the defocus around the specified value
         config.config.microscope.lens.c_10 = sample_defocus(args.c_10[defocus_idx], args.c_10_stddev[defocus_idx])
@@ -874,14 +891,14 @@ def main(args):
         config.add_molecules(chosen_frames, n_instances)
             
         # run parakeet
-        sample = parakeet.sample.new(config_path, sample_file=config.sample_filename)
-        sample = parakeet.sample.add_molecules(config_path, sample_file=config.sample_filename)
-        parakeet.simulate.exit_wave(config_path, config.sample_filename, exit_wave_file=config.exit_wave_filename)
-        parakeet.simulate.optics(config_path, exit_wave_file=config.exit_wave_filename, optics_file=config.optics_filename)
-        parakeet.simulate.image(config_path, optics_file=config.optics_filename, image_file=config.image_filename)
+        sample = parakeet.sample.new(config_filename, sample_file=config.sample_filename)
+        sample = parakeet.sample.add_molecules(config_filename, sample_file=config.sample_filename)
+        parakeet.simulate.exit_wave(config_filename, config.sample_filename, exit_wave_file=config.exit_wave_filename)
+        parakeet.simulate.optics(config_filename, exit_wave_file=config.exit_wave_filename, optics_file=config.optics_filename)
+        parakeet.simulate.image(config_filename, optics_file=config.optics_filename, image_file=config.image_filename)
 
         # save the image
-        os.system(f"parakeet.export {config.image_filename} -o {mrc_path}")
+        os.system(f"parakeet.export {config.image_filename} -o {mrc_filename}")
 
         # remove the intermediate files
         os.system(f"rm {config.sample_filename} {config.exit_wave_filename} {config.optics_filename} {config.image_filename}")
@@ -889,9 +906,11 @@ def main(args):
         # update the config from the sample and save/overwrite it
         config.update_config(sample)
             
-        progressbar.update(1)
+        if args.tqdm:
+            progressbar.update(1)
         
-    progressbar.close()
+    if args.tqdm:
+        progressbar.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
