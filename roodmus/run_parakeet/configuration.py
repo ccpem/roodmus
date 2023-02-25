@@ -1,5 +1,7 @@
 
 # configutation class to setup the parameters for Parakeet
+import os
+import argparse
 
 import yaml
 import numpy as np
@@ -24,6 +26,10 @@ class configuration(object):
 
         self.config = config.new(filename = self.config_filename, full=True)
         if args:
+            self.sample_filename = "sample.h5"
+            self.exit_wave_filename = os.path.join(args.mrc_dir, "exit_wave.h5")
+            self.optics_filename = os.path.join(args.mrc_dir, "optics.h5")
+            self.image_filename = os.path.join(args.mrc_dir, "image.h5")
             self.leading_zeros = args.leading_zeros
             self._set_config(args)
         

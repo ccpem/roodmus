@@ -751,19 +751,6 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     )
 
     parser.add_argument(
-        "--pdb_source",
-        help=(
-            "Whether to use local or parakeet dir as source of molecule(s)."
-            " Defaults to pdb"
-        ),
-        choices=["local", "pdb"],
-        nargs="?",
-        type=str,
-        default="pdb",
-        required=False,
-    )
-
-    parser.add_argument(
         "--leading_zeros",
         help=("Number of decimal integers to use for image filenames"),
         type=int,
@@ -891,11 +878,24 @@ def main(args):
         config.add_molecules(chosen_frames, n_instances)
             
         # run parakeet
-        sample = parakeet.sample.new(config_filename, sample_file=config.sample_filename)
-        sample = parakeet.sample.add_molecules(config_filename, sample_file=config.sample_filename)
-        parakeet.simulate.exit_wave(config_filename, config.sample_filename, exit_wave_file=config.exit_wave_filename)
-        parakeet.simulate.optics(config_filename, exit_wave_file=config.exit_wave_filename, optics_file=config.optics_filename)
-        parakeet.simulate.image(config_filename, optics_file=config.optics_filename, image_file=config.image_filename)
+        sample = parakeet.sample.new(config.config_filename, sample_file=config.sample_filename)
+        sample = parakeet.sample.add_molecules(config.config_filename, sample_file=config.sample_filename)
+        # write out metadata if it doesn't already exist - metadata writing is currently bugged but this
+        # code should work!
+        """
+        if n_image==images_in_directory:
+            # undecided on how this should work, but 
+            # if the mtf file generated isn't same as pre-existing one,
+            # then the directory should not have more images appended to it
+            # For now only checks if this dir already has metadata in it...
+            if not os.path.exists(os.path.join(args.mrc_dir, "relion")):
+                parakeet.metadata.export(config.config_filename, config.sample_filename, args.mrc_dir)
+            else:
+                raise FileExistsError("{} already exists!".format(os.path.join(args.mrc_dir, "relion")))
+        """
+        parakeet.simulate.exit_wave(config.config_filename, config.sample_filename, exit_wave_file=config.exit_wave_filename)
+        parakeet.simulate.optics(config.config_filename, exit_wave_file=config.exit_wave_filename, optics_file=config.optics_filename)
+        parakeet.simulate.image(config.config_filename, optics_file=config.optics_filename, image_file=config.image_filename)
 
         # save the image
         os.system(f"parakeet.export {config.image_filename} -o {mrc_filename}")
