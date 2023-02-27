@@ -67,6 +67,13 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
         default=False,
         action="store_true"
     )
+
+    run_parakeet_parser.add_argument(
+        "--overwrite_metadata",
+        help=("Overwrite metdata output"),
+        default=False,
+        action="store_true",
+    )
     
     parser = run_parakeet_parser.add_argument_group("configuration")
     parser.add_argument(
@@ -806,8 +813,8 @@ def get_instances(pdb_files: list[str], n_molecules: int, replace=True)->Tuple[l
     """
     num_structures = len(pdb_files)
         
-    # if the number of structures is less than the number of molecules, we need to repeat some of the structures
-    if num_structures < n_molecules:
+    # if the number of structures is <= than the number of molecules, we need to repeat some of the structures
+    if num_structures <= n_molecules:
         # start by adding each structure the same number of times to get as close to the number of molecules as possible
         n_instances = [n_molecules//num_structures]*num_structures
         # then randomly add another copy of any pdb until we reach the number of molecules
@@ -816,17 +823,16 @@ def get_instances(pdb_files: list[str], n_molecules: int, replace=True)->Tuple[l
             
     # if the number of structures is greater than or equal to the number of molecules, randomly sample them
     else:
-        if num_structures > n_molecules:
-            # sample the pdb files without replacement
-            pdb_files, n_instances = np.unique(
-                np.random.choice(
-                    pdb_files, n_molecules, replace=replace
-                ),
-                return_counts=True
-            )
-            pdb_files = pdb_files.tolist()
-            n_instances = n_instances.tolist()
-    
+        # sample the pdb files with replacement by default
+        pdb_files, n_instances = np.unique(
+            np.random.choice(
+                pdb_files, n_molecules, replace=replace
+            ),
+            return_counts=True,
+        )
+        pdb_files = pdb_files.tolist()
+        n_instances = n_instances.tolist()
+
     return pdb_files, n_instances
         
 def main(args):
@@ -880,19 +886,18 @@ def main(args):
         # run parakeet
         sample = parakeet.sample.new(config.config_filename, sample_file=config.sample_filename)
         sample = parakeet.sample.add_molecules(config.config_filename, sample_file=config.sample_filename)
-        # write out metadata if it doesn't already exist - metadata writing is currently bugged but this
-        # code should work!
-        """
+        
+        # Write out the metadata if this is the first image in this run_parakeet session or if overwrite requested
         if n_image==images_in_directory:
-            # undecided on how this should work, but 
-            # if the mtf file generated isn't same as pre-existing one,
-            # then the directory should not have more images appended to it
-            # For now only checks if this dir already has metadata in it...
-            if not os.path.exists(os.path.join(args.mrc_dir, "relion")):
-                parakeet.metadata.export(config.config_filename, config.sample_filename, args.mrc_dir)
+            metadata_exporter = parakeet.metadata.RelionMetadataExporter(config.config, sample, args.mrc_dir)
+            if not os.path.exists(os.path.join(args.mrc_dir, "relion/mtf_{}kV.star"/format(config.config.microscope.beam.energy))):
+                metadata_exporter.write_mtf_file()
             else:
-                raise FileExistsError("{} already exists!".format(os.path.join(args.mrc_dir, "relion")))
-        """
+                if args.overwrite_metadata:
+                    metadata_exporter.write_mtf_file()
+                else:
+                    raise FileExistsError("{} already exists!".format(os.path.join(args.mrc_dir, "relion")))
+        
         parakeet.simulate.exit_wave(config.config_filename, config.sample_filename, exit_wave_file=config.exit_wave_filename)
         parakeet.simulate.optics(config.config_filename, exit_wave_file=config.exit_wave_filename, optics_file=config.optics_filename)
         parakeet.simulate.image(config.config_filename, optics_file=config.optics_filename, image_file=config.image_filename)
