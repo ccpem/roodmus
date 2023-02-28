@@ -241,9 +241,7 @@ class configuration(object):
             for position, orientation in zip(positions, orientations):
                 self.config.sample.molecules.local[frame_idx].instances.append(config.MoleculePose())
                 self.config.sample.molecules.local[frame_idx].instances[-1].position = [float(p) for p in position]
-                
-                # the orientation can contain negative values, which are not allowed in the configuration file. 
-                self.config.sample.molecules.local[frame_idx].instances[-1].orientation = [float((o+(2*np.pi))%(2*np.pi)) for o in orientation]
+                self.config.sample.molecules.local[frame_idx].instances[-1].orientation = [float(o) for o in orientation]
                 
             frame_idx += 1
         self._save_config()
