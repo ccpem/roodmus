@@ -890,7 +890,7 @@ def main(args):
         # Write out the metadata if this is the first image in this run_parakeet session or if overwrite requested
         if n_image==images_in_directory:
             metadata_exporter = parakeet.metadata.RelionMetadataExporter(config.config, sample, args.mrc_dir)
-            if not os.path.exists(os.path.join(args.mrc_dir, "relion/mtf_{}kV.star"/format(config.config.microscope.beam.energy))):
+            if not os.path.exists(os.path.join(args.mrc_dir, "relion/mtf_{}kV.star".format(config.config.microscope.beam.energy))):
                 metadata_exporter.write_mtf_file()
             else:
                 if args.overwrite_metadata:
