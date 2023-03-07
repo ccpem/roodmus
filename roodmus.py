@@ -11,14 +11,14 @@ def main():
     
     import roodmus.run_parakeet.run_parakeet
     import roodmus.trajectory.waymarking
-    import roodmus.analysis.analyse_ctf
+    import roodmus.analysis.plot_ctf
     import roodmus.analysis.analyse_picking
     import roodmus.analysis.analyse_alignment
     
     modules = [
         roodmus.run_parakeet.run_parakeet,
         roodmus.trajectory.waymarking,
-        roodmus.analysis.analyse_ctf,
+        roodmus.analysis.plot_ctf,
         roodmus.analysis.analyse_picking,
     ]
     
