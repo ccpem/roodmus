@@ -157,6 +157,10 @@ def main(args):
     ## Next, the script loads the config parakeet file and gets the CTF values for each micrograph. 
     ## for each micrograph that is present in the metadata, the script will plot the estimated CTF values against the ground-truth CTF values.
 
+    # create output directory if it does not exist
+    if not os.path.exists(args.plot_dir):
+        os.mkdir(args.plot_dir)
+
     if args.verbose:
         tt = time.time()
         print("loading particles ...")

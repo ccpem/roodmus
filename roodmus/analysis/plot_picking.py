@@ -3,25 +3,20 @@
 ### arguments
 def add_arguments(parser):
     parser.add_argument("--config-dir", help="directory with .mrc files and .yaml config files", type=str)
-    parser.add_argument("--mr-dir", help="directory with .mrc files. The same as 'config-dir' by default", type=str, default=None)
-    parser.add_argument("--meta-file", help="particle metadata file. Can be .star (RELION) or .cs (CryoSPARC)", type=str)
+    parser.add_argument("--mrc-dir", help="directory with .mrc files. The same as 'config-dir' by default", type=str, default=None)
+    parser.add_argument("--meta-file", help="particle metadata file. Can be .star (RELION) or .cs (CryoSPARC)", type=str, nargs="+")
+    parser.add_argument("--jobtypes", help="labels for each metadata file. Must be the same length as 'meta-file'", type=str, nargs="+")
     parser.add_argument("-N", "--num-ugraphs", help="number of micrographs to consider in analyses. Default 'all'", type=int, default=None)
     parser.add_argument("--box-width", help="Full width of overlay boxes on images", type=float, default=50., required=False)
     parser.add_argument("--box-height", help="Full height of overlay boxes on images", type=float, default=50., required=False)
     parser.add_argument("--particle-diameter", help="Expected maximum particle diameter. Used to limit search radius for matching picked particles to truth particles", type=float, default=250., required=False)
-    # parser.add_argument("--pixel-bin-width", help="Number of image pixels to bin together for histograms", type=int, default=100, required=False)
-    # parser.add_argument("--plot-truth-centres", help="Plot the ground-truth particle centres", action="store_true")
-    # parser.add_argument("--plot-per-ugraph", help="Plot the results per micrograph", action="store_true")
-    # parser.add_argument("--plot-collective-boundary", help="Plot the collective boundary investigation", action="store_true")
-    # parser.add_argument("--plot-collective-depth", help="Plot the collective depth investigation", action="store_true")
-    # parser.add_argument("--plot-collective-overlap", help="Plot the collective overlap investigation", action="store_true")
     parser.add_argument("--plot-dir", help="output file name", type=str)
-    parser.add_argument("--plot-types", help="types of analysis results to plot", type=str, nargs="+")
+    parser.add_argument("--plot-types", help="types of analysis results to plot", type=str, nargs="+", choices=["label_truth", "label_picked", "label_truth_and_picked", "precision", "boundary", "overlap"])
     parser.add_argument("--verbose", help="increase output verbosity", action="store_true")
     return parser
 
 def get_name():
-    return "analyse_picking"
+    return "plot_picking"
 
 ### imports
 # general
@@ -32,7 +27,7 @@ import matplotlib.pyplot as plt
 from matplotlib import patches
 import numpy as np
 import mrcfile
-from typing import Tuple
+from typing import Tuple, Dict
 # roodmus
 from roodmus.analysis.analysis import particle_picking
 
@@ -175,94 +170,213 @@ def label_micrograph_truth_and_picked(picked_particles: pd.DataFrame, truth_part
         ax.legend(handles=[red_patch, green_patch])
     return fig, ax
 
-def plot_precision(picked_particles: pd.DataFrame, truth_particles: pd.DataFrame):
+def plot_precision(df_precision: pd.DataFrame, jobtypes: Dict[str, str]):
     ## precision is calculated as follows:
     ## precision = TP / (TP + FP)
     ## where TP is the number of true positives, which is stored in the picked_particles dataframe
     ## and FP is the number of false positives, which can be extracted from the truth_particles dataframe by looking at the number of truth particles
     ## that have 0 multiplicity
 
-    # get the number of true positives
+    # plt.rcParams["font.size"] = 14
+    fig, ax = plt.subplots(figsize=(10,5))
+    sns.boxplot(x="metadata_filename", y="precision", data=df_precision, ax=ax, fliersize=0, palette="Blues")
+    sns.stripplot(x="metadata_filename", y="precision", data=df_precision, ax=ax, hue="defocus", alpha=0.7, palette="RdYlBu")
+    # change the xticklabels to the jobtype
+    ax.set_xticklabels([jobtypes[metadata_filename] for metadata_filename in df_precision["metadata_filename"].unique()])
+    # remove legend
+    ax.get_legend().remove()
+    # add colorbar
+    sm = plt.cm.ScalarMappable(cmap="RdYlBu", norm=plt.Normalize(vmin=df_precision["defocus"].min(), vmax=df_precision["defocus"].max()))
+    sm._A = []
+    cbar = fig.colorbar(sm, ax=ax)
+    cbar.set_label("defocus (Å)", rotation=270, labelpad=20)
+    # add labels
+    ax.set_xlabel("job type")
+    ax.set_ylabel("precision")
+    ax.set_title("Precision for different job types")
+    # rotate xtiklabels 45 degrees
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+    fig.tight_layout()
+    return fig, ax
 
-    return
+def plot_recall(df_precision: pd.DataFrame, jobtypes: Dict[str, str]):
+    fig, ax = plt.subplots(figsize=(10,5))
+    sns.boxplot(x="metadata_filename", y="recall", data=df_precision, ax=ax, fliersize=0, palette="Blues")
+    sns.stripplot(x="metadata_filename", y="recall", data=df_precision, ax=ax, hue="defocus", alpha=0.7, palette="RdYlBu")
+    # change the xticklabels to the jobtype
+    ax.set_xticklabels([jobtypes[metadata_filename] for metadata_filename in df_precision["metadata_filename"].unique()])
+    # remove legend
+    ax.get_legend().remove()
+    # add colorbar
+    sm = plt.cm.ScalarMappable(cmap="RdYlBu", norm=plt.Normalize(vmin=df_precision["defocus"].min(), vmax=df_precision["defocus"].max()))
+    sm._A = []
+    cbar = fig.colorbar(sm, ax=ax)
+    cbar.set_label("defocus (Å)", rotation=270, labelpad=20)
+    # add labels
+    ax.set_xlabel("job type")
+    ax.set_ylabel("recall")
+    ax.set_title("Recall for different job types")
+    # rotate xtiklabels 45 degrees
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+    fig.tight_layout()
+    return fig, ax
 
+def plot_boundary_investigation(df_truth: pd.DataFrame, df_picked: pd.DataFrame, metadata_filename: str, bin_width: int=100, axis: str="x"):
+    particles_per_ugraph = df_truth.groupby(["metadata_filename", "ugraph_filename"]).size().reset_index(name="particles_per_ugraph")
+    avg_particles_per_ugraph = particles_per_ugraph.groupby("metadata_filename").get_group(metadata_filename)["particles_per_ugraph"].mean()
+    num_ugraphs = len(particles_per_ugraph.groupby("metadata_filename").get_group(metadata_filename))
+    if axis != "z":
+        particles_per_bin = avg_particles_per_ugraph * (bin_width / df_picked["ugraph_shape"][0][0]) * num_ugraphs
+        bins = np.arange(0, df_picked["ugraph_shape"][0][0], bin_width)
+    else:
+        particles_per_bin = avg_particles_per_ugraph * (bin_width / df_truth["ice_thickness"][0]) * num_ugraphs
+        bins = np.arange(0, df_truth["ice_thickness"][0], bin_width)
 
+    fig, ax = plt.subplots()
+    if axis != "z":
+        sns.histplot(x=f"position_{axis}", data=df_picked.groupby("metadata_filename").get_group(metadata_filename), stat="count", bins=bins, color="red", label="picked", fill=False, ax=ax)
+    sns.histplot(x=f"position_{axis}", data=df_truth.groupby("metadata_filename").get_group(metadata_filename), stat="count", bins=bins, color="blue", label="truth", fill=False, ax=ax)
+    # plot a line at the expected number of particles per bin
+    if axis != "z":
+        ax.hlines([particles_per_bin], 0., df_picked["ugraph_shape"][0][0], colors=['black'], linestyles=['dashed'], label='expected')
+    else:
+        ax.hlines([particles_per_bin], 0., df_truth["ice_thickness"][0], colors=['black'], linestyles=['dashed'], label='expected')
+    ax.set_xlabel(f"{axis} position (Angstroms)")
+    ax.set_ylabel("Count")
+    ax.set_title(os.path.basename(metadata_filename))
+    return fig, ax
+
+def plot_overlap_investigation(df_overlap: pd.DataFrame, metadata_filename: str=None, jobtypes: Dict[str, str]=None):
+    if metadata_filename is None:
+        # plot all metadata files in one plot
+        fig, ax = plt.subplots(figsize=(10, 10))
+        sns.lineplot(x="radius", y="neighbours_truth", data=df_overlap, ax=ax, marker="o", errorbar="sd", hue="metadata_filename", markeredgecolor="black", palette="Dark2")
+        sns.lineplot(x="radius", y="neighbours_picked", data=df_overlap, ax=ax, marker="x", errorbar="sd", hue="metadata_filename", markeredgecolor="black", palette="Dark2")
+        ax.grid(which="both")
+        # only show legend for the first half of the lines
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles=handles[:len(handles)//2], labels=labels[:len(labels)//2])
+        ax.set_ylabel("# Overlaps with a truth particle")
+        fig.tight_layout()
+        return fig, ax
+    
+    else:
+        print(f"plotting overlap for {metadata_filename}")
+        # make a plot for each metadata file
+        fig, ax = plt.subplots(figsize=(18, 8))
+        sns.lineplot(x="radius", y="neighbours_truth", data=df_overlap.groupby("metadata_filename").get_group(metadata_filename), ax=ax, marker="o", errorbar="sd", markeredgecolor="black", color="blue", label="truth")	
+        sns.lineplot(x="radius", y="neighbours_picked", data=df_overlap.groupby("metadata_filename").get_group(metadata_filename), ax=ax, marker="x", errorbar="sd", markeredgecolor="black", color="red", label="picked")
+        # sns.stripplot(x="radius", y="neighbours_truth", data=df_overlap.groupby("metadata_filename").get_group(groupname), ax=ax, hue="defocus", alpha=0.5, jitter=0, palette="RdYlBu")
+        # sns.stripplot(x="radius", y="neighbours_picked", data=df_overlap.groupby("metadata_filename").get_group(groupname), ax=ax, hue="defocus", alpha=0.5, jitter=0, palette="RdYlBu")
+        ax.grid(which="both")
+        ax.set_ylabel("# Overlaps with a truth particle")
+        fig.tight_layout()
+        return fig, ax
 
 ### main
 def main(args):
     ## this analysis tool makes plots of the picked and ground-truth particles in a number of micrographs. It then 
     ## makes quantitative comparisons between the two.
 
-    analysis = particle_picking(args.meta_file, args.config_dir, args.particle_diameter, verbose=args.verbose)
+    if args.mrc_dir is None:
+        args.mrc_dir = args.config_dir
+
+    for i, meta_file in enumerate(args.meta_file):
+        if i == 0:
+            analysis = particle_picking(meta_file, args.config_dir, args.particle_diameter, verbose=args.verbose)
+        else:
+            analysis.compute(meta_file, args.config_dir, verbose=args.verbose)
     df_picked = pd.DataFrame(analysis.results_picking) # data frame containing the picked particles
     df_truth = pd.DataFrame(analysis.results_truth) # data frame containing the ground-truth particles
 
     for plot_type in args.plot_types:
         
         if plot_type == "label_truth": # plot the ground-truth particles
-            for ugraph_index, ugraph_filename in enumerate(np.unique(df_truth["ugraph_filename"])[:args.num_ugraphs]):
-                print(f"plotting micrograph {ugraph_filename}")
-                print("plotting ground-truth particles...")
-                fig, ax = label_micrograph_truth(df_truth, ugraph_index, args.mrc_dir, box_width=args.box_width, box_height=args.box_height, verbose=args.verbose)
+            for meta_file in args.meta_file:
+                meta_basename = os.path.basename(meta_file)
+                df_truth_grouped = df_truth.groupby("metadata_filename").get_group(meta_file)
+                for ugraph_index, ugraph_filename in enumerate(np.unique(df_truth_grouped["ugraph_filename"])[:args.num_ugraphs]):
+                    print(f"plotting micrograph {ugraph_filename}, from metadata file {meta_basename}")
+                    print("plotting ground-truth particles...")
+                    fig, ax = label_micrograph_truth(df_truth_grouped, ugraph_index, args.mrc_dir, box_width=args.box_width, box_height=args.box_height, verbose=args.verbose)
+                    outfilename = os.path.join(args.plot_dir, f"{ugraph_filename.strip('.mrc')}_{meta_basename.split('.')[0]}_truth.png")
+                    fig.savefig(outfilename)
+                    fig.clf()
             
         if plot_type == "label_picked": # plot the picked particles
-            for ugraph_index, ugraph_filename in enumerate(np.unique(df_picked["ugraph_filename"])[:args.num_ugraphs]):
-                print(f"plotting micrograph {ugraph_filename}")
-                print("plotting picked particles...")
-                fig, ax = label_micrograph_picked(df_picked, ugraph_index, args.mrc_dir, box_width=args.box_width, box_height=args.box_height, verbose=args.verbose)
-                
+            for meta_file in args.meta_file:
+                meta_basename = os.path.basename(meta_file)
+                df_truth_grouped = df_truth.groupby("metadata_filename").get_group(meta_file)
+                for ugraph_index, ugraph_filename in enumerate(np.unique(df_picked["ugraph_filename"])[:args.num_ugraphs]):
+                    print(f"plotting micrograph {ugraph_filename}, from metadata file {meta_basename}")
+                    print("plotting picked particles...")
+                    fig, ax = label_micrograph_picked(df_picked, ugraph_index, args.mrc_dir, box_width=args.box_width, box_height=args.box_height, verbose=args.verbose)
+                    outfilename = os.path.join(args.plot_dir, f"{ugraph_filename.strip('.mrc')}_{meta_basename.split('.')[0]}_picked.png")
+                    fig.savefig(outfilename)
+                    fig.clf()
+
         if plot_type == "label_truth_and_picked":
-            for ugraph_index, ugraph_filename in enumerate(np.unique(df_picked["ugraph_filename"])[:args.num_ugraphs]):
-                print(f"plotting micrograph {ugraph_filename}")
-                print("plotting picked particles...")
-                fig, ax = label_micrograph_truth_and_picked(df_picked, df_truth, ugraph_index, args.mrc_dir, box_width=args.box_width, box_height=args.box_height, verbose=args.verbose)
+            for meta_file in args.meta_file:
+                df_truth_grouped = df_truth.groupby("metadata_filename").get_group(meta_file)
+                for ugraph_index, ugraph_filename in enumerate(np.unique(df_picked["ugraph_filename"])[:args.num_ugraphs]):
+                    print(f"plotting micrograph {ugraph_filename}, from metadata file {meta_basename}")
+                    print("plotting picked particles...")
+                    fig, ax = label_micrograph_truth_and_picked(df_picked, df_truth, ugraph_index, args.mrc_dir, box_width=args.box_width, box_height=args.box_height, verbose=args.verbose)
+                    outfilename = os.path.join(args.plot_dir, f"{ugraph_filename.strip('.mrc')}_{meta_basename.split('.')[0]}_truth_and_picked.png")
+                    fig.savefig(outfilename)
+                    fig.clf()
 
+        if plot_type == "precision":
+            # first need to compute the precision statistics
+            df_precision = analysis.compute_precision(df_picked, df_truth)
+            # then get a dictionary of the jobtypes
+            if args.jobtypes is not None:
+                jobtypes = {
+                    meta_file: jobtype for meta_file, jobtype in zip(args.meta_file, args.jobtypes)
+                }
+            else:
+                jobtypes = {
+                    meta_file: os.path.basename(meta_file).split(".")[0] for meta_file in args.meta_file
+                }
+            print("plotting precision...")
+            fig, ax = plot_precision(df_precision, jobtypes)
+            outfilename = os.path.join(args.plot_dir, "precision.png")
+            fig.savefig(outfilename)
+            fig.clf()
 
-    # ## now we can make the plots
-    # # plots per micrograph
-    # if args.plot_per_ugraph:
-    #     print("plotting per micrograph...")
-    #     for ugraph_filename in list(gt_particles.keys()):
-    #         print(f"plotting micrograph {ugraph_filename}")
-    #         print("plotting ground-truth particles...")
-    #         ugraph_path = os.path.join(args.mrc_dir, ugraph_filename)
-    #         label_micrograph_truth(ugraph_path, args.plot_dir, gt_particles[ugraph_filename], args.box_width, args.box_height, args.plot_truth_centres, args.verbose)
+            print("plotting recall...")
+            fig, ax = plot_recall(df_precision, jobtypes)
+            outfilename = os.path.join(args.plot_dir, "recall.png")
+            fig.savefig(outfilename)
+            fig.clf()
 
-    #         print("plotting picked particles...")
-    #         label_micrograph_picked(ugraph_path, args.plot_dir, particles[ugraph_filename], args.box_width, args.box_height, args.verbose)
+        if plot_type == "boundary":
+            bin_width = [100, 100, 10] # bin width for x, y, z
+            axis = ["x", "y", "z"]
 
+            for meta_file in args.meta_file:
+                meta_basename = os.path.basename(meta_file)
+                print(f"plotting boundary for metadata file {meta_file}")
+                for a, bnwdth in zip(axis, bin_width):
+                    fig, ax = plot_boundary_investigation(df_truth, df_picked, meta_file, bnwdth, a)
+                    outfilename = os.path.join(args.plot_dir, f"{meta_basename.split('.')[0]}_boundary_{a}.png")
+                    fig.savefig(outfilename)
+                    fig.clf()
 
-    #         print("plotting ground-truth particles and picked particles...")
-    #         label_micrograph_truth_and_picked(ugraph_path, args.plot_dir, particles[ugraph_filename], gt_particles[ugraph_filename], args.box_width, args.box_height, args.verbose)
+        if plot_type == "overlap":
+            df_overlap = analysis.compute_overlap(df_picked, df_truth, verbose=args.verbose)
+            print("plotting overlap...")
+            for meta_file in args.meta_file:
+                meta_basename = os.path.basename(meta_file)
+                fig, ax = plot_overlap_investigation(df_overlap, meta_file)
+                outfilename = os.path.join(args.plot_dir, f"{meta_basename.split('.')[0]}_overlap.png")
+                fig.savefig(outfilename)
+                fig.clf()
 
-    #         print("plotting ground-truth particles and picked particles (unpicked truth only)...")
-    #         label_micrograph_unpicked_truth_and_picked(ugraph_path, args.plot_dir, particles[ugraph_filename], gt_particles[ugraph_filename], args.box_width, args.box_height, args.verbose)
-                 
-    # # plots with collective statistics
-    # if args.plot_collective_boundary:
-    #     print("plotting collective statistics (boundary investigation)...")
-    #     boundary_investigation(gt_particles, particles, args.plot_dir, args.pixel_bin_width, args.verbose)    
-
-    # if args.plot_collective_overlap:
-    #     print("plotting collective statistics (overlap investigation)...")
-    #     overlap_investigation(gt_particles, particles, args.plot_dir, args.verbose)
-
-    # if args.plot_collective_depth:
-    #     print("plotting collective statistics (depth investigation)...")
-    #     depth_investigation(gt_particles, args.plot_dir, args.pixel_bin_width, args.verbose)
-
-    # # calculate picking efficiency per micrograph and insert into truth and picked particle dicts
-    # # this is a super simple alg which does not check 
-    # # for double-counted matches. These are mitigated through
-    # # the use of args.particle_diameter, which is the expected max particle diameter
-    # # particles, picked_particles = calculate_picking_efficiency(args, particles, picked_particles)
-
-    # # create a truth particle summary yaml from truth particles dict for future analysis/plotting
-    # # if args.truth_particles_yaml_filename:
-    # #     save_truth_particles(args, particles)
-    # # # create a picked particle summary yaml from picked particles dict for future analysis/plotting
-    # # if args.picked_particles_yaml_filename:
-    # #     save_picked_particles(args, picked_particles)
+            fig, ax = plot_overlap_investigation(df_overlap, None) # plot all
+            outfilename = os.path.join(args.plot_dir, "overlap.png")
+            fig.savefig(outfilename)
+            fig.clf()
 
 if __name__ == "__main__":
     import argparse
