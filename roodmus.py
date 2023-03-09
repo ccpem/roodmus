@@ -16,11 +16,20 @@ def main():
     subparsers = parser.add_subparsers(title="subcommands", description="valid subcommands", help="additional help")
     subparsers.required = True
     
+<<<<<<< HEAD
+=======
+    import roodmus.run_parakeet.run_parakeet
+    import roodmus.trajectory.waymarking
+    import roodmus.analysis.plot_ctf
+    import roodmus.analysis.plot_picking
+    # import roodmus.analysis.analyse_alignment
+    
+>>>>>>> development
     modules = [
         roodmus.run_parakeet.run_parakeet,
         roodmus.trajectory.waymarking,
-        roodmus.analysis.analyse_ctf,
-        roodmus.analysis.analyse_picking,
+        roodmus.analysis.plot_ctf,
+        roodmus.analysis.plot_picking,
     ]
     
     for module in modules:

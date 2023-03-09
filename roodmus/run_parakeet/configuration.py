@@ -239,9 +239,16 @@ class configuration(object):
             self.config.sample.molecules.local[frame_idx].instances = []
 
             for position, orientation in zip(positions, orientations):
+<<<<<<< HEAD
                 self.config.sample.molecules.local[frame_idx].instances.append(config.MoleculePose())
                 self.config.sample.molecules.local[frame_idx].instances[-1].position = [float(p) for p in position]
                 self.config.sample.molecules.local[frame_idx].instances[-1].orientation = [float(o) for o in orientation]
+=======
+                self.Config.sample.molecules.local[frame_idx].instances.append(config.MoleculePose())
+                self.Config.sample.molecules.local[frame_idx].instances[-1].position = [float(p) for p in position]
+                self.Config.sample.molecules.local[frame_idx].instances[-1].orientation = [float(o) for o in orientation]
+                
+>>>>>>> development
                 
             frame_idx += 1
         self._save_config()

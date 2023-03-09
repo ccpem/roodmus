@@ -28,14 +28,17 @@ class IO(object):
 
     @classmethod
     def get_ctf_cs(self, metadata_cs):
-        defocusU = metadata_cs["ctf/df1_A"]
-        defocusV = metadata_cs["ctf/df2_A"]
-        kV = metadata_cs["ctf/accel_kv"]
-        Cs = metadata_cs["ctf/cs_mm"]
-        amp = metadata_cs["ctf/amp_contrast"]
-        Bfac = metadata_cs["ctf/bfactor"]
-        return np.stack([defocusU, defocusV, kV, Cs, amp, Bfac], axis=1)
-
+        if "ctf/df1_A" in metadata_cs.dtype.names:
+            defocusU = metadata_cs["ctf/df1_A"]
+            defocusV = metadata_cs["ctf/df2_A"]
+            kV = metadata_cs["ctf/accel_kv"]
+            Cs = metadata_cs["ctf/cs_mm"]
+            amp = metadata_cs["ctf/amp_contrast"]
+            Bfac = metadata_cs["ctf/bfactor"]
+            return np.stack([defocusU, defocusV, kV, Cs, amp, Bfac], axis=1)
+        else:
+            return None
+ 
     @classmethod
     def get_positions_cs(self, metadata_cs):
         ugraph_shape = metadata_cs["location/micrograph_shape"]
@@ -48,6 +51,11 @@ class IO(object):
         # conver to single array
         pos = np.stack([x_abs, y_abs], axis=1)    
         return pos
+    
+    @classmethod
+    def get_ugraph_shape_cs(self, metadata_cs):
+        ugraph_shape = metadata_cs["location/micrograph_shape"]
+        return ugraph_shape
 
     # loading .star files and parsing the ctf parameters, the particle positions and orientations
     @classmethod
