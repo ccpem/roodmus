@@ -31,7 +31,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     run_parakeet_parser.add_argument(
         "--mrc_dir",
-        help=("Path to the directory in which to save the mrc files"),
+        help="Path to the directory in which to save the mrc files",
         type=str,
         required=True,
     )
@@ -56,21 +56,21 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     run_parakeet_parser.add_argument(
         "--no_replacement",
-        help=("Disable sampling with replacement"),
+        help="Disable sampling with replacement",
         default=True,
         action="store_false",
     )
 
     run_parakeet_parser.add_argument(
         "--tqdm",
-        help=("Turn on progress bar"),
+        help="Turn on progress bar",
         default=False,
         action="store_true"
     )
 
     run_parakeet_parser.add_argument(
         "--overwrite_metadata",
-        help=("Overwrite metdata output"),
+        help="Overwrite metdata output",
         default=False,
         action="store_true",
     )
@@ -111,7 +111,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--acceleration_voltage_spread",
-        help=("The acceleration voltage spread (dV/V)." " Defaults to 8.0e-07"),
+        help=("The acceleration voltage spread (dV/V). Defaults to 8.0e-07"),
         type=float,
         default=8.0e-7,
         required=False,
@@ -167,7 +167,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--phi",
-        help=("The beam tilt phi angle (deg)" " Defaults to 0"),
+        help=("The beam tilt phi angle (deg). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -175,7 +175,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--theta",
-        help=("The beam tilt theta angle (deg)" " Defaults to 0"),
+        help=("The beam tilt theta angle (deg). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -183,7 +183,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--dqe",
-        help=("Use the DQE model (True/False)" " Defaults to False"),
+        help=("Use the DQE model (True/False). Defaults to False"),
         default=False,
         action="store_true",
     )
@@ -287,7 +287,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--c_12",
-        help=("The 2-fold astigmatism (A)" " Defaults to 0"),
+        help=("The 2-fold astigmatism (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -295,7 +295,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--phi_12",
-        help=("The Azimuthal angle of 2-fold astigmatism (rad)" " Defaults to 0"),
+        help=("The Azimuthal angle of 2-fold astigmatism (rad). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -303,7 +303,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--c_21",
-        help=("The Axial coma (A)" " Defaults to 0"),
+        help=("The Axial coma (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -311,7 +311,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--phi_21",
-        help=("The Azimuthal angle of axial coma (rad)", " Defaults to 0"),
+        help=("The Azimuthal angle of axial coma (rad). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -319,7 +319,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--c_23",
-        help=("The 3-fold astigmatism (A)" " Defaults to 0"),
+        help=("The 3-fold astigmatism (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -327,7 +327,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--phi_23",
-        help=("The Azimuthal angle of 3-fold astigmatism (rad)" " Defaults to 0"),
+        help=("The Azimuthal angle of 3-fold astigmatism (rad). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -335,7 +335,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--c_30",
-        help=("Spherical aberration (A)" " Defaults to 2.7"),
+        help=("Spherical aberration (A). Defaults to 2.7"),
         type=float,
         default=2.7,
         required=False,
@@ -343,7 +343,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--c_32",
-        help=("The Axial star aberration (A)" " Defaults to 0"),
+        help=("The Axial star aberration (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -351,7 +351,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--phi_32",
-        help=("The Azimuthal angle of axial star aberration (rad)" " Defaults to 0"),
+        help=("The Azimuthal angle of axial star aberration (rad). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -359,7 +359,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--c_34",
-        help=("The 4-fold astigmatism (A)", " Defaults to 0"),
+        help=("The 4-fold astigmatism (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -368,8 +368,8 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--phi_34",
         help=(
-            "The Azimuthal angle of 4-fold astigmatism (rad)",
-            " Defaults to 0",
+            "The Azimuthal angle of 4-fold astigmatism (rad)"
+            " Defaults to 0"
         ),
         type=float,
         default=0.0,
@@ -378,7 +378,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--c_41",
-        help=("The 4th order axial coma (A)" " Defaults to 0"),
+        help=("The 4th order axial coma (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -386,7 +386,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--phi_41",
-        help=("The Azimuthal angle of 4th order axial coma (rad)", " Defaults to 0"),
+        help=("The Azimuthal angle of 4th order axial coma (rad). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -394,7 +394,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--c_43",
-        help=("The 3-lobe aberration (A)" " Defaults to 0"),
+        help=("The 3-lobe aberration (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -402,7 +402,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--phi_43",
-        help=("The Azimuthal angle of 3-lobe aberration (rad)" " Defaults to 0"),
+        help=("The Azimuthal angle of 3-lobe aberration (rad). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -410,7 +410,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--c_45",
-        help=("The 5-fold astigmatism (A)" " Defaults to 0"),
+        help=("The 5-fold astigmatism (A).  Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -418,7 +418,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--phi_45",
-        help=("The Azimuthal angle of 5-fold astigmatism (rad)" " Defaults to 0"),
+        help=("The Azimuthal angle of 5-fold astigmatism (rad). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -426,7 +426,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--c_50",
-        help=("The 5th order spherical aberration (A)" " Defaults to 0"),
+        help=("The 5th order spherical aberration (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -434,7 +434,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--c_52",
-        help=("The 5th order axial star aberration (A)" " Defaults to 0"),
+        help=("The 5th order axial star aberration (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -443,7 +443,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--phi_52",
         help=(
-            "The Azimuthal angle of 5th order axial star aberration (rad)"
+            "The Azimuthal angle of 5th order axial star aberration (rad)."
             " Defaults to 0"
         ),
         type=float,
@@ -453,7 +453,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--c_54",
-        help=("The 5th order rosette aberration (A)" " Defaults to 0"),
+        help=("The 5th order rosette aberration (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -462,7 +462,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--phi_54",
         help=(
-            "The Azimuthal angle of 5th order rosette aberration (rad)" " Defaults to 0"
+            "The Azimuthal angle of 5th order rosette aberration (rad). Defaults to 0"
         ),
         type=float,
         default=0.0,
@@ -471,7 +471,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--c_56",
-        help=("The 6-fold astigmatism (A)" " Defaults to 0"),
+        help=("The 6-fold astigmatism (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -479,7 +479,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--phi_56",
-        help=("The Azimuthal angle of 6-fold astigmatism (rad)" " Defaults to 0"),
+        help=("The Azimuthal angle of 6-fold astigmatism (rad). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
@@ -487,7 +487,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--c_c",
-        help=("Chromatic aberration (A)" " Defaults to 2.7"),
+        help=("Chromatic aberration (A). Defaults to 2.7"),
         type=float,
         default=2.7,
         required=False,
@@ -495,7 +495,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--current_spread",
-        help=("The current spread (dI/I)" " Defaults to 0.33e-6"),
+        help=("The current spread (dI/I). Defaults to 0.33e-6"),
         type=float,
         default=0.33e-6,
         required=False,
@@ -515,7 +515,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--box_x",
-        help=("Sample box size along x axis (Angstroms)" " Defaults to 1000"),
+        help=("Sample box size along x axis (Angstroms). Defaults to 1000"),
         type=float,
         default=1000.0,
         required=False,
@@ -523,7 +523,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--box_y",
-        help=("Sample box size along y axis (Angstroms)" " Defaults to 1000"),
+        help=("Sample box size along y axis (Angstroms). Defaults to 1000"),
         type=float,
         default=1000.0,
         required=False,
@@ -531,7 +531,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--box_z",
-        help=("Sample box size along z axis (Angstroms)" " Defaults to 500"),
+        help=("Sample box size along z axis (Angstroms). Defaults to 500"),
         type=float,
         default=500.0,
         required=False,
@@ -540,7 +540,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--centre_x",
         help=(
-            "Center of tomographic rotation around sample x axis (A)" " Defaults to 500"
+            "Center of tomographic rotation around sample x axis (A). Defaults to 500"
         ),
         type=float,
         default=500.0,
@@ -550,7 +550,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--centre_y",
         help=(
-            "Center of tomographic rotation around sample y axis (A)" " Defaults to 500"
+            "Center of tomographic rotation around sample y axis (A). Defaults to 500"
         ),
         type=float,
         default=500.0,
@@ -560,7 +560,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--centre_z",
         help=(
-            "Center of tomographic rotation around sample z axis (A)" " Defaults to 250"
+            "Center of tomographic rotation around sample z axis (A). Defaults to 250"
         ),
         type=float,
         default=250.0,
@@ -570,7 +570,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--slow_ice",
         help=(
-            "Generate the (very slow) atomic ice model instead of fast GRF?"
+            "Generate the (very slow) atomic ice model?"
             " Defaults to None (not used)"
         ),
         default=False,
@@ -601,7 +601,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--cube_length",
-        help=("The cube side length (A)" " Defaults to 1000"),
+        help=("The cube side length (A). Defaults to 1000"),
         type=float,
         default=1000.0,
         required=False,
@@ -609,7 +609,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--cuboid_length_x",
-        help=("The cuboid X side length (A)" " Defaults to 1000"),
+        help=("The cuboid X side length (A). Defaults to 1000"),
         type=float,
         default=1000.0,
         required=False,
@@ -617,7 +617,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--cuboid_length_y",
-        help=("The cuboid Y side length (A)" " Defaults to 1000"),
+        help=("The cuboid Y side length (A). Defaults to 1000"),
         type=float,
         default=1000.0,
         required=False,
@@ -625,7 +625,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--cuboid_length_z",
-        help=("The cuboid Z side length (A)" " Defaults to 1000"),
+        help=("The cuboid Z side length (A). Defaults to 1000"),
         type=float,
         default=500.0,
         required=False,
@@ -633,7 +633,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--cylinder_length",
-        help=("The cylinder length (A)" " Defaults to 1000"),
+        help=("The cylinder length (A). Defaults to 1000"),
         type=float,
         default=1000.0,
         required=False,
@@ -641,7 +641,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--cylinder_radius",
-        help=("The cylinder radius (A)" " Defaults to 500"),
+        help=("The cylinder radius (A). Defaults to 500"),
         type=float,
         default=500.0,
         required=False,
@@ -651,7 +651,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
         "--margin_x",
         help=(
             "The x axis margin used to define how close to the edges particles"
-            " should be placed (A)"
+            " should be placed (A)."
             " Default value is 0"
         ),
         type=float,
@@ -663,7 +663,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
         "--margin_y",
         help=(
             "The y axis margin used to define how close to the edges particles"
-            " should be placed (A)"
+            " should be placed (A)."
             " Default value is 0"
         ),
         type=float,
@@ -675,7 +675,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
         "--margin_z",
         help=(
             "The z axis margin used to define how close to the edges particles"
-            " should be placed (A)"
+            " should be placed (A)."
             " Default value is 0"
         ),
         type=float,
@@ -686,7 +686,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--fast_ice",
         help=(
-            "Use the Gaussian Random Field ice model (True/False)." " Defaults to False"
+            "Use the Gaussian Random Field ice model (True/False). Defaults to False"
         ),
         default=False,
         action="store_true",
@@ -694,7 +694,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--simulation_margin",
-        help=("The margin around the image." " Defaults to 100"),
+        help=("The margin around the image. Defaults to 100"),
         type=int,
         default=100,
         required=False,
@@ -702,7 +702,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--inelastic_model",
-        help=("The inelastic model parameters." " Defaults to None"),
+        help=("The inelastic model parameters. Defaults to None"),
         type=str,
         default=None,
         required=False,
@@ -710,7 +710,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--mp_loss_position",
-        help=("The MPL energy filter position." " Defaults to peak"),
+        help=("The MPL energy filter position. Defaults to peak"),
         type=str,
         default="peak",
         required=False,
@@ -718,7 +718,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--mp_loss_width",
-        help=("The MPL energy filter width (eV)." " Defaults to 50"),
+        help=("The MPL energy filter width (eV). Defaults to 50"),
         type=float,
         default=None,
         required=False,
@@ -726,7 +726,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--simulation_padding",
-        help=("Additional padding." " Defaults to 100"),
+        help=("Additional padding. Defaults to 100"),
         type=int,
         default=100,
         required=False,
@@ -734,7 +734,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--radiation_damage_model",
-        help=("Use the radiation damage model?" " Defaults to False"),
+        help=("Use the radiation damage model? Defaults to False"),
         default=False,
         action="store_true",
     )
@@ -742,7 +742,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--sensitivity_coefficient",
         help=(
-            "The radiation damage model sensitivity coefficient." " Defaults to 0.022"
+            "The radiation damage model sensitivity coefficient. Defaults to 0.022"
         ),
         type=float,
         default=0.022,
@@ -751,7 +751,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--slice_thickness",
-        help=("The multislice thickness (A)." " Defaults to 3.0"),
+        help=("The multislice thickness (A). Defaults to 3.0"),
         type=float,
         default=3.0,
         required=False,
