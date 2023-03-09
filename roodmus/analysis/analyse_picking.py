@@ -2,6 +2,7 @@
 
 import os
 import time
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -11,10 +12,11 @@ from scipy.spatial import cKDTree
 from roodmus.analysis.utils import IO
 
 class particle_picking(object):
-    def __init__(self, meta_file: str, config_dir: str, particle_diameter: float, results_picking: dict=None, results_truth: dict=None, verbose: bool=False):
+    def __init__(self, meta_file: str, config_dir: str, particle_diameter: float, ugraph_shape: Tuple[int, int]=(4000, 4000), results_picking: dict=None, results_truth: dict=None, verbose: bool=False):
         self.meta_file = meta_file
         self.config_dir = config_dir
         self.particle_diameter = particle_diameter
+        self.ugraph_shape = ugraph_shape
         self.verbose = verbose
         if results_picking is not None:
             self.results_picking = results_picking
@@ -78,6 +80,8 @@ class particle_picking(object):
             ugraph_paths, positions, ctf_params, ugraph_shapes = self._extract_from_metadata(metadata, file_type, self.verbose)
             if ctf_params is None:
                 ctf_params = np.ones((len(positions), 1)) * np.nan
+            if ugraph_shapes is None:
+                ugraph_shapes = np.ones((len(positions), 2)) * self.ugraph_shape
             self.ugraph_paths = list(np.unique(np.concatenate((self.ugraph_paths, ugraph_paths))))
             if self.verbose:
                 print(f"found {len(positions)} particles in {len(np.unique(self.ugraph_paths))} micrographs")
@@ -214,12 +218,16 @@ class particle_picking(object):
             positions = IO.get_positions_cs(metadata) # an array of all the defocus values in the metadata file
             ugraph_shape = IO.get_ugraph_shape_cs(metadata) # the shape of the micrograph
             ctf = IO.get_ctf_cs(metadata) # an array of all the defocus values in the metadata file
+
         elif file_type == "star":
             ugraph_paths = IO.get_ugraph_star(metadata) # a list of all microraps in the metadata file
             positions = IO.get_positions_star(metadata) # an array of all the defocus values in the metadata file
+            ctf = IO.get_ctf_star(metadata) # an array of all the defocus values in the metadata file
+            ugraph_shape = None # not stored in star files
+
         else:
             raise ValueError(f"unknown metadata file type: {file_type}")
-        
+
         if verbose:
             print(f"extracted ugraph paths and positions from metadata file")
             print(positions.shape)
