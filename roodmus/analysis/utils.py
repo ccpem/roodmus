@@ -4,6 +4,7 @@
 import os
 import yaml
 import numpy as np
+from scipy.spatial.transform.rotation import Rotation as R
 # pipeliner
 from pipeliner.jobstar_reader import RelionStarFile
 
@@ -21,7 +22,10 @@ class IO(object):
 
     @classmethod
     def get_ugraph_cs(self, metadata_cs):
-        ugraph_paths = metadata_cs["location/micrograph_path"]
+        if "location/micrograph_path" in metadata_cs.dtype.names:
+            ugraph_paths = metadata_cs["location/micrograph_path"]
+        elif "blob/path" in metadata_cs.dtype.names:
+            ugraph_paths = metadata_cs["blob/path"]
         # convert to basename and remove index
         ugraph_paths = [os.path.basename(path).decode("utf-8").split("_")[-1] for path in ugraph_paths]
         return ugraph_paths
@@ -53,8 +57,17 @@ class IO(object):
         return pos
     
     @classmethod
+    def get_orientations_cs(self, metadata_cs):
+        pose = metadata_cs["alignments3D/pose"] # orientations as rotation vectors
+        euler = R.from_rotvec(pose).as_euler("zyx", degrees=False) # convert to euler angles
+        return euler
+    
+    @classmethod
     def get_ugraph_shape_cs(self, metadata_cs):
-        ugraph_shape = metadata_cs["location/micrograph_shape"]
+        if "location/micrograph_shape" in metadata_cs.dtype.names:
+            ugraph_shape = metadata_cs["location/micrograph_shape"]
+        elif "blob/shape" in metadata_cs.dtype.names:
+            ugraph_shape = metadata_cs["blob/shape"]
         return ugraph_shape
 
     # loading .star files and parsing the ctf parameters, the particle positions and orientations
@@ -78,7 +91,8 @@ class IO(object):
 
         defocusU = [float(r) for r in metadata_star.column_as_list("particles", "_rlnDefocusU")]
         defocusV = [float(r) for r in metadata_star.column_as_list("particles", "_rlnDefocusV")]
-        return np.stack([defocusU, defocusV, kV*len(defocusU), Cs*len(defocusU), amp*len(defocusU)], axis=1)
+        Bfac = [0] # not available in RELION star files
+        return np.stack([defocusU, defocusV, kV*len(defocusU), Cs*len(defocusU), amp*len(defocusU), Bfac*len(defocusU)], axis=1)
 
     @classmethod
     def get_positions_star(self, metadata_star):
