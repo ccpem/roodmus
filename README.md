@@ -61,6 +61,9 @@ investigations into how heterogeneous reconstruction tools handle the simulated 
 # Licensing
 Need to figure out what kind of license we want and when/how we need to get it for the repo. May have to use the same licence as parakeet.
 
+# Parakeet Compatibility
+Code is currently tested with parakeet commit `024b86ebf55adf737c1b1116b8adbb59ee7db491`. Functionality is expected to be easily extended to the most recent version as of 9/3/23. This may required a small number of Parakeet config variables to be added/modified in the configuration class.
+
 # flow chart of current structure of Roodmus
 ![flowchart](flowchart.png)
 
