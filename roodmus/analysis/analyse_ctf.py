@@ -1,36 +1,3 @@
-<<<<<<< HEAD
-"""script to compare estimated CTF values from RELION or CryoSPARC to the ground-truth CTF values used in Parakeet data generation"""
-
-import os
-
-import numpy as np
-import matplotlib.pyplot as plt
-from tqdm import tqdm
-
-from roodmus.analysis.utils import IO
-
-### arguments
-def add_arguments(parser):
-    parser.add_argument("--mrc-dir", help="directory with .mrc files and .yaml config files", type=str)
-    parser.add_argument("--meta-file", help="particle metadata file. Can be .star (RELION) or .cs (CryoSPARC)", type=str)
-    parser.add_argument("--plot-dir", help="output file name", type=str, default="ctf.png")
-    parser.add_argument("--verbose", help="increase output verbosity", action="store_true")
-    return parser
-
-def get_name():
-    return "analyse_ctf"
-
-def load_metadata(meta_file):
-    if meta_file.endswith(".star"):
-        metadata = IO.load_star(meta_file)
-        file_type = "star"
-    elif meta_file.endswith(".cs"):
-        metadata = IO.load_cs(meta_file)
-        file_type = "cs"
-    else:
-        raise ValueError(f"unknown metadata file type: {meta_file}")
-    return metadata, file_type
-=======
 """API containing functions to process the ctf parameters from a .cs or .star file and from the Parakeet config files"""
 
 ### imports
@@ -65,7 +32,6 @@ class ctf_estimation(object):
                 "Cs_truth": [], # the true Cs
             }
         self.compute()
->>>>>>> development
 
     def compute(self, meta_file: str=None, config_dir: str=None, verbose: bool=None):
         """processing of the estimated and true ctf parameters from a .cs or .star file and from the Parakeet config files. 
