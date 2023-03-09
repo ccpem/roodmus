@@ -4,10 +4,8 @@ import os
 import yaml
 import numpy as np
 
-# pipeliner
 from pipeliner.jobstar_reader import RelionStarFile
 
-### i/o functions
 class IO(object):
     ## class containing several functions to load metadata from .star (RELION) and .cs (CryoSPARC) files 
     ## and the config file generated during the Parakeet simulation

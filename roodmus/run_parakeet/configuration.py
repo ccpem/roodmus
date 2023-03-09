@@ -9,7 +9,6 @@ import numpy as np
 from parakeet import config
 from roodmus.run_parakeet.orientation_generator import orientation_generator
 
-### configuration class
 class configuration(object):
     def __init__(self, config_filename, args=None):
         # intermediate file names

@@ -1,6 +1,19 @@
 """script to plot statistics from picking analyses and example overlays of picked and truth particles on micrographs"""
 
-### arguments
+import os
+import argparse
+from typing import Tuple, Dict
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from matplotlib import patches
+import seaborn as sns
+import mrcfile
+
+from roodmus.analysis.analysis import particle_picking
+
+
 def add_arguments(parser):
     parser.add_argument("--config-dir", help="directory with .mrc files and .yaml config files", type=str)
     parser.add_argument("--mrc-dir", help="directory with .mrc files. The same as 'config-dir' by default", type=str, default=None)
@@ -18,20 +31,6 @@ def add_arguments(parser):
 def get_name():
     return "plot_picking"
 
-### imports
-# general
-import os
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-from matplotlib import patches
-import numpy as np
-import mrcfile
-from typing import Tuple, Dict
-# roodmus
-from roodmus.analysis.analysis import particle_picking
-
-### plotting functions
 def _twoD_image_bboxs(particles_x: np.array, particles_y: np.array, box_width: float, box_height: float, verbose: bool=False)->list[list[float]]:
 
     box_half_width = box_width/2.
@@ -273,7 +272,7 @@ def plot_overlap_investigation(df_overlap: pd.DataFrame, metadata_filename: str=
         fig.tight_layout()
         return fig, ax
 
-### main
+
 def main(args):
     ## this analysis tool makes plots of the picked and ground-truth particles in a number of micrographs. It then 
     ## makes quantitative comparisons between the two.
@@ -379,7 +378,6 @@ def main(args):
             fig.clf()
 
 if __name__ == "__main__":
-    import argparse
     parser = argparse.ArgumentParser(description=__doc__)
     parser = add_arguments(parser)
     args = parser.parse_args()

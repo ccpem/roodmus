@@ -1,17 +1,15 @@
 """API containing functions to perform analysis on a reconstruction workflow."""
 
-### global imports
-# general
 import os
 import time
+
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
 from scipy.spatial import cKDTree
-import pandas as pd
-# roodmus
+
 from roodmus.analysis.utils import IO
 
-### particle picking
 class particle_picking(object):
     def __init__(self, meta_file: str, config_dir: str, particle_diameter: float, results_picking: dict=None, results_truth: dict=None, verbose: bool=False):
         self.meta_file = meta_file

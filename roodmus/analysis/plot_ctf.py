@@ -1,6 +1,15 @@
 """Script to plot a comparison between the estimated CTF parameters and the true values used in data generation"""
 
-### arguments
+import os
+import time
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import mrcfile
+
+from roodmus.analysis.analyse_ctf import ctf_estimation
+
 def add_arguments(parser):
     parser.add_argument("--config-dir", help="directory with .mrc files and .yaml config files", type=str)
     parser.add_argument("--mrc-dir", help="directory with .mrc files. Assumed to be the same as 'config-dir' by default", type=str, default=None)
@@ -14,18 +23,6 @@ def add_arguments(parser):
 def get_name():
     return "plot_ctf"
 
-### imports
-# general
-import os
-import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
-import mrcfile
-import time
-# roodmus
-from roodmus.analysis.analyse_ctf import ctf_estimation
-
-### plotting functions
 def plot_defocus_scatter(df):
     df_grouped = df.groupby("ugraph_filename")
 
@@ -149,7 +146,6 @@ def plot_CTF(df, mrc_dir, ugraph_index=0):
     ax.set_yticks([])
     return fig, ax
 
-### main
 def main(args):
     ## the script loads the metadata file and extracts the ctf parameters for each particle. It is possible that the CTF values for each particle are the same
     ## if the CTF estimation was done on the entire micrograph. In that case, the script will plot the CTF values for each micrograph. 

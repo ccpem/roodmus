@@ -1,15 +1,13 @@
 """API containing functions to process the ctf parameters from a .cs or .star file and from the Parakeet config files"""
 
-### imports
-# general
 import os
+
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-# roodmus
+
 from roodmus.analysis.utils import IO
 
-### CTF estimation
 class ctf_estimation(object):
     def __init__(self, meta_file: str, config_dir: str, results: dict=None, verbose: bool=False):
         self.meta_file = meta_file
