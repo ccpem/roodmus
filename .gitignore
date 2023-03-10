@@ -2,3 +2,6 @@
 *_requirements.txt
 *freeze.yaml
 *_example
+testing_roodmus.txt
+dist
+src/*.egg-info

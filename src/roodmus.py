@@ -6,7 +6,7 @@
 
 import argparse
 
-import roodmus.run_parakeet.run_parakeet
+import roodmus.simulation.run_parakeet
 import roodmus.trajectory.waymarking
 import roodmus.analysis.plot_ctf
 import roodmus.analysis.plot_picking
