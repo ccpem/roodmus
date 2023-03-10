@@ -10,7 +10,7 @@ import numpy as np
 from tqdm import tqdm
 
 import parakeet
-from roodmus.run_parakeet.configuration import configuration
+from simulation.configuration import configuration
 
 
 def add_arguments(
