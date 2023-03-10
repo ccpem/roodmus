@@ -28,4 +28,4 @@ repos:
     rev: v1.1.1
     hooks:
       - id: mypy
-        additional_dependencies: [pandas-stubs, types-Pillow, types-setuptools, types-PyYAML, types-tabulate]
+        additional_dependencies: [pandas-stubs, types-Pillow, types-setuptools, types-PyYAML]
