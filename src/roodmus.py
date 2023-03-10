@@ -1,37 +1,52 @@
-""" Roodmus: a tool to generate cryo-EM images from MD trajectories using Parakeet"""
+"""
+    Roodmus:
+    A tool to generate cryo-EM images from MD trajectories using Parakeet
+
+"""
 
 import argparse
-import os
 
 import roodmus.run_parakeet.run_parakeet
 import roodmus.trajectory.waymarking
 import roodmus.analysis.plot_ctf
 import roodmus.analysis.plot_picking
+
 # import roodmus.analysis.analyse_alignment
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--version", action="version", version="%(prog)s 0.1.1")    
-    
-    subparsers = parser.add_subparsers(title="subcommands", description="valid subcommands", help="additional help")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s 0.1.1",
+    )
+
+    subparsers = parser.add_subparsers(
+        title="subcommands",
+        description="valid subcommands",
+        help="additional help",
+    )
     subparsers.required = True
-    
+
     modules = [
         roodmus.run_parakeet.run_parakeet,
         roodmus.trajectory.waymarking,
         roodmus.analysis.plot_ctf,
         roodmus.analysis.plot_picking,
     ]
-    
+
     for module in modules:
-        this_parser = subparsers.add_parser(module.get_name(), help=module.__doc__)
+        this_parser = subparsers.add_parser(
+            module.get_name(),
+            help=module.__doc__,
+        )
         module.add_arguments(this_parser)
         this_parser.set_defaults(func=module.main)
-        
+
     args = parser.parse_args()
     args.func(args)
-    
+
+
 if __name__ == "__main__":
     main()
-    
-

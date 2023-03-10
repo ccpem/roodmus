@@ -1,4 +1,6 @@
-"""configration and main function for running parakeet from the command line"""
+"""
+    Configration and main function for running parakeet from the command line
+"""
 
 import os
 import argparse
@@ -10,18 +12,22 @@ from tqdm import tqdm
 import parakeet
 from roodmus.run_parakeet.configuration import configuration
 
-def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.ArgumentParser:
+
+def add_arguments(
+    run_parakeet_parser: argparse.ArgumentParser,
+) -> argparse.ArgumentParser:
     """Set up arguments for parsing, including both those for whole dataset
      to-be-generated and those for the configuration for each image in dataset
 
     Args:
-        parser (argparse.ArgumentParser): 
+        parser (argparse.ArgumentParser):
         argparse.ArgumentParser:  Running parakeet argument parser
 
     Returns:
-        argparse.ArgumentParser:  Running parakeet argument parser with arguments
+        argparse.ArgumentParser:  Running parakeet argument parser
+        with arguments
     """
-    
+
     run_parakeet_parser.add_argument(
         "--pdb_dir",
         help="Path to the directory containing the pdb files",
@@ -65,7 +71,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
         "--tqdm",
         help="Turn on progress bar",
         default=False,
-        action="store_true"
+        action="store_true",
     )
 
     run_parakeet_parser.add_argument(
@@ -74,13 +80,13 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
         default=False,
         action="store_true",
     )
-    
+
     parser = run_parakeet_parser.add_argument_group("configuration")
     parser.add_argument(
         "--max_workers",
         help=(
-            "Maximum number of worker processes to use on a cluster. Must specify"
-            " cluster method."
+            "Maximum number of worker processes to use on a cluster."
+            " Must specify cluster method."
         ),
         type=int,
         default=1,
@@ -90,8 +96,8 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--method",
         help=(
-            "Maximum number of worker processes to use on a cluster. Must specify"
-            " cluster method."
+            "Maximum number of worker processes to use on a cluster."
+            " Must specify cluster method."
         ),
         type=str,
         default=None,
@@ -120,8 +126,8 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--electrons_per_angstrom",
         help=(
-            "Dose of electrons per square angstrom to use in Parakeet simulation"
-            "Defaults to 45.0"
+            "Dose of electrons per square angstrom to use in"
+            "Parakeet simulation. Defaults to 45.0"
         ),
         type=float,
         default=45.0,
@@ -258,7 +264,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
             " Defaults to False"
         ),
         default=False,
-        action="store_true"
+        action="store_true",
     )
 
     parser.add_argument(
@@ -295,7 +301,9 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--phi_12",
-        help=("The Azimuthal angle of 2-fold astigmatism (rad). Defaults to 0"),
+        help=(
+            "The Azimuthal angle of 2-fold astigmatism (rad)." " Defaults to 0"
+        ),
         type=float,
         default=0.0,
         required=False,
@@ -327,7 +335,9 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--phi_23",
-        help=("The Azimuthal angle of 3-fold astigmatism (rad). Defaults to 0"),
+        help=(
+            "The Azimuthal angle of 3-fold astigmatism (rad)." " Defaults to 0"
+        ),
         type=float,
         default=0.0,
         required=False,
@@ -351,7 +361,10 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--phi_32",
-        help=("The Azimuthal angle of axial star aberration (rad). Defaults to 0"),
+        help=(
+            "The Azimuthal angle of axial star aberration (rad)."
+            " Defaults to 0"
+        ),
         type=float,
         default=0.0,
         required=False,
@@ -368,8 +381,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--phi_34",
         help=(
-            "The Azimuthal angle of 4-fold astigmatism (rad)"
-            " Defaults to 0"
+            "The Azimuthal angle of 4-fold astigmatism (rad)" " Defaults to 0"
         ),
         type=float,
         default=0.0,
@@ -386,7 +398,10 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--phi_41",
-        help=("The Azimuthal angle of 4th order axial coma (rad). Defaults to 0"),
+        help=(
+            "The Azimuthal angle of 4th order axial coma (rad)."
+            " Defaults to 0"
+        ),
         type=float,
         default=0.0,
         required=False,
@@ -418,7 +433,9 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--phi_45",
-        help=("The Azimuthal angle of 5-fold astigmatism (rad). Defaults to 0"),
+        help=(
+            "The Azimuthal angle of 5-fold astigmatism (rad)." " Defaults to 0"
+        ),
         type=float,
         default=0.0,
         required=False,
@@ -462,7 +479,8 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--phi_54",
         help=(
-            "The Azimuthal angle of 5th order rosette aberration (rad). Defaults to 0"
+            "The Azimuthal angle of 5th order rosette aberration (rad)."
+            " Defaults to 0"
         ),
         type=float,
         default=0.0,
@@ -479,7 +497,9 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--phi_56",
-        help=("The Azimuthal angle of 6-fold astigmatism (rad). Defaults to 0"),
+        help=(
+            "The Azimuthal angle of 6-fold astigmatism (rad)." " Defaults to 0"
+        ),
         type=float,
         default=0.0,
         required=False,
@@ -540,7 +560,8 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--centre_x",
         help=(
-            "Center of tomographic rotation around sample x axis (A). Defaults to 500"
+            "Center of tomographic rotation around sample x axis (A)."
+            " Defaults to 500"
         ),
         type=float,
         default=500.0,
@@ -550,7 +571,8 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--centre_y",
         help=(
-            "Center of tomographic rotation around sample y axis (A). Defaults to 500"
+            "Center of tomographic rotation around sample y axis (A)."
+            " Defaults to 500"
         ),
         type=float,
         default=500.0,
@@ -560,7 +582,8 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--centre_z",
         help=(
-            "Center of tomographic rotation around sample z axis (A). Defaults to 250"
+            "Center of tomographic rotation around sample z axis (A)."
+            " Defaults to 250"
         ),
         type=float,
         default=250.0,
@@ -579,9 +602,7 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     parser.add_argument(
         "--slow_ice_density",
-        help=(
-            "Density of molecular ice (slow ice simulation) in kg/m3"
-        ),
+        help=("Density of molecular ice (slow ice simulation) in kg/m3"),
         type=float,
         default=940.0,
         required=False,
@@ -686,7 +707,8 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--fast_ice",
         help=(
-            "Use the Gaussian Random Field ice model (True/False). Defaults to False"
+            "Use the Gaussian Random Field ice model (True/False)."
+            " Defaults to False"
         ),
         default=False,
         action="store_true",
@@ -742,7 +764,8 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
     parser.add_argument(
         "--sensitivity_coefficient",
         help=(
-            "The radiation damage model sensitivity coefficient. Defaults to 0.022"
+            "The radiation damage model sensitivity coefficient."
+            " Defaults to 0.022"
         ),
         type=float,
         default=0.022,
@@ -767,10 +790,12 @@ def add_arguments(run_parakeet_parser: argparse.ArgumentParser)->argparse.Argume
 
     return run_parakeet_parser
 
+
 def get_name():
     return "run_parakeet"
 
-def sample_defocus(c_10: float, c_10_stddev: float)->float:
+
+def sample_defocus(c_10: float, c_10_stddev: float) -> float:
     """Generate a defocus value from a Gaussian distribution
 
     Args:
@@ -782,8 +807,10 @@ def sample_defocus(c_10: float, c_10_stddev: float)->float:
     """
     return np.random.normal(c_10, c_10_stddev)
 
-def get_pdb_files(pdb_dir: str)->list[str]:
-    """Grab a list of molecule/structure definition files (such as PDBs) to add to micrographs
+
+def get_pdb_files(pdb_dir: str) -> list[str]:
+    """Grab a list of molecule/structure definition files (such as PDBs) to add
+    to micrographs
 
     Args:
         pdb_dir (str): Path to directory containing all molecules to use
@@ -798,124 +825,197 @@ def get_pdb_files(pdb_dir: str)->list[str]:
             pdb_files.append(os.path.join(pdb_dir, file))
     return pdb_files
 
-def get_instances(pdb_files: list[str], n_molecules: int, replace=True)->Tuple[list[str], list[int]]:
-    """Determine the molecules to simulate in a given image and the number of occurrences of each
+
+def get_instances(
+    pdb_files: list[str], n_molecules: int, replace=True
+) -> Tuple[list[str], list[int]]:
+    """Determine the molecules to simulate in a given image and the number of
+    occurrences of each
      in the image
 
     Args:
-        pdb_files list[str]: List of pdb files sample molecules for simulation from
-        n_molecules int: Total number of molecules to simulate in each image
-        replace (bool, optional): Toggle sampling with replacement on or off. Defaults to True.
+        pdb_files list[str]: List of pdb files sample molecules for simulation
+        from n_molecules int: Total number of molecules to simulate in each
+        image replace (bool, optional): Toggle sampling with replacement on
+        or off.
+        Defaults to True.
 
     Returns:
         Tuple[list[str], list[int]]: Same length lists of molecules
          to simulate and # instances of the molecule
     """
     num_structures = len(pdb_files)
-        
-    # if the number of structures is <= than the number of molecules, we need to repeat some of the structures
+
+    # if the number of structures is <= than the number of molecules,
+    # we need to repeat some of the structures
     if num_structures <= n_molecules:
-        # start by adding each structure the same number of times to get as close to the number of molecules as possible
-        n_instances = [n_molecules//num_structures]*num_structures
-        # then randomly add another copy of any pdb until we reach the number of molecules
+        # start by adding each structure the same number of times to get as
+        # close to the number of molecules as possible
+        n_instances = [n_molecules // num_structures] * num_structures
+        # then randomly add another copy of any pdb until we
+        # reach the number of molecules
         for n in range(n_molecules - sum(n_instances)):
             n_instances[np.random.randint(num_structures)] += 1
-            
-    # if the number of structures is greater than or equal to the number of molecules, randomly sample them
+
+    # if the number of structures is greater than or equal to the number of
+    # molecules, randomly sample them
     else:
         # sample the pdb files with replacement by default
-        pdb_files, n_instances = np.unique(
-            np.random.choice(
-                pdb_files, n_molecules, replace=replace
-            ),
+        pdb_files_temp, n_instances_temp = np.unique(
+            np.random.choice(pdb_files, n_molecules, replace=replace),
             return_counts=True,
         )
-        pdb_files = pdb_files.tolist()
-        n_instances = n_instances.tolist()
+        new_pdb_files = pdb_files_temp.tolist()
+        new_n_instances = n_instances_temp.tolist()
 
-    return pdb_files, n_instances
-        
+    return new_pdb_files, new_n_instances
+
+
 def main(args):
-    ## the main function loops over the number of images to generate. For each image, parakeet is configured and a number of .pdb files is selected. 
-    ## The number of instances gets determined based on the number of .pdb files. If there are less .pdb files than molecules to generate, some of the
-    ## .pdb files are repeated. If there are more .pdb files than molecules to generate, some of the .pdb files are removed. 
-    ## The orientations can be sampled, or left to parakeet to generate.
-    ## Then we run parakeet and save the mrc files. From the sample object we can pull the orientations and positions of the molecules. 
-    ## These, along with the optical parameters, are saved in a .yaml file.
-    
-    ## nomenclature
-    ## frame: .pdb file containing the structure of a molecule from a single frame in the MD trajectory
-    ## instance: multiplicity of a frame in the simulated image. if there are 10 frames and 100 molecules, each frame is an instance 10 times
-    ## molecule: a single particle in the the simulated image
+    """
+    Loops over the number of images to generate. For each image,
+    parakeet is configured and a number of .pdb files is selected.
+    The number of instances gets determined based on the number of
+    .pdb files. If there are less .pdb files than molecules to generate,
+    some of the .pdb files are repeated. If there are more .pdb files than
+    molecules to generate, some of the .pdb files are removed.
+    The orientations can be sampled, or left to parakeet to generate.
+    Then we run parakeet and save the mrc files. From the sample object we
+    can pull the orientations and positions of the molecules.
+    These, along with the optical parameters, are saved in a .yaml file.
+
+    nomenclature
+    frame: .pdb file containing the structure of a molecule from a single
+    frame in the MD trajectory
+    instance: multiplicity of a frame in the simulated image. If there are
+    10 frames and 100 molecules, each frame is an instance 10 times
+    molecule: a single particle in the the simulated image
+    """
 
     # create mrc-dir for output images if it doesn't already exist
     if not os.path.exists(args.mrc_dir):
         os.makedirs(args.mrc_dir)
-    
+
     # check how many images are already in the mrc_dir
-    images_in_directory = len([r for r in os.listdir(args.mrc_dir) if r.endswith(".mrc")])
-    
+    images_in_directory = len(
+        [r for r in os.listdir(args.mrc_dir) if r.endswith(".mrc")]
+    )
+
     # get the pdb files
     frames = get_pdb_files(args.pdb_dir)
 
-    ## loop over the number of images to generate
+    # loop over the number of images to generate
     progressbar = None
     if args.tqdm:
         progressbar = tqdm(range(args.n_images))
     defocus_idx = 0
-    for n_image in range(images_in_directory, args.n_images+images_in_directory):
-        
+    for n_image in range(
+        images_in_directory, args.n_images + images_in_directory
+    ):
         # full path to where the current image will be saved
-        mrc_filename = os.path.join(args.mrc_dir, f"{n_image}".zfill(args.leading_zeros) + ".mrc")
+        mrc_filename = os.path.join(
+            args.mrc_dir, f"{n_image}".zfill(args.leading_zeros) + ".mrc"
+        )
 
         # full path to where the current configuration will be saved
-        config_filename = os.path.join(args.mrc_dir, f"{n_image}".zfill(args.leading_zeros) + ".yaml")
+        config_filename = os.path.join(
+            args.mrc_dir, f"{n_image}".zfill(args.leading_zeros) + ".yaml"
+        )
 
         # initialise the configuration
         config = configuration(config_filename, args=args)
 
         # sample the defocus around the specified value
-        config.config.microscope.lens.c_10 = sample_defocus(args.c_10[defocus_idx], args.c_10_stddev[defocus_idx])
-        defocus_idx = (defocus_idx + 1) % len(args.c_10) # in case there are multiple defocus values, we loop over them
+        config.config.microscope.lens.c_10 = sample_defocus(
+            args.c_10[defocus_idx], args.c_10_stddev[defocus_idx]
+        )
+        defocus_idx = (defocus_idx + 1) % len(
+            args.c_10
+        )  # in case there are multiple defocus values, we loop over them
 
         # determine the number of instances we need of each structure
-        chosen_frames, n_instances = get_instances(frames, args.n_molecules, args.no_replacement)
+        chosen_frames, n_instances = get_instances(
+            frames, args.n_molecules, args.no_replacement
+        )
         # add the molecules to the configuration
         config.add_molecules(chosen_frames, n_instances)
-            
+
         # run parakeet
-        sample = parakeet.sample.new(config.config_filename, sample_file=config.sample_filename)
-        sample = parakeet.sample.add_molecules(config.config_filename, sample_file=config.sample_filename)
-        
-        # Write out the metadata if this is the first image in this run_parakeet session or if overwrite requested
-        if n_image==images_in_directory:
-            metadata_exporter = parakeet.metadata.RelionMetadataExporter(config.config, sample, args.mrc_dir)
-            if not os.path.exists(os.path.join(args.mrc_dir, "relion/mtf_{}kV.star".format(config.config.microscope.beam.energy))):
+        sample = parakeet.sample.new(
+            config.config_filename, sample_file=config.sample_filename
+        )
+        sample = parakeet.sample.add_molecules(
+            config.config_filename, sample_file=config.sample_filename
+        )
+
+        # Write out the metadata if this is the first image in this
+        # run_parakeet session or if overwrite requested
+        if n_image == images_in_directory:
+            metadata_exporter = parakeet.metadata.RelionMetadataExporter(
+                config.config, sample, args.mrc_dir
+            )
+            if not os.path.exists(
+                os.path.join(
+                    args.mrc_dir,
+                    "relion/mtf_{}kV.star".format(
+                        config.config.microscope.beam.energy
+                    ),
+                )
+            ):
                 metadata_exporter.write_mtf_file()
             else:
                 if args.overwrite_metadata:
                     metadata_exporter.write_mtf_file()
                 else:
-                    raise FileExistsError("{} already exists!".format(os.path.join(args.mrc_dir, "relion")))
-        
-        parakeet.simulate.exit_wave(config.config_filename, config.sample_filename, exit_wave_file=config.exit_wave_filename)
-        parakeet.simulate.optics(config.config_filename, exit_wave_file=config.exit_wave_filename, optics_file=config.optics_filename)
-        parakeet.simulate.image(config.config_filename, optics_file=config.optics_filename, image_file=config.image_filename)
+                    raise FileExistsError(
+                        "{} already exists!".format(
+                            os.path.join(args.mrc_dir, "relion")
+                        )
+                    )
+
+        parakeet.simulate.exit_wave(
+            config.config_filename,
+            config.sample_filename,
+            exit_wave_file=config.exit_wave_filename,
+        )
+        parakeet.simulate.optics(
+            config.config_filename,
+            exit_wave_file=config.exit_wave_filename,
+            optics_file=config.optics_filename,
+        )
+        parakeet.simulate.image(
+            config.config_filename,
+            optics_file=config.optics_filename,
+            image_file=config.image_filename,
+        )
 
         # save the image
-        os.system(f"parakeet.export {config.image_filename} -o {mrc_filename}")
+        os.system(
+            "parakeet.export {} -o {}".format(
+                config.image_filename,
+                mrc_filename,
+            )
+        )
 
         # remove the intermediate files
-        os.system(f"rm {config.sample_filename} {config.exit_wave_filename} {config.optics_filename} {config.image_filename}")
-        
+        os.system(
+            "rm {} {} {} {}".format(
+                config.sample_filename,
+                config.exit_wave_filename,
+                config.optics_filename,
+                config.image_filename,
+            )
+        )
+
         # update the config from the sample and save/overwrite it
         config.update_config(sample)
-            
+
         if args.tqdm:
             progressbar.update(1)
-        
+
     if args.tqdm:
         progressbar.close()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)

@@ -1,13 +1,15 @@
-
 # configutation class to setup the parameters for Parakeet
 import os
-import argparse
+from typing import Any
 
 import yaml
-import numpy as np
 
 from parakeet import config
-from roodmus.run_parakeet.orientation_generator import orientation_generator
+
+"""
+from run_parakeet.orientation_generator import orientation_generator
+"""
+
 
 class configuration(object):
     def __init__(self, config_filename, args=None):
@@ -23,18 +25,20 @@ class configuration(object):
         # initialise the config file for Parakeet
         self.config_filename = config_filename
 
-        self.config = config.new(filename = self.config_filename, full=True)
+        self.config = config.new(filename=self.config_filename, full=True)
         if args:
             self.sample_filename = "sample.h5"
-            self.exit_wave_filename = os.path.join(args.mrc_dir, "exit_wave.h5")
+            self.exit_wave_filename = os.path.join(
+                args.mrc_dir, "exit_wave.h5"
+            )
             self.optics_filename = os.path.join(args.mrc_dir, "optics.h5")
             self.image_filename = os.path.join(args.mrc_dir, "image.h5")
             self.leading_zeros = args.leading_zeros
             self._set_config(args)
-        
-    def _set_config(self, args: argparse.ArgumentParser):
+
+    def _set_config(self, args):
         """Set the general configuration parameters using user-provided
-        inputs and/or defaults 
+        inputs and/or defaults
 
         Args:
             args (argparse.ArgumentParser): Parsed arguments and defaults
@@ -53,10 +57,21 @@ class configuration(object):
         # microscope->beam
         self.config.microscope.beam.energy = args.energy
         self.config.microscope.beam.energy_spread = args.energy_spread
-        self.config.microscope.beam.acceleration_voltage_spread = args.acceleration_voltage_spread
-        self.config.microscope.beam.electrons_per_angstrom = args.electrons_per_angstrom
-        # (newer defn) self.config.microscope.beam.total_electrons_per_angstrom = args.electrons_per_angstrom
-        # self.config.microscope.beam.illumination_semiangle = args.illumination_semiangle
+        self.config.microscope.beam.acceleration_voltage_spread = (
+            args.acceleration_voltage_spread
+        )
+        self.config.microscope.beam.electrons_per_angstrom = (
+            args.electrons_per_angstrom
+        )
+        """
+        (newer defn)
+        self.config.microscope.beam.total_electrons_per_angstrom = (
+            args.electrons_per_angstrom
+        )
+        self.config.microscope.beam.illumination_semiangle = (
+            args.illumination_semiangle
+        )
+        """
         self.config.microscope.beam.phi = args.phi
         self.config.microscope.beam.theta = args.theta
 
@@ -98,15 +113,19 @@ class configuration(object):
 
         # sample
         self.config.sample.box = (args.box_x, args.box_y, args.box_z)
-        self.config.sample.centre = (args.centre_x, args.centre_y, args.centre_z)
-        
+        self.config.sample.centre = (
+            args.centre_x,
+            args.centre_y,
+            args.centre_z,
+        )
+
         # sample->ice
         self.config.sample.ice = config.Ice()
         self.config.sample.ice.generate = args.slow_ice
         self.config.sample.ice.density = args.slow_ice_density
 
         # sample->coords
-        # self.config.sample.coords = 
+        # self.config.sample.coords =
 
         # sample->molecules
         self.config.sample.molecules = config.Molecules()
@@ -120,18 +139,22 @@ class configuration(object):
         self.config.sample.shape.cuboid.length_z = args.cuboid_length_z
         self.config.sample.shape.cylinder.length = args.cylinder_length
         self.config.sample.shape.cylinder.radius = args.cylinder_radius
-        self.config.sample.shape.margin = (args.margin_x, args.margin_y, args.margin_z)
+        self.config.sample.shape.margin = (
+            args.margin_x,
+            args.margin_y,
+            args.margin_z,
+        )
 
         # sample->sputter (not yet supported as user input)
-        # self.config.sample.sputter.element = 
-        # self.config.sample.sputter.thickness = 
+        # self.config.sample.sputter.element =
+        # self.config.sample.sputter.thickness =
 
         # scan (not yet supported as user input)
         self.config.scan.mode = "still"
-        self.config.scan.axis = (0., 1., 0.)
-        self.config.scan.start_angle = 0.
-        self.config.scan.step_angle = 0.
-        self.config.scan.start_pos = 0.
+        self.config.scan.axis = (0.0, 1.0, 0.0)
+        self.config.scan.start_angle = 0.0
+        self.config.scan.step_angle = 0.0
+        self.config.scan.start_pos = 0.0
         self.config.scan.step_pos = "auto"
         self.config.scan.num_images = 1
         # self.config.scan.num_fractions = 1
@@ -141,8 +164,8 @@ class configuration(object):
         self.config.scan.positions = None
         # self.config.scan.theta = None
         # self.config.scan.phi = None
-        # self.config.scan.drift.magnitude = 
-        # self.config.scan.drift.kernel_size = 
+        # self.config.scan.drift.magnitude =
+        # self.config.scan.drift.kernel_size =
 
         # simulation
         self.config.simulation.slice_thickness = args.slice_thickness
@@ -150,85 +173,102 @@ class configuration(object):
         self.config.simulation.padding = args.simulation_padding
         # self.config.simulation.division_thickness = args.
         self.config.simulation.ice = args.fast_ice
-        self.config.simulation.radiation_damage_model = args.radiation_damage_model
-        self.config.simulation.sensitivity_coefficient = args.sensitivity_coefficient
+        self.config.simulation.radiation_damage_model = (
+            args.radiation_damage_model
+        )
+        self.config.simulation.sensitivity_coefficient = (
+            args.sensitivity_coefficient
+        )
         self.config.simulation.inelastic_model = args.inelastic_model
         self.config.simulation.mp_loss_width = args.mp_loss_width
         self.config.simulation.mp_loss_position = args.mp_loss_position
-        
+
     def _save_config(self):
-        """Save the configuration file to disk
-        """
+        """Save the configuration file to disk"""
         with open(self.config_filename, "w") as f:
             yaml.safe_dump(self.config.dict(), f)
-        
-    def _add_molecule(self, pdb_file: str, n: int=1, position: list=[], orientation: list=[]):        
+
+    def _add_molecule(
+        self,
+        pdb_file: str,
+        n: int | None,
+        position: list = [],
+        orientation: list = [],
+    ):
         """
         Add a molecule to the configuration file
-        
+
         pdb_file (str): Molecule filepath to add to configuration file
         n (int): number of instances of the conformation. Defaults to 1.
         position (list): Positions of the molecule in A. Defaults to [].
-        orientation (list): Orientations of the molecule in degrees. Defaults to [].
+        orientation (list): Orientations of the molecule in degrees.
+        Defaults to [].
         """
-        
-        ## the molecule can be specified by only the number of instances, in which case parakeet generates the orientation and position
-        ## or by the position and orientation, in which case the number of instances is set to 1
-        
-        # if the number of instances is specified and the position and orientation are not specified
+
+        # The molecule can be specified by only the number of instances,
+        # in which case parakeet generates the orientation and position
+        # or by the position and orientation, in which case
+        # the number of instances is set to 1
+        if not position and not orientation and not n:
+            raise ValueError(
+                "At least one of the following must be specified:"
+                " n, position, orientation"
+            )
+
+        # if the number of instances is specified and the
+        # position and orientation are not specified
         if not position and not orientation:
-            instance = n
-
-        # if the orientation and position are specified            
-        elif position and orientation:
-            instance = []
-            for p, o in zip(position, orientation):
-                pose = config.MoleculePose()
-                pose.position = p
-                pose.orientation = o
-                instance.append(pose)
-            
-        # if the orientation is specified but not the position
-        elif orientation and not position:
-            instance = []
-            for o in orientation:
-                pose = config.MoleculePose()
-                pose.orientation = o
-                instance.append(pose)
-            
-        # if the position is specified but not the orientation
-        elif position and not orientation:
-            instance = []
-            for p in position:
-                pose = config.MoleculePose()
-                pose.position = p
-                instance.append(pose)
-            
-        # if none of the above, raise an error
+            self.config.sample.molecules.local.append(
+                config.LocalMolecule(filename=pdb_file, instances=n)
+            )
         else:
-            raise ValueError("At least one of the following must be specified: n, position, orientation")
-        
-        self.config.sample.molecules.local.append(
-            config.LocalMolecule(filename=pdb_file, instances=instance)
-        )
+            instance: list[Any] = []
+            # if the orientation and position are specified
+            if position and orientation:
+                for p, o in zip(position, orientation):
+                    pose = config.MoleculePose()
+                    pose.position = p
+                    pose.orientation = o
+                    instance.append(pose)
 
-    def add_molecules(self, frames: str, instances: int):
+            # if the orientation is specified but not the position
+            elif orientation and not position:
+                for o in orientation:
+                    pose = config.MoleculePose()
+                    pose.orientation = o
+                    instance.append(pose)
+
+            # if the position is specified but not the orientation
+            elif position and not orientation:
+                for p in position:
+                    pose = config.MoleculePose()
+                    pose.position = p
+                    instance.append(pose)
+
+            self.config.sample.molecules.local.append(
+                config.LocalMolecule(filename=pdb_file, instances=instance)
+            )
+
+    def add_molecules(self, frames: list[str], instances: list[int]):
         """Add molecules to the configuration file.
 
         Args:
             frames (str): Filepath of molecule to add to configuration file
-            instances (int): Number of instances of molecule to add to configuration file 
+            instances (int): Number of instances of molecule to
+            add to configuration file
         """
         for frame, instance in zip(frames, instances):
-            # self._add_molecule(frame, n=instance, orientation=orientation_generator.generate_inplane())
+            # self._add_molecule(frame, n=instance,
+            # orientation=orientation_generator.generate_inplane())
             self._add_molecule(frame, n=instance)
-            
+
         self._save_config()
 
     def update_config(self, sample):
         """
-        Updates the configuration file with the generated positions and orientations
-        
+        Updates the configuration file with the
+        generated positions and orientations
+
         sample (parakeet.sample.Sample): Sample object from Parakeet
         """
         frame_idx = 0
@@ -238,9 +278,15 @@ class configuration(object):
             self.config.sample.molecules.local[frame_idx].instances = []
 
             for position, orientation in zip(positions, orientations):
-                self.config.sample.molecules.local[frame_idx].instances.append(config.MoleculePose())
-                self.config.sample.molecules.local[frame_idx].instances[-1].position = [float(p) for p in position]
-                self.config.sample.molecules.local[frame_idx].instances[-1].orientation = [float(o) for o in orientation]
-                
+                self.config.sample.molecules.local[frame_idx].instances.append(
+                    config.MoleculePose()
+                )
+                self.config.sample.molecules.local[frame_idx].instances[
+                    -1
+                ].position = [float(p) for p in position]
+                self.config.sample.molecules.local[frame_idx].instances[
+                    -1
+                ].orientation = [float(o) for o in orientation]
+
             frame_idx += 1
         self._save_config()
