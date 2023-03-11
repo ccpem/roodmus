@@ -1,9 +1,10 @@
 [build-system]
-requires = ["setuptools>=61.0", "setuptools-scm"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "roodmus"
+version = "0.0.4"
 authors = [
   { name="Joel Greer", email="joel.greer@stfc.ac.uk" },
   { name="Maarten Joosten", email="m.j.joosten@tudelft.nl" },
@@ -23,7 +24,6 @@ dependencies = [
   "beautifulsoup4>=4.11.2",
   "bs4>=0.0.1",
   "ccpem-utils>=0.0.1.dev8",
-  "certifi @ file:///croot/certifi_1671487769961/work/certifi",
   "cfgv>=3.3.1",
   "charset-normalizer>=3.0.1",
   "click>=8.1.3",
@@ -67,7 +67,7 @@ dependencies = [
   "parse>=1.19.0",
   "partd>=1.3.0",
   "Pillow>=9.3.0",
-  "-e git+ssh://git@gitlab.com/ccpem/ccpem-pipeliner.git@adf40ed2c55c39200924ef39c2d2fe3d6f712885#egg=pipeliner",
+  "pip @ git+ssh://git@gitlab.com/ccpem/ccpem-pipeliner.git@adf40ed2c55c39200924ef39c2d2fe3d6f712885",
   "platformdirs>=3.1.0",
   "pre-commit>=3.1.1",
   "profet>=0.0.1",
@@ -80,7 +80,7 @@ dependencies = [
   "pyquery>=2.0.0",
   "python-dateutil>=2.8.2",
   "python-multem>=0.3.3",
-  "-e git+ssh://git@github.com/rosalindfranklininstitute/parakeet.git@024b86ebf55adf737c1b1116b8adbb59ee7db491#egg=python_parakeet",
+  "pip @ git+ssh://git@github.com/rosalindfranklininstitute/parakeet.git@024b86ebf55adf737c1b1116b8adbb59ee7db491",
   "pytz>=2022.7.1",
   "PyWavelets>=1.4.1",
   "PyYAML>=6.0",
@@ -111,10 +111,6 @@ dependencies = [
   "zipp>=3.12.1",
 ]
 
-dynamic = [
-  "version"
-]
-
 [project.scripts]
 roodmus = "roodmus:roodmus_cli"
 
@@ -140,8 +136,6 @@ exclude = []
 [tool.setuptools.exclude-package-data]
 roodmus = [".gitignore"]
 
-[tool.setuptools.scm]
-write_to = "src/roodmus/_version.py"
 
 [tool.coverage.run]
 source = ["src"]
