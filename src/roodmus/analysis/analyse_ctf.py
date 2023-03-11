@@ -8,7 +8,7 @@ import os
 import numpy as np
 from tqdm import tqdm
 
-from analysis.utils import IO
+from roodmus.analysis.utils import IO
 
 
 class ctf_estimation(object):

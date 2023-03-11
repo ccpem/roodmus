@@ -1,22 +1,63 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "roodmus"
-version = "0.0.3"
 authors = [
   { name="Joel Greer", email="joel.greer@stfc.ac.uk" },
   { name="Maarten Joosten", email="m.j.joosten@tudelft.nl" },
 ]
-description = "roodmus package for synthetic SP micrograph creation and analysis"
+description = "Synthetic SP micrograph creation and analysis"
 readme = "README.md"
 requires-python = ">=3.8"
+license = {file = "LICENSE"}
+keywords = ["parakeet", "cryo-em", "micrographs", "analysis", "roodmus", "single-particle"]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Operating System :: OS Independent",
 ]
+dependencies = [
+  
+]
+
+dynamic = [
+  "version"
+]
+
+[project.scripts]
+roodmus = "roodmus:roodmus_cli"
+
+[project.optional-dependencies]
+dev = [
+  
+]
+test = [
+    "pytest-cov",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+namespaces = true
+where = ["src"]
+include = ["roodmus"]
+exclude = []
+
+[tool.setuptools.package-data]
+
+[tool.setuptools.exclude-package-data]
+roodmus = [".gitignore"]
+
+[tool.setuptools.scm]
+write_to = "src/roodmus/_version.py"
+
+[tool.coverage.run]
+source = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "--cov --cov-report html --cov-report term-missing --cov-fail-under 95"
 
 [project.urls]
 "Homepage" = "https://github.com/pypa/sampleproject"

@@ -11,7 +11,7 @@ import pandas as pd
 from tqdm import tqdm
 from scipy.spatial import cKDTree
 
-from analysis.utils import IO
+from roodmus.analysis.utils import IO
 
 
 class particle_picking(object):

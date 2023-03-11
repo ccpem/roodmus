@@ -6,12 +6,12 @@
 
 import argparse
 
-import simulation.run_parakeet
-import trajectory.waymarking
-import analysis.plot_ctf
-import analysis.plot_picking
+import roodmus.simulation.run_parakeet
+import roodmus.trajectory.waymarking
+import roodmus.analysis.plot_ctf
+import roodmus.analysis.plot_picking
 
-# import analysis.analyse_alignment
+# import roodmus.analysis.analyse_alignment
 
 
 def main():
@@ -30,10 +30,10 @@ def main():
     subparsers.required = True
 
     modules = [
-        simulation.run_parakeet,
-        trajectory.waymarking,
-        analysis.plot_ctf,
-        analysis.plot_picking,
+        roodmus.simulation.run_parakeet,
+        roodmus.trajectory.waymarking,
+        roodmus.analysis.plot_ctf,
+        roodmus.analysis.plot_picking,
     ]
 
     for module in modules:
