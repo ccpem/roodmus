@@ -28,14 +28,15 @@ from roodmus.analysis.analyse_ctf import ctf_estimation
 
 ### plotting functions
 def plot_defocus_scatter(df):
-    df_grouped = df.groupby("ugraph_filename")
+    # df_grouped = df.groupby("ugraph_filename")
 
     # plot the results
     plt.rcParams["font.size"] = 24
     plt.style.use("seaborn-whitegrid")
     fig, ax = plt.subplots(figsize=(10,10))
-    for name, group in df_grouped:
-        ax.scatter(group["defocus_truth"], group["defocusU"], label=name)
+    # for name, group in df_grouped:
+    #     ax.scatter(group["defocus_truth"], group["defocusU"], label=name)
+    sns.scatterplot(x="defocus_truth", y="defocusU", data=df, ax=ax, hue="ugraph_filename", palette="RdYlBu", legend=False, marker="+")
     # add identity line
     min_defocusU_truth = df["defocus_truth"].min()
     max_defocusU_truth = df["defocus_truth"].max()
@@ -44,7 +45,7 @@ def plot_defocus_scatter(df):
     ax.set_xlabel("defocus truth [$\u212B$]")
     ax.set_ylabel("defocusU estimated [$\u212B$]")
     # add colorbar legend
-    sm = plt.cm.ScalarMappable(cmap="viridis", norm=plt.Normalize(vmin=0, vmax=len(df_grouped)))
+    sm = plt.cm.ScalarMappable(cmap="RdYlBu", norm=plt.Normalize(vmin=0, vmax=len(np.unique(df["ugraph_filename"]))-1))
     sm._A = []
     cbar = plt.colorbar(sm)
     cbar.set_label("micrograph")

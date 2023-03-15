@@ -11,9 +11,10 @@ from roodmus.analysis.utils import IO
 
 ### 3D alignments
 class alignment_3D(object):
-    def __init__(self, meta_file: str, config_dir: str, results_picking: dict=None, results_truth: dict=None, verbose: bool=False):
+    def __init__(self, meta_file: str, config_dir: str, results_picking: dict=None, results_truth: dict=None, load_all_configs: bool=False, verbose: bool=False):
         self.meta_file = meta_file
         self.config_dir = config_dir
+        self.load_all_configs = load_all_configs
         self.verbose = verbose
         if results_picking is not None:
             self.results_picking = results_picking
@@ -40,7 +41,10 @@ class alignment_3D(object):
                 "euler3": [], # the third euler angle
             }
         # misc attributes
-        self.ugraph_paths = [] # stores the paths to the micrographs from the metadata file
+        if self.load_all_configs:
+            self.ugraph_paths = [r for r in os.listdir(self.config_dir) if r.endswith(".yaml")] # stores the paths to the micrographs from the metadata file
+        else:
+            self.ugraph_paths = [] # stores the paths to the micrographs from the metadata file
         self.num_ugraphs_loaded = 0 # stores the number of micrographs that have been loaded
         self.particles_per_ugraph = [] # stores the number of particles per micrograph
 
@@ -85,7 +89,8 @@ class alignment_3D(object):
             ugraph_paths, orientations, ctf_params, ugraph_shapes = self._extract_from_metadata(metadata, file_type, self.verbose)
             if ctf_params is None:
                 ctf_params = np.ones((len(orientations), 1)) * np.nan
-            self.ugraph_paths = list(np.unique(np.concatenate((self.ugraph_paths, ugraph_paths))))
+            if not self.load_all_configs:
+                self.ugraph_paths = list(np.unique(np.concatenate((self.ugraph_paths, ugraph_paths))))
             if self.verbose:
                 print(f"found {len(orientations)} particles in {len(np.unique(self.ugraph_paths))} micrographs")
 
@@ -108,9 +113,9 @@ class alignment_3D(object):
             num_particles = {}
             for ugraph_path in self.ugraph_paths:
                 config = IO.load_config(os.path.join(self.config_dir, ugraph_path.replace(".mrc", ".yaml")))
-                filenames, orientations, defocus_values, ice_thickness_values = self._extract_from_config(config, self.verbose)
+                filenames, orientations, defocus_values, = self._extract_from_config(config, self.verbose)
                 num_particles[ugraph_path] = len(filenames)
-                for filename, orientation, defocus_value, ice_thickness_value in zip(filenames, orientations, defocus_values, ice_thickness_values):
+                for filename, orientation, defocus_value in zip(filenames, orientations, defocus_values):
                     self.results_truth["metadata_filename"].append(self.meta_file)
                     self.results_truth["ugraph_filename"].append(ugraph_path)
                     self.results_truth["pdb_filename"].append(filename)
@@ -164,7 +169,6 @@ class alignment_3D(object):
 
     def _extract_from_config(self, config: object, verbose: bool=False): 
         defocus = config["microscope"]["lens"]["c_10"]
-        ice_thickness = config["sample"]["box"][2]
         pixel_size = config["microscope"]["detector"]["pixel_size"]
         orientations = []
         filenames = []
@@ -173,14 +177,13 @@ class alignment_3D(object):
             for instance in molecules["instances"]:
                 # position = instance["position"]
                 orientation = instance["orientation"] # as a rotation vector
-                eulers = R.from_rotvec(orientation).as_euler("zyx", degrees=False)
+                eulers = R.from_rotvec(orientation).as_euler("zyz", degrees=False)
                 orientations.append(eulers)
                 filenames.append(f)
 
         orientations = np.array(orientations) / pixel_size # convert to pixels
         defocus_list = [defocus] * len(orientations)
-        ice_thickness_list = [ice_thickness] * len(orientations)
-        return filenames, orientations, defocus_list, ice_thickness_list
+        return filenames, orientations, defocus_list
 
 
 

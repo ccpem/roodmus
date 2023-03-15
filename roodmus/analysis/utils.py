@@ -69,6 +69,14 @@ class IO(object):
         elif "blob/shape" in metadata_cs.dtype.names:
             ugraph_shape = metadata_cs["blob/shape"]
         return ugraph_shape
+    
+    @classmethod
+    def get_class2D_cs(self, metadata_cs):
+        if "alignments2D/class" in metadata_cs.dtype.names:
+            class2d = metadata_cs["alignments2D/class"]
+        else:
+            class2d = None
+        return class2d
 
     # loading .star files and parsing the ctf parameters, the particle positions and orientations
     @classmethod
@@ -100,6 +108,24 @@ class IO(object):
         y = [float(r) for r in metadata_star.column_as_list("particles", "_rlnCoordinateY")]
         pos = np.stack([x, y], axis=1)
         return pos
+    
+    @classmethod
+    def get_orientations_star(self, metadata_star):
+        euler = np.stack([metadata_star.column_as_list("particles", "_rlnAngleRot"), 
+                          metadata_star.column_as_list("particles", "_rlnAngleTilt"), 
+                          metadata_star.column_as_list("particles", "_rlnAnglePsi")], axis=1)
+        return euler
+    
+    @classmethod
+    def get_ugraph_shape_star(self, metadata_star):
+        ugraph_shape = np.stack([metadata_star.column_as_list("particles", "_rlnMicrographOriginalPixelSize"), 
+                                 metadata_star.column_as_list("particles", "_rlnMicrographOriginalPixelSize")], axis=1)
+        return ugraph_shape
+    
+    @classmethod
+    def get_class2D_star(self, metadata_star):
+        class2d = metadata_star.column_as_list("particles", "_rlnClassNumber")
+        return class2d
 
     # loading the config file
     @classmethod

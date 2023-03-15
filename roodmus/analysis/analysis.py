@@ -37,9 +37,11 @@ class particle_picking(object):
             self.results_truth = {
                 "metadata_filename": [], # the path to the metadata that is analysed
                 "ugraph_filename": [], # the path to the micrograph in which the particle was found
+                "ice_thickness": [], # the ice thickness of the micrograph in which the particle was found
                 "pdb_filename": [], # the path to the pdb file containing the true particles
                 "position_x": [], # the x position of the particle in the micrograph
                 "position_y": [], # the y position of the particle in the micrograph
+                "position_z": [], # the z position of the particle in the micrograph
                 "multiplicity": [], # the number of picked particles close to the true particle
                 "defocus": [], # the true defocus of the micrograph in which the particle was found
             }
@@ -100,14 +102,16 @@ class particle_picking(object):
             num_particles = {}
             for ugraph_path in self.ugraph_paths:
                 config = IO.load_config(os.path.join(self.config_dir, ugraph_path.replace(".mrc", ".yaml")))
-                filenames, positions, defocus_values = self._extract_from_config(config, self.verbose)
+                filenames, positions, defocus_values, ice_thickness_values = self._extract_from_config(config, self.verbose)
                 num_particles[ugraph_path] = len(filenames)
-                for filename, position, defocus_value in zip(filenames, positions, defocus_values):
+                for filename, position, defocus_value, ice_thickness_value in zip(filenames, positions, defocus_values, ice_thickness_values):
                     self.results_truth["metadata_filename"].append(self.meta_file)
                     self.results_truth["ugraph_filename"].append(ugraph_path)
+                    self.results_truth["ice_thickness"].append(ice_thickness_value)
                     self.results_truth["pdb_filename"].append(filename)
                     self.results_truth["position_x"].append(position[0])
                     self.results_truth["position_y"].append(position[1])
+                    self.results_truth["position_z"].append(position[2])
                     self.results_truth["defocus"].append(defocus_value)
 
                 _ = progressbar.update(1)
@@ -126,28 +130,18 @@ class particle_picking(object):
             progressbar = tqdm(total=len(np.unique(ugraph_paths)), desc="loading ground-truth particle positions")
             for ugraph_path in np.unique(ugraph_paths): # loop over the new set of micrographs
                 pdb_filenames = [self.results_truth["pdb_filename"][i] for i in range(len(self.results_truth["pdb_filename"])) if self.results_truth["ugraph_filename"][i] == ugraph_path][:self.particles_per_ugraph[self.ugraph_paths.index(ugraph_path)]]
-                positions = np.array([[self.results_truth["position_x"][i], self.results_truth["position_y"][i]] for i in range(len(self.results_truth["position_x"])) if self.results_truth["ugraph_filename"][i] == ugraph_path])[:self.particles_per_ugraph[self.ugraph_paths.index(ugraph_path)]]
+                positions = np.array([[self.results_truth["position_x"][i], self.results_truth["position_y"][i], self.results_truth["position_z"][i]] for i in range(len(self.results_truth["position_x"])) if self.results_truth["ugraph_filename"][i] == ugraph_path])[:self.particles_per_ugraph[self.ugraph_paths.index(ugraph_path)]]
                 defocus_values = [self.results_truth["defocus"][i] for i in range(len(self.results_truth["defocus"])) if self.results_truth["ugraph_filename"][i] == ugraph_path][:self.particles_per_ugraph[self.ugraph_paths.index(ugraph_path)]]
-                for pdb_filename, position, defocus_value in zip(pdb_filenames, positions, defocus_values):
+                ice_thickness_values = [self.results_truth["ice_thickness"][i] for i in range(len(self.results_truth["ice_thickness"])) if self.results_truth["ugraph_filename"][i] == ugraph_path][:self.particles_per_ugraph[self.ugraph_paths.index(ugraph_path)]]
+                for pdb_filename, position, defocus_value, ice_thickness_value in zip(pdb_filenames, positions, defocus_values, ice_thickness_values):
                     self.results_truth["metadata_filename"].append(self.meta_file)
                     self.results_truth["ugraph_filename"].append(ugraph_path)
+                    self.results_truth["ice_thickness"].append(ice_thickness_value)
                     self.results_truth["pdb_filename"].append(pdb_filename)
                     self.results_truth["position_x"].append(position[0])
                     self.results_truth["position_y"].append(position[1])
+                    self.results_truth["position_z"].append(position[2])
                     self.results_truth["defocus"].append(defocus_value)
-
-            # total_num_particles = np.sum(self.particles_per_ugraph)
-            # progressbar = tqdm(total=total_num_particles, desc="loading ground-truth particle positions")
-            # pdb_filenames = self.results_truth["pdb_filename"][:total_num_particles]
-            # positions = np.array([self.results_truth["position_x"][:total_num_particles], self.results_truth["position_y"][:total_num_particles]]).T
-            # defocus_values = self.results_truth["defocus"][:total_num_particles]
-            # for ugraph_path, pdb_filename, position, defocus_value in zip(self.ugraph_paths, pdb_filenames, positions, defocus_values):
-            #     self.results_truth["metadata_filename"].append(self.meta_file)
-            #     self.results_truth["ugraph_filename"].append(ugraph_path)
-            #     self.results_truth["pdb_filename"].append(pdb_filename)
-            #     self.results_truth["position_x"].append(position[0])
-            #     self.results_truth["position_y"].append(position[1])
-            #     self.results_truth["defocus"].append(defocus_value)
 
                 _ = progressbar.update(1)
             progressbar.close()
@@ -236,6 +230,7 @@ class particle_picking(object):
 
     def _extract_from_config(self, config: object, verbose: bool=False): 
         defocus = config["microscope"]["lens"]["c_10"]
+        ice_thickness = config["sample"]["box"][2]
         pixel_size = config["microscope"]["detector"]["pixel_size"]
         positions = []
         filenames = []
@@ -248,7 +243,8 @@ class particle_picking(object):
 
         positions = np.array(positions) / pixel_size # convert to pixels
         defocus_list = [defocus] * len(positions)
-        return filenames, positions, defocus_list
+        ice_thickness_list = [ice_thickness] * len(positions)
+        return filenames, positions, defocus_list, ice_thickness_list
 
     def _calc_dist_array(self, pos_picked, pos_truth, image_shape):
         ## calculates an array of distances between each pair of truth and picked particles
@@ -258,6 +254,25 @@ class particle_picking(object):
         sdm = cKDTree(picked_centres).sparse_distance_matrix(cKDTree(truth_centres), r).toarray()
         sdm[sdm<np.finfo(float).eps] = np.nan
         return sdm
+    
+    def _calc_neighbours(self, pos_picked, pos_truth, r):
+        ## calculates the number of neighbours for each particle in the truth set
+        truth_centres = self._grab_xy_array(pos_truth)
+        picked_centres = self._grab_xy_array(pos_picked)
+
+        # get a vector of the number of neighbours, one entry per diameter
+        neighbours = cKDTree(truth_centres).count_neighbors(cKDTree(truth_centres), r)
+        # account for the fact each particle matches itself
+        neighbours = neighbours - len(pos_truth)
+        # account for fact each particle is matched 2 times! Once from particle A->B and once from B->A
+        neighbours = neighbours/2
+
+        # do the same but this time between the picked particles and the truth particles
+        picked_neighbours = cKDTree(picked_centres).count_neighbors(cKDTree(truth_centres), r)
+        # account for fact each particle is matched 2 times! Once from particle A->B and once from B->A
+        picked_neighbours = picked_neighbours/2
+
+        return neighbours, picked_neighbours
 
     def _grab_xy_array(self, pos):
         # create a np array to ckdtree for number of neighbours as function of distance
@@ -291,13 +306,6 @@ class particle_picking(object):
         defocus = results_truth.groupby(["metadata_filename", "ugraph_filename"])["defocus"].mean()
         metadata_filename = results_picking.groupby(["metadata_filename", "ugraph_filename"])["metadata_filename"].first()
 
-        # FP = results_picking.groupby("ugraph_filename")["TP"].count() - TP
-        # multiplicity = results_truth.groupby("ugraph_filename")["multiplicity"] 
-        # # multiplicity is the number of times a truth particle is picked. FN can be calculated from this by looking at the number of particles with a multiplcity of 0
-        # FN = multiplicity.apply(lambda x: np.sum(x == 0))
-        # defocus = results_picking.groupby("ugraph_filename")["defocus"].mean()
-        # metadata_filename = results_picking.groupby("ugraph_filename")["metadata_filename"].first()
-
         # calculate the precision, recall and multiplicity for each micrograph
         precision = TP / (TP + FP)
         recall = TP / (TP + FN)
@@ -308,5 +316,56 @@ class particle_picking(object):
         results
         if verbose:
             print(f"computed precision, recall and multiplicity for each micrograph in {time.time()-tt} seconds")
+        return results
+
+    def compute_overlap(self, results_picking: pd.DataFrame, results_truth: pd.DataFrame, verbose: bool=False):
+        """this function computes the number of picked particles that overlap with a truth particle at a range of radii.
+        The output is a data frame with rows corresponding to each radius
+        
+        Args:
+            results_picking (pandas.DataFrame): the results of the picking algorithm
+            results_truth (pandas.DataFrame): the results of the truth algorithm
+            verbose (bool, optional): print out information about the calculation. Defaults to False.
+        
+        Returns:
+            pandas.DataFrame: a data frame containing the number of picked particles that overlap with a truth particle at a range of radii
+        """
+
+        results = {
+            "metadata_filename": [],
+            "ugraph_filename": [],
+            "defocus": [],	
+            "radius": [],
+            "neighbours_truth": [],
+            "neighbours_picked": [],
+        }
+
+        r = np.array(np.arange(10., 401., 10.))/2
+
+        results_picking_grouped = results_picking.groupby(["metadata_filename", "ugraph_filename"])
+        results_truth_grouped = results_truth.groupby(["metadata_filename", "ugraph_filename"])
+
+        progressbar = tqdm(total=len(results_picking_grouped.groups.keys()), desc="computing overlap", disable=not verbose)
+        for key in results_picking_grouped.groups.keys():
+                picked_pos_x = results_picking_grouped.get_group(key)["position_x"] 
+                picked_pos_y = results_picking_grouped.get_group(key)["position_y"]
+                truth_pos_x = results_truth_grouped.get_group(key)["position_x"]
+                truth_pos_y = results_truth_grouped.get_group(key)["position_y"]
+                defocus = results_truth_grouped.get_group(key)["defocus"].mean()
+
+                neighbours, picked_neighbours = self._calc_neighbours(np.array([picked_pos_x, picked_pos_y]).T, np.array([truth_pos_x, truth_pos_y]).T, r)
+
+                for i in range(len(r)):
+                    results["metadata_filename"].append(key[0])
+                    results["ugraph_filename"].append(key[1])
+                    results["defocus"].append(defocus)
+                    results["radius"].append(r[i])
+                    results["neighbours_truth"].append(neighbours[i])
+                    results["neighbours_picked"].append(picked_neighbours[i])
+
+                progressbar.update(1)
+        progressbar.close()
+
+        results = pd.DataFrame(results)
         return results
 

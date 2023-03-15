@@ -109,12 +109,18 @@ def label_micrograph_picked(particles: pd.DataFrame, ugraph_index: int=0, mrc_di
         if verbose:
             print(f"number of boxes: {len(boxes)}")
         
-        for bbox in boxes:
+        for i, bbox in enumerate(boxes):
             corner = [bbox[0], bbox[1]] 
             height = bbox[3] - bbox[1]
             width = bbox[2] - bbox[0]
+            if "TP" in particles_ugraph.columns:
+                facecolor = "lime" if particles_ugraph["TP"][i] else "red"
+                alpha = 0.6
+            else:
+                facecolor = "none"
+                alpha = 1
             rect = patches.Rectangle(
-                corner, width, height, linewidth=1, edgecolor=[1, 0, 0], facecolor='none'
+                corner, width, height, linewidth=1, edgecolor=[1, 0, 0], facecolor=facecolor, alpha=alpha
             )
             ax.add_patch(rect)
         red_patch = patches.Patch(color='red', label='Picked particles')
@@ -222,9 +228,9 @@ def plot_recall(df_precision: pd.DataFrame, jobtypes: Dict[str, str]):
     return fig, ax
 
 def plot_boundary_investigation(df_truth: pd.DataFrame, df_picked: pd.DataFrame, metadata_filename: str, bin_width: int=100, axis: str="x"):
-    particles_per_ugraph = df_truth.groupby(["metadata_filename", "ugraph_filename"]).size().reset_index(name="particles_per_ugraph")
-    avg_particles_per_ugraph = particles_per_ugraph.groupby("metadata_filename").get_group(metadata_filename)["particles_per_ugraph"].mean()
-    num_ugraphs = len(particles_per_ugraph.groupby("metadata_filename").get_group(metadata_filename))
+    particles_per_ugraph = df_truth.groupby("ugraph_filename").size().reset_index(name="particles_per_ugraph")
+    avg_particles_per_ugraph = particles_per_ugraph["particles_per_ugraph"].mean()
+    num_ugraphs = len(particles_per_ugraph)
     if axis != "z":
         particles_per_bin = avg_particles_per_ugraph * (bin_width / df_picked["ugraph_shape"][0][0]) * num_ugraphs
         bins = np.arange(0, df_picked["ugraph_shape"][0][0], bin_width)
@@ -235,7 +241,7 @@ def plot_boundary_investigation(df_truth: pd.DataFrame, df_picked: pd.DataFrame,
     fig, ax = plt.subplots()
     if axis != "z":
         sns.histplot(x=f"position_{axis}", data=df_picked.groupby("metadata_filename").get_group(metadata_filename), stat="count", bins=bins, color="red", label="picked", fill=False, ax=ax)
-    sns.histplot(x=f"position_{axis}", data=df_truth.groupby("metadata_filename").get_group(metadata_filename), stat="count", bins=bins, color="blue", label="truth", fill=False, ax=ax)
+    sns.histplot(x=f"position_{axis}", data=df_truth, stat="count", bins=bins, color="blue", label="truth", fill=False, ax=ax)
     # plot a line at the expected number of particles per bin
     if axis != "z":
         ax.hlines([particles_per_bin], 0., df_picked["ugraph_shape"][0][0], colors=['black'], linestyles=['dashed'], label='expected')
