@@ -14,7 +14,7 @@ from matplotlib import patches
 import seaborn as sns
 import mrcfile
 
-from roodmus.analysis.analyse_picking import particle_picking
+from .analyse_picking import particle_picking
 
 
 def add_arguments(parser):

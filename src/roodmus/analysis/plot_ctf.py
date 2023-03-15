@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import mrcfile
 
-from roodmus.analysis.analyse_ctf import ctf_estimation
+from .analyse_ctf import ctf_estimation
 
 
 def add_arguments(parser):

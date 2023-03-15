@@ -11,7 +11,7 @@ import roodmus.trajectory.waymarking
 import roodmus.analysis.plot_ctf
 import roodmus.analysis.plot_picking
 
-# import roodmus.analysis.analyse_alignment
+# import analysis.analyse_alignment
 
 
 def main():

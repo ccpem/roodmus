@@ -8,7 +8,7 @@ import numpy as np
 from scipy.spatial.transform.rotation import Rotation as R
 from tqdm import tqdm
 
-from roodmus.analysis.utils import IO
+from utils import IO
 
 
 class alignment_3D(object):

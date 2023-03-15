@@ -11,7 +11,7 @@ from run_parakeet.orientation_generator import orientation_generator
 """
 
 
-class configuration(object):
+class Configuration(object):
     def __init__(self, config_filename, args=None):
         # intermediate file names
         self.sample_filename = "sample.h5"

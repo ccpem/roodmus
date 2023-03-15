@@ -5,3 +5,5 @@
 testing_roodmus.txt
 dist
 src/*.egg-info
+*backup*
+*backup

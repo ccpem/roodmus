@@ -10,7 +10,7 @@ import numpy as np
 from tqdm import tqdm
 
 import parakeet
-from roodmus.simulation.configuration import configuration
+from .configuration import Configuration
 
 
 def add_arguments(
@@ -923,7 +923,7 @@ def main(args):
         )
 
         # initialise the configuration
-        config = configuration(config_filename, args=args)
+        config = Configuration(config_filename, args=args)
 
         # sample the defocus around the specified value
         config.config.microscope.lens.c_10 = sample_defocus(

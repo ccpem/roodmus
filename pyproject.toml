@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=64.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "roodmus"
-version = "0.0.4"
+version = "0.0.17"
 authors = [
   { name="Joel Greer", email="joel.greer@stfc.ac.uk" },
   { name="Maarten Joosten", email="m.j.joosten@tudelft.nl" },
@@ -67,7 +67,6 @@ dependencies = [
   "parse>=1.19.0",
   "partd>=1.3.0",
   "Pillow>=9.3.0",
-  "pip @ git+ssh://git@gitlab.com/ccpem/ccpem-pipeliner.git@adf40ed2c55c39200924ef39c2d2fe3d6f712885",
   "platformdirs>=3.1.0",
   "pre-commit>=3.1.1",
   "profet>=0.0.1",
@@ -80,7 +79,6 @@ dependencies = [
   "pyquery>=2.0.0",
   "python-dateutil>=2.8.2",
   "python-multem>=0.3.3",
-  "pip @ git+ssh://git@github.com/rosalindfranklininstitute/parakeet.git@024b86ebf55adf737c1b1116b8adbb59ee7db491",
   "pytz>=2022.7.1",
   "PyWavelets>=1.4.1",
   "PyYAML>=6.0",
@@ -112,36 +110,7 @@ dependencies = [
 ]
 
 [project.scripts]
-roodmus = "roodmus:roodmus_cli"
-
-[project.optional-dependencies]
-dev = [
-  
-]
-test = [
-    "pytest-cov",
-]
-
-[tool.setuptools]
-include-package-data = true
-
-[tool.setuptools.packages.find]
-namespaces = true
-where = ["src"]
-include = ["roodmus"]
-exclude = []
-
-[tool.setuptools.package-data]
-
-[tool.setuptools.exclude-package-data]
-roodmus = [".gitignore"]
-
-
-[tool.coverage.run]
-source = ["src"]
-
-[tool.pytest.ini_options]
-addopts = "--cov --cov-report html --cov-report term-missing --cov-fail-under 95"
+roodmus = "roodmus.cli:main"
 
 [project.urls]
 "Homepage" = "https://github.com/pypa/sampleproject"
