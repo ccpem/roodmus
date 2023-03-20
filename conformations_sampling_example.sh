@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 EXECUTABLE=$"roodmus"
-SUBROUTINE=$" waymarking"
+SUBROUTINE=$" conformations_sampling"
 
 TRAJFILES_DIR_PATH=$"/mnt/parakeet_storage4/trajectories/DESRES-Trajectory_sarscov2-11021566-all-glueCA/sarscov2-11021566-all-glueCA/glyco_no_solvent"
 TOPFILE_PATH=$"/mnt/parakeet_storage4/trajectories/DESRES-Trajectory_sarscov2-11021566-all-glueCA/pdbfile_11021566_glyco.pdb"

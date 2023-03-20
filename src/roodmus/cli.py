@@ -7,7 +7,7 @@
 import argparse
 
 import roodmus.simulation.run_parakeet
-import roodmus.trajectory.waymarking
+import roodmus.trajectory.conformations_sampling
 import roodmus.analysis.plot_ctf
 import roodmus.analysis.plot_picking
 
@@ -31,7 +31,7 @@ def main():
 
     modules = [
         roodmus.simulation.run_parakeet,
-        roodmus.trajectory.waymarking,
+        roodmus.trajectory.conformations_sampling,
         roodmus.analysis.plot_ctf,
         roodmus.analysis.plot_picking,
     ]
