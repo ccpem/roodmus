@@ -96,6 +96,7 @@ export CMAKE_CUDA_ARCHITECTURES=<>
 pip install --upgrade pip
 cd roodmus
 pip install e .
+pre-commit install
 cd ../
 
 cd parakeet
