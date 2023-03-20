@@ -145,3 +145,15 @@ cd ../ccpem-pipeliner
 pip install -e .
 ```
 
+# Updating roodmus As A pip Package
+I do this via twine:
+`python3 -m pip install --upgrade twine`
+If there's any updates, you need to update the version number (configured in the pyproject.toml). Make sure it is suitable according to pep conventions! Currently updating this is manual.
+Once you've done that, you can publish the package via:
+`python3 -m twine upload --repository testpypi dist/*<version>`
+
+To do this you'll need an account and token (instructions here: <https://packaging.python.org/en/latest/tutorials/packaging-projects/>)
+
+If you want to download the pip package from the remote repository (currently the pypi test repo) and install it, you can do this via:
+`python3 -m pip install --extra-index-url https://test.pypi.org/simple/  roodmus --no-cache-dir`
+You can also pip install it via the tar'ed dist package or the pip wheel (.whl file) found in the dist directory.

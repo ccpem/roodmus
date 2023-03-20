@@ -782,7 +782,10 @@ def add_arguments(
 
     parser.add_argument(
         "--leading_zeros",
-        help=("Number of decimal integers to use for image filenames"),
+        help=(
+            "Number of decimal integers to use for image filenames."
+            " Defaults to 6"
+        ),
         type=int,
         default=6,
         required=False,
