@@ -67,4 +67,80 @@ Code is currently tested with parakeet commit `024b86ebf55adf737c1b1116b8adbb59e
 # flow chart of current structure of Roodmus
 ![flowchart](flowchart.png)
 
+# Setting up Roodmus
+## On a PC
+From creating a new python environment (assumed conda/anaconda installed) to being able to develop and run roodmus. They assume that FFTW is in the system path (used for python-multem/guanaco). The number used for CMAKE_CUDA_ARCHITECTURES number will depend on you GPU. <https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/> can be a useful reference to find it for your GPU.
+```
+conda create -n roodmus_python3_10_4 python=3.10.4
+source activate roodmus_python3_10_4
+
+git clone git@gitlab.tudelft.nl:aj-lab/roodmus.git
+git checkout jgreer/merge_w_analysis
+cd ../
+
+git clone https://github.com/rosalindfranklininstitute/parakeet.git
+cd parakeet
+git checkout 17a0c864f6cfd84b5fd56b60fa446f7b021d338c
+git submodule update --init --recursive
+cd ../
+
+git clone https://gitlab.com/ccpem/ccpem-pipeliner.git
+cd ccpem-pipeliner
+git checkout acb30b796246141158ab1a1870bcecdd864eeb5f
+cd ../
+
+export CXX=<path>/g++
+export CUDACXX=<path>/bin/nvcc
+export CMAKE_CUDA_ARCHITECTURES=<>
+
+pip install --upgrade pip
+cd roodmus
+pip install e .
+cd ../
+
+cd parakeet
+pip install -e .
+cd../
+
+cd ccpem-pipeliner
+pip install -e .
+```
+After doing so, an editable install of roodmus should be set up with all requisite packages.
+
+## On JADE2
+The instructions below show how to set up roodmus on JADE2. These instructions are useful for using an existing pypi distribution of parakeet rather than developing the roodmus package!!!!
+```
+module load python/anaconda3
+conda create -n roodmus_python3_10_4 python=3.10.4
+source activate roodmus_python3_10_4
+
+cd /jmain02/home/<>/Software
+
+git clone https://github.com/rosalindfranklininstitute/parakeet.git
+cd parakeet
+git checkout 17a0c864f6cfd84b5fd56b60fa446f7b021d338c
+git submodule update --init --recursive
+cd ../
+
+git clone https://gitlab.com/ccpem/ccpem-pipeliner.git
+cd ccpem-pipeliner
+git checkout acb30b796246141158ab1a1870bcecdd864eeb5f
+cd ../
+
+module load cuda/11.1-gcc-9.1.0
+module load use.dev
+module load fftw/3.3.8
+module load gcc/9.1.0
+
+export CXX=<>/apps/gcc9/9.1.0/bin/g++
+export CUDACXX=<>/apps/gcc9/cuda-11.1/bin/nvcc
+export CMAKE_CUDA_ARCHITECTURES=70
+
+pip install --upgrade pip
+python3 -m pip install --extra-index-url https://test.pypi.org/simple/  roodmus --no-cache-dir
+cd parakeet
+pip install -e .
+cd ../ccpem-pipeliner
+pip install -e .
+```
 
