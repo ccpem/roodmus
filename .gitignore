@@ -1,3 +1,10 @@
 *.log
 *_requirements.txt
 *freeze.yaml
+*_example
+testing_roodmus.txt
+dist
+src/*.egg-info
+src/roodmus/*pycache*
+*backup*
+*backup
