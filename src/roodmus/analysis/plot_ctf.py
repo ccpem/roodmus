@@ -1,14 +1,15 @@
-"""
-    Script to plot a comparison between the estimated CTF parameters
-    and the true values used in data generation
+"""Script to plot a comparison between the estimated CTF parameters and the
+true values used in data generation
 """
 
+import argparse
 import os
 import time
 
-import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
 import mrcfile
 
 from .analyse_ctf import ctf_estimation
@@ -17,14 +18,14 @@ from .analyse_ctf import ctf_estimation
 def add_arguments(parser):
     parser.add_argument(
         "--config-dir",
-        help="directory with .mrc files and .yaml config files",
+        help="Directory with .mrc files and .yaml config files",
         type=str,
     )
     parser.add_argument(
         "--mrc-dir",
         help=(
             "Directory with .mrc files. Assumed to be the same as"
-            " 'config-dir' by default"
+            " 'config-dir'by default",
         ),
         type=str,
         default=None,
@@ -32,20 +33,23 @@ def add_arguments(parser):
     parser.add_argument(
         "-N",
         "--num-ugraphs",
-        help="number of micrographs to consider in analyses. Default 'all'",
+        help="Number of micrographs to consider in analyses. Default 'all'",
         type=int,
         default=None,
     )
     parser.add_argument(
         "--meta-file",
         help=(
-            "particle metadata file. Can be .star (RELION)"
-            " or .cs (CryoSPARC)"
+            "Particle metadata file. Can be .star (RELION) or .cs"
+            " (CryoSPARC)"
         ),
         type=str,
     )
     parser.add_argument(
-        "--plot-dir", help="output file name", type=str, default="ctf.png"
+        "--plot-dir",
+        help="output file name",
+        type=str,
+        default="ctf.png",
     )
     parser.add_argument(
         "--plot-types",
@@ -66,14 +70,24 @@ def get_name():
 
 
 def plot_defocus_scatter(df):
-    df_grouped = df.groupby("ugraph_filename")
+    # df_grouped = df.groupby("ugraph_filename")
 
     # plot the results
     plt.rcParams["font.size"] = 24
     plt.style.use("seaborn-whitegrid")
     fig, ax = plt.subplots(figsize=(10, 10))
-    for name, group in df_grouped:
-        ax.scatter(group["defocus_truth"], group["defocusU"], label=name)
+    # for name, group in df_grouped:
+    #     ax.scatter(group["defocus_truth"], group["defocusU"], label=name)
+    sns.scatterplot(
+        x="defocus_truth",
+        y="defocusU",
+        data=df,
+        ax=ax,
+        hue="ugraph_filename",
+        palette="RdYlBu",
+        legend=False,
+        marker="+",
+    )
     # add identity line
     min_defocusU_truth = df["defocus_truth"].min()
     max_defocusU_truth = df["defocus_truth"].max()
@@ -89,7 +103,10 @@ def plot_defocus_scatter(df):
     ax.set_ylabel("defocusU estimated [$\u212B$]")
     # add colorbar legend
     sm = plt.cm.ScalarMappable(
-        cmap="viridis", norm=plt.Normalize(vmin=0, vmax=len(df_grouped))
+        cmap="RdYlBu",
+        norm=plt.Normalize(
+            vmin=0, vmax=len(np.unique(df["ugraph_filename"])) - 1
+        ),
     )
     sm._A = []
     cbar = plt.colorbar(sm)
@@ -122,8 +139,9 @@ def _convert_1d_ctf_to_2d_ctf(ctf_1d):
     n = len(ctf_1d)
     apix = 1
     freq = np.linspace(1 / (n * apix), 1 / (2 * apix), n, endpoint=True)
-    assert len(freq) == len(ctf_1d), "Frequency and CTF"
-    " must have the same size"
+    assert len(freq) == len(
+        ctf_1d
+    ), "Frequency and CTF must have the same size"
     ctf_interpolate = interpolate.interp1d(
         freq, ctf_1d, fill_value="extrapolate"
     )
@@ -157,16 +175,21 @@ def plot_CTF(df, mrc_dir, ugraph_index=0):
 
     # get the CTF values for the micrograph from the dataframe
     data_ugraph = df.groupby("ugraph_filename").get_group(ugraph_filename)
-    # assume all particles have the same defocusU
-    defocusU = np.array(data_ugraph["defocusU"])[0]
-    # assume all particles have the same amp
-    amp = np.array(data_ugraph["amp"])[0]
-    # assume all particles have the same Cs
-    Cs = np.array(data_ugraph["Cs"])[0]
-    # assume all particles have the same Bfac
-    Bfac = np.array(data_ugraph["Bfac"])[0]
-    # assume all particles have the same kV
-    kV = np.array(data_ugraph["kV"])[0]
+    defocusU = np.array(data_ugraph["defocusU"])[
+        0
+    ]  # assume all particles have the same defocusU
+    amp = np.array(data_ugraph["amp"])[
+        0
+    ]  # assume all particles have the same amp
+    Cs = np.array(data_ugraph["Cs"])[
+        0
+    ]  # assume all particles have the same Cs
+    Bfac = np.array(data_ugraph["Bfac"])[
+        0
+    ]  # assume all particles have the same Bfac
+    kV = np.array(data_ugraph["kV"])[
+        0
+    ]  # assume all particles have the same kV
 
     ctf_estimated_1D = _simulate_CTF_curve(
         defocusU, amp, Cs, Bfac, kV, max_freq=0.05, num_points=2000 // 2
@@ -184,16 +207,19 @@ def plot_CTF(df, mrc_dir, ugraph_index=0):
     vmin_ctf = np.nanpercentile(ctf_estimated_2D, 5) * 0.5
     vmax_ctf = np.nanpercentile(ctf_estimated_2D, 99.99) * 1.5
 
-    # Get the truth values
-    # assume all particles have the same defocus
-    defocus_truth = np.array(data_ugraph["defocus_truth"])[0]
+    # get the truth values
+    defocus_truth = np.array(data_ugraph["defocus_truth"])[
+        0
+    ]  # assume all particles have the same defocus
     amp_truth = np.zeros_like(
         defocus_truth
     )  # amplitude is 0 for all particles
-    # assume all particles have the same Cs
-    Cs_truth = np.array(data_ugraph["Cs_truth"])[0]
-    # B-factor is 0 for all particles
-    Bfac_truth = np.zeros_like(defocus_truth)
+    Cs_truth = np.array(data_ugraph["Cs_truth"])[
+        0
+    ]  # assume all particles have the same Cs
+    Bfac_truth = np.zeros_like(
+        defocus_truth
+    )  # B-factor is 0 for all particles
     kV_truth = np.array(data_ugraph["kV_truth"])[
         0
     ]  # assume all particles have the same kV
@@ -255,17 +281,14 @@ def plot_CTF(df, mrc_dir, ugraph_index=0):
 
 
 def main(args):
-    """
-    The script loads the metadata file and extracts the ctf
-    parameters for each particle. It is possible that the CTF
-    values for each particle are the same
-    if the CTF estimation was done on the entire micrograph.
+    """The script loads the metadata file and extracts the ctf parameters
+    for each particle. It is possible that the CTF values for each particle
+    are the same if the CTF estimation was done on the entire micrograph.
     In that case, the script will plot the CTF values for each micrograph.
     Next, the script loads the config parakeet file and gets the CTF values
     for each micrograph.
-    For each micrograph that is present in the metadata,
-    the script will plot the estimated CTF values against
-    the ground-truth CTF values.
+    For each micrograph that is present in the metadata, the script will plot
+    the estimated CTF values against the ground-truth CTF values.
     """
 
     # create output directory if it does not exist
@@ -282,31 +305,30 @@ def main(args):
     picked_particles = pd.DataFrame(picked_particles.results)
     if args.verbose:
         print(
-            "Loaded {} particles from {}. Starting plotting ...".format(
-                len(picked_particles),
-                args.meta_file,
+            "Loaded {} particles from {}. starting plotting ...".format(
+                len(picked_particles), args.meta_file
             )
         )
-        print(f"Time taken: {time.time()-tt:.2f} seconds")
+        print(f"time taken: {time.time()-tt:.2f} seconds")
 
     # create the plots
     for plot_type in args.plot_types:
         if plot_type == "scatter":
             if args.verbose:
                 tt = time.time()
-                print("plotting defocus scatter plot ...")
+                print("Plotting defocus scatter plot ...")
             filename = os.path.join(args.plot_dir, "ctf_scatter.png")
             fig, ax = plot_defocus_scatter(picked_particles)
             fig.savefig(filename, dpi=300, bbox_inches="tight")
             plt.close(fig)
             if args.verbose:
-                print(f"time taken: {time.time()-tt:.2f} seconds")
+                print(f"Time taken: {time.time()-tt:.2f} seconds")
 
         if plot_type == "CTF":
             if args.num_ugraphs is None:
                 print("Plotting CTF for all micrographs ...")
             else:
-                print(f"plotting CTF for {args.num_ugraphs} micrographs ...")
+                print(f"Plotting CTF for {args.num_ugraphs} micrographs ...")
 
             for ugraph_index in np.unique(picked_particles["ugraph_filename"])[
                 : args.num_ugraphs
@@ -326,8 +348,6 @@ def main(args):
 
 
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser(description=__doc__)
     parser = add_arguments(parser)
     args = parser.parse_args()

@@ -1,6 +1,5 @@
-"""
-    API containing functions to process the ctf parameters from a .cs
-    or .star file and from the Parakeet config files
+"""API containing functions to process the ctf parameters from a .cs or .star
+file and from the Parakeet config files
 """
 
 import os
@@ -43,22 +42,22 @@ class ctf_estimation(object):
         self,
         meta_file: str | None = None,
         config_dir: str | None = None,
-        verbose: bool | None = None,
+        verbose: bool = False,
     ):
         """Processing of the estimated and true ctf parameters from a .cs
-         or .star file and from the Parakeet config files.
+        or .star file and from the Parakeet config files.
         The ctf parameter values for each particle are read from the metadata
-         file and the config files and stored in a dictionary.
+        file and the config files and stored in a dictionary.
         If the user has provided new arguments, the class attributes are
-         updated and the computation is performed again.
+        updated and the computation is performed again.
 
         Args:
             meta_file (str, optional): path to the metadata file.
-             Defaults to None.
-            config_dir (str, optional): path to the directory
-             containing the config files. Defaults to None.
+            Defaults to None.
+            config_dir (str, optional): path to the directory containing the
+            config files. Defaults to None.
             verbose (bool, optional): whether to print the progress.
-             Defaults to None.
+            Defaults to None.
 
         Returns:
             dict: dictionary containing the ctf parameters for each particle
@@ -80,8 +79,7 @@ class ctf_estimation(object):
         if self.verbose:
             print(
                 "Found {} particles in {} micrographs".format(
-                    len(ctf),
-                    len(np.unique(ugraph_paths)),
+                    len(ctf), len(np.unique(ugraph_paths))
                 )
             )
 
@@ -90,35 +88,40 @@ class ctf_estimation(object):
             total=len(np.unique(ugraph_paths)),
             desc="loading ground-truth ctf parameters",
         )
-        gt_ctf_list: list[np.array] = []
+
+        gt_ctf: list[list[float]] = []
         for ugraph_path in np.unique(ugraph_paths):
             num_particles_in_ugraph = np.sum(
                 np.array(ugraph_paths) == ugraph_path
             )
             config = IO.load_config(
                 os.path.join(
-                    self.config_dir,
-                    ugraph_path.replace(".mrc", ".yaml"),
+                    self.config_dir, ugraph_path.replace(".mrc", ".yaml")
                 )
             )
             # single value for the entire micrograph
             gt_ctf_ugraph = self._extract_from_config(config)
             for _ in range(num_particles_in_ugraph):
-                gt_ctf_list.append(gt_ctf_ugraph)
+                gt_ctf.append(gt_ctf_ugraph)
 
-            _ = progressbar.update(1)
+            progressbar.update(1)
         progressbar.close()
 
-        # the defocus values are negative in the config file,
+        # the defocus values are negative in the config file
         # but positive in the metadata file
-        gt_ctf: np.array = np.abs(np.array(gt_ctf_list))
+        gt_ctf = np.abs(np.array(gt_ctf)).tolist()
 
         if self.verbose:
             print(
-                "Ground-truth ctf values loaded."
-                " {} ctf values found".format(gt_ctf.shape)
+                "Ground-truth ctf values loaded. {} ctf values found".format(
+                    len(gt_ctf)
+                )
             )
-            print(f"Estimated ctf values loaded. {ctf.shape} ctf values found")
+            print(
+                "Estimated ctf values loaded. {} ctf values found".format(
+                    len(ctf)
+                )
+            )
 
         for i in range(len(ugraph_paths)):
             self.results["ugraph_filename"].append(ugraph_paths[i])

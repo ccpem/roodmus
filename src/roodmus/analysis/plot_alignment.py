@@ -3,6 +3,8 @@
     ground-truth orientation values used in Parakeet data generation
 """
 
+import argparse
+
 
 def add_arguments(parser):
     parser.add_argument(
@@ -39,8 +41,6 @@ def main(args):
 
 
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser(description=__doc__)
     parser = add_arguments(parser)
     args = parser.parse_args()
