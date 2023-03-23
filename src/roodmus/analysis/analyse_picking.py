@@ -3,7 +3,7 @@
 
 import os
 import time
-import collections.abc.KeysView as dict_keys
+from collections.abc import KeysView as dict_keys
 
 import numpy as np
 from tqdm import tqdm
@@ -81,11 +81,11 @@ class particle_picking(object):
         # If the user does not specify a new metadata file or config directory
         # the current one is used (an initial metadata file and config dir is
         # given when the class is instantiated)
-        if meta_file is not None and meta_file is not self.meta_file:
+        if meta_file and meta_file is not self.meta_file:
             # user has specified a new metadata file to use
             self.meta_file = meta_file
             self._update_meta_file = True
-        if config_dir is not None and config_dir is not self.config_dir:
+        if config_dir and config_dir is not self.config_dir:
             # user has specified a new config directory to use
             self.config_dir = config_dir
             self._update_config_dir = True
@@ -142,7 +142,7 @@ class particle_picking(object):
             for ugraph_path in ugraphs_to_load:
                 if not os.path.isfile(
                     os.path.join(
-                        config_dir, ugraph_path.replace(".mrc", ".yaml")
+                        self.config_dir, ugraph_path.replace(".mrc", ".yaml")
                     )
                 ):
                     print(f"WARNING: no config file found for {ugraph_path}")
@@ -192,6 +192,7 @@ class particle_picking(object):
     def _load_metadata(
         self, meta_file: str = "", verbose: bool = False
     ) -> Tuple[dict, str]:
+        print(meta_file)
         if meta_file.endswith(".star"):
             metadata = IO.load_star(meta_file)
             file_type = "star"
@@ -293,28 +294,31 @@ class particle_picking(object):
         defocus = config["microscope"]["lens"]["c_10"]
         ice_thickness = config["sample"]["box"][2]
         pixel_size = config["microscope"]["detector"]["pixel_size"]
-        positions: np.array = np.empty([], dtype=float)
+        positions_list: List = []
         filenames = []
         for molecules in config["sample"]["molecules"]["local"]:
             f = molecules["filename"]
             for instance in molecules["instances"]:
                 position = instance["position"]
-                positions.append(position)
+                positions_list.append(position)
                 filenames.append(f)
-        positions = np.array(positions) / pixel_size  # convert to pixels
+        positions: np.ndarray = (
+            np.array(positions_list) / pixel_size
+        )  # convert to pixels
 
         # add to results
+        print(len(filenames))
         self.results_truth["pdb_filename"] = np.append(
             self.results_truth["pdb_filename"], filenames
         )
         self.results_truth["position_x"] = np.append(
-            self.results_truth["position_x"], positions[:][0]
+            self.results_truth["position_x"], positions[:, 0]
         )
         self.results_truth["position_y"] = np.append(
-            self.results_truth["position_y"], positions[:][1]
+            self.results_truth["position_y"], positions[:, 1]
         )
         self.results_truth["position_z"] = np.append(
-            self.results_truth["position_z"], positions[:][2]
+            self.results_truth["position_z"], positions[:, 2]
         )
         self.results_truth["defocus"] = np.append(
             self.results_truth["defocus"], [defocus] * len(positions)

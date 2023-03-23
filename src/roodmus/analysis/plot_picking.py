@@ -205,6 +205,7 @@ def label_micrograph_picked(
     particles_ugraph = particles.groupby("ugraph_filename").get_group(
         ugraph_filename
     )
+    particles_ugraph.reset_index(inplace=True)
 
     # Open up a mrc file to overlay the boxes with
     with mrcfile.open(ugraph_path) as mrc:
@@ -373,7 +374,7 @@ def plot_precision(df_precision: pd.DataFrame, jobtypes: Dict[str, str]):
         ]
     )
     # remove legend
-    ax.get_legend().remove()
+    ax.legend().remove()
     # add colorbar
     sm = plt.cm.ScalarMappable(
         cmap="RdYlBu",
@@ -424,7 +425,7 @@ def plot_recall(df_precision: pd.DataFrame, jobtypes: Dict[str, str]):
         ]
     )
     # remove legend
-    ax.get_legend().remove()
+    ax.legend().remove()
     # add colorbar
     sm = plt.cm.ScalarMappable(
         cmap="RdYlBu",
