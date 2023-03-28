@@ -90,10 +90,24 @@ class ctf_estimation(object):
         )
 
         gt_ctf: list[list[float]] = []
+        num_particles_total: int = 0
         for ugraph_path in np.unique(ugraph_paths):
+            if not os.path.exists(
+                os.path.join(
+                    self.config_dir, ugraph_path.replace(".mrc", ".yaml")
+                )
+            ):
+                Warning(
+                    f"config file for {ugraph_path} not found. "
+                    "Skipping this micrograph."
+                )
+                progressbar.update(1)
+                continue
             num_particles_in_ugraph = np.sum(
                 np.array(ugraph_paths) == ugraph_path
             )
+            num_particles_total += num_particles_in_ugraph
+
             config = IO.load_config(
                 os.path.join(
                     self.config_dir, ugraph_path.replace(".mrc", ".yaml")
@@ -123,7 +137,7 @@ class ctf_estimation(object):
                 )
             )
 
-        for i in range(len(ugraph_paths)):
+        for i in range(num_particles_total):
             self.results["ugraph_filename"].append(ugraph_paths[i])
             self.results["defocusU"].append(ctf[i][0])
             self.results["defocusV"].append(ctf[i][1])
