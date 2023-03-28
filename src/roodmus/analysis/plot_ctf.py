@@ -69,7 +69,7 @@ def get_name():
     return "plot_ctf"
 
 
-def plot_defocus_scatter(df):
+def plot_defocus_scatter(df, palette="BuGn"):
     # df_grouped = df.groupby("ugraph_filename")
 
     # plot the results
@@ -84,7 +84,7 @@ def plot_defocus_scatter(df):
         data=df,
         ax=ax,
         hue="ugraph_filename",
-        palette="RdYlBu",
+        palette=palette,
         legend=False,
         marker="+",
     )
@@ -103,7 +103,7 @@ def plot_defocus_scatter(df):
     ax.set_ylabel("defocusU estimated [$\u212B$]")
     # add colorbar legend
     sm = plt.cm.ScalarMappable(
-        cmap="RdYlBu",
+        cmap=palette,
         norm=plt.Normalize(
             vmin=0, vmax=len(np.unique(df["ugraph_filename"])) - 1
         ),
