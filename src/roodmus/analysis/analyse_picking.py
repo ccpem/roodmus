@@ -4,6 +4,7 @@
 import os
 import time
 from collections.abc import KeysView as dict_keys
+from typing import Dict
 
 import numpy as np
 from tqdm import tqdm
@@ -219,8 +220,8 @@ class particle_picking(object):
         the ugraph_filename list.
         """
         if file_type == "cs":
-            ugraph_filename = IO.get_ugraph_cs(
-                metadata
+            ugraph_filename, mask = IO.get_ugraph_cs(
+                metadata, self.config_dir
             )  # a list of all microraphs in the metadata file
             num_particles = len(ugraph_filename)
             self.results_picking["ugraph_filename"].extend(ugraph_filename)
@@ -230,10 +231,10 @@ class particle_picking(object):
             )  # an array of all the x- and y-positions in the metadata file
             if pos is not None:
                 self.results_picking["position_x"].extend(
-                    pos[:, 0]
+                    pos[:, 0][mask]
                 )  # an array of all the x-positions in the metadata file
                 self.results_picking["position_y"].extend(
-                    pos[:, 1]
+                    pos[:, 1][mask]
                 )  # an array of all the y-positions in the metadata file
             else:
                 self.results_picking["position_x"].extend(
@@ -247,14 +248,14 @@ class particle_picking(object):
                 metadata
             )  # the shape of the micrograph
             if ugraph_shape is not None:
-                self.results_picking["ugraph_shape"].extend(ugraph_shape)
+                self.results_picking["ugraph_shape"].extend(ugraph_shape[mask])
             else:
                 self.results_picking["ugraph_shape"].extend(
                     [[np.nan, np.nan]] * num_particles
                 )
 
             defocus = IO.get_ctf_cs(
-                metadata
+                metadata, mask
             )  # an array of all the defocus values in the metadata file
             if defocus is not None:
                 self.results_picking["defocus"].extend(defocus[:, 0])
@@ -267,7 +268,7 @@ class particle_picking(object):
             # otherwise None
             class2D = IO.get_class2D_cs(metadata)
             if class2D is not None:
-                self.results_picking["class2D"].extend(class2D)
+                self.results_picking["class2D"].extend(class2D[mask])
             else:
                 self.results_picking["class2D"].extend(
                     [np.nan] * num_particles
@@ -275,13 +276,19 @@ class particle_picking(object):
 
         elif file_type == "star":
             # a list of all microraps in the metadata file
-            self.results_picking["ugraph_paths"] = IO.get_ugraph_star(metadata)
+            self.results_picking["ugraph_paths"], mask = IO.get_ugraph_star(
+                metadata, self.config_dir
+            )
             # an array of all the defocus values in the metadata file
-            self.results_picking["positions"] = IO.get_positions_star(metadata)
+            self.results_picking["positions"] = IO.get_positions_star(
+                metadata
+            )[mask]
             # an array of all the defocus values in the metadata file
-            self.results_picking["ctf"] = IO.get_ctf_star(metadata)
+            self.results_picking["ctf"] = IO.get_ctf_star(metadata)[mask]
             # an array of all the class labels in the metadata file
-            self.results_picking["class2D"] = IO.get_class2D_star(metadata)
+            self.results_picking["class2D"] = IO.get_class2D_star(metadata)[
+                mask
+            ]
 
         else:
             raise ValueError(f"unknown metadata file type: {file_type}")
@@ -289,7 +296,7 @@ class particle_picking(object):
         return num_particles
 
     def _extract_from_config(
-        self, config: dict[str, Any], verbose: bool = False
+        self, config: Dict[str, Any], verbose: bool = False
     ):
         defocus = config["microscope"]["lens"]["c_10"]
         ice_thickness = config["sample"]["box"][2]

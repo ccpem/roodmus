@@ -75,7 +75,11 @@ class ctf_estimation(object):
         if self.verbose:
             print(f"loading metadata from {self.meta_file}...")
         metadata, file_type = self._load_metadata(self.meta_file)
-        ugraph_paths, ctf = self._extract_from_metadata(metadata, file_type)
+        ugraph_paths, ctf, mask = self._extract_from_metadata(
+            metadata,
+            file_type,
+        )
+
         if self.verbose:
             print(
                 "Found {} particles in {} micrographs".format(
@@ -137,18 +141,22 @@ class ctf_estimation(object):
 
     def _extract_from_metadata(self, metadata, file_type):
         if file_type == "cs":
-            ugraph_paths = IO.get_ugraph_cs(
-                metadata
+            ugraph_paths, mask = IO.get_ugraph_cs(
+                metadata, self.config_dir
             )  # a list of all microraps in the metadata file
             ctf = IO.get_ctf_cs(
-                metadata
+                metadata,
+                mask,
             )  # an array of all the defocus values in the metadata file
         elif file_type == "star":
-            ugraph_paths = IO.get_ugraph_star(metadata)
-            ctf = IO.get_ctf_star(metadata)
+            ugraph_paths, mask = IO.get_ugraph_star(metadata, self.config_dir)
+            ctf = IO.get_ctf_star(
+                metadata,
+                mask,
+            )
         else:
             raise ValueError(f"unknown metadata file type: {file_type}")
-        return ugraph_paths, ctf
+        return ugraph_paths, ctf, mask
 
     def _extract_from_config(self, config):
         defocus = config["microscope"]["lens"]["c_10"]  # in Angstroms

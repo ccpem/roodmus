@@ -110,12 +110,13 @@ def main():
         analysis_ctf = ctf_estimation(
             meta_file, config_dir, verbose=args.verbose
         )
+        analysis_ctf.compute()
         df_ctf = pd.DataFrame(analysis_ctf.results)
         print(df_ctf)
 
         # plot defocus scatter
         fig, ax = plot_defocus_scatter(df_ctf)
-        plt.rcParams["font_size"] = 15
+        plt.rcParams["font.size"] = 15
         plt.savefig(os.path.join(plot_dir, "defocus_scatter.png"))
         plt.savefig(os.path.join(plot_dir, "defocus_scatter.pdf"))
         plt.clf()
@@ -144,6 +145,8 @@ def main():
         plt.savefig(os.path.join(plot_dir, "ctf_max_mismatch.png"))
         plt.savefig(os.path.join(plot_dir, "ctf_max_mismatch.pdf"))
         plt.clf()
+
+        print("Finished minimal ctf estimation analysis")
 
     if args.particle_labelling:
         # choose the default values
@@ -308,13 +311,21 @@ def main():
             fig, ax = plot_boundary_investigation(
                 df_truth, df_picked, metadata_filename, bnwdth, axis=a
             )
-            plt.savefig("particle_{}_distribution.png".format(a))
-            plt.savefig("particle_{}_distribution.pdf".format(a))
+            plt.savefig(
+                os.path.join(
+                    plot_dir, "particle_{}_distribution.png".format(a)
+                )
+            )
+            plt.savefig(
+                os.path.join(
+                    plot_dir, "particle_{}_distribution.pdf".format(a)
+                )
+            )
             plt.clf()
 
         # compute the overlap between picked and truth particles
         df_overlap = analysis_picking.compute_overlap(
-            df_picked, df_truth, verbose=args.verbos
+            df_picked, df_truth, verbose=args.verbose
         )
         print("Particle overlaps: {}".format(df_overlap))
 
@@ -367,6 +378,8 @@ def main():
         plt.savefig(os.path.join(plot_dir, "frame_distribution.png"))
         plt.savefig(os.path.join(plot_dir, "frame_distribution.pdf"))
         plt.clf()
+
+        print("Finished minimal particle labelling analysis")
 
 
 if __name__ == "__main__":
