@@ -25,7 +25,7 @@ def add_arguments(parser):
         "--mrc-dir",
         help=(
             "Directory with .mrc files. Assumed to be the same as"
-            " 'config-dir'by default",
+            " 'config-dir'by default"
         ),
         type=str,
         default=None,
@@ -167,9 +167,17 @@ def plot_CTF(df, mrc_dir, ugraph_index=0):
     ugraph_path = os.path.join(mrc_dir, ugraph_filename)
     ugraph = mrcfile.open(ugraph_path).data[0, :, :]
 
+    # manually fft this image, shift the zero-frequenct to the centre of the
+    # spectrum, then take the absolute component (get rid of imaginary),
+    # and take the natural log of that
     ugraph_ft = np.log(np.abs(np.fft.fftshift(np.fft.fft2(ugraph))))
+
+    # crop the ft'ed image to half its size
     L = ugraph_ft.shape[0] // 4
     ugraph_ft_crop = ugraph_ft[L:-L, L:-L]
+
+    # get the 5th and 99.99th perctile values to crop out
+    # much of the visible noise in the ctf images when plotting them
     vmin = np.percentile(ugraph_ft_crop, 5)
     vmax = np.percentile(ugraph_ft_crop, 99.99)
 
@@ -295,9 +303,12 @@ def main(args):
     if not os.path.exists(args.plot_dir):
         os.mkdir(args.plot_dir)
 
+    # verbose outputs
     if args.verbose:
         tt = time.time()
         print("loading particles ...")
+
+    # load data from file(s)
     mrc_dir = args.mrc_dir if args.mrc_dir else args.config_dir
     picked_particles = ctf_estimation(
         args.meta_file, args.config_dir, verbose=args.verbose
@@ -311,8 +322,10 @@ def main(args):
         )
         print(f"time taken: {time.time()-tt:.2f} seconds")
 
-    # create the plots
-    for plot_type in args.plot_types:
+    # create the plots, which are:
+    # 1. single scatter plot of estimated vs truth defoci
+    # 2. per micrograph ctf plots
+    for plot_type in args.plot_types.lower():
         if plot_type == "scatter":
             if args.verbose:
                 tt = time.time()
@@ -324,7 +337,7 @@ def main(args):
             if args.verbose:
                 print(f"Time taken: {time.time()-tt:.2f} seconds")
 
-        if plot_type == "CTF":
+        if plot_type == "ctf":
             if args.num_ugraphs is None:
                 print("Plotting CTF for all micrographs ...")
             else:
