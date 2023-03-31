@@ -69,38 +69,82 @@ def get_name():
     return "plot_ctf"
 
 
-def plot_defocus_scatter(df, palette="BuGn"):
-    # df_grouped = df.groupby("ugraph_filename")
+def plot_defocus_scatter(df_picked, df_truth, palette="BuGn"):
+    # from the data frames, extract the defocus values
+    df_picked_grouped = df_picked.groupby("ugraph_filename")
+    df_truth_grouped = df_truth.groupby("ugraph_filename")
+    results = {
+        "ugraph_filename": [],
+        "defocusU": [],
+        "defocusV": [],
+        "defocus_truth": [],
+    }
+    for groupname in df_picked_grouped.groups.keys():
+        defocusU = np.abs(
+            df_picked_grouped.get_group(groupname)["defocusU"].mean()
+        )
+        defocusV = np.abs(
+            df_picked_grouped.get_group(groupname)["defocusV"].mean()
+        )
+        defocus_truth = np.abs(
+            df_truth_grouped.get_group(groupname)["defocus"].mean()
+        )
+
+        results["ugraph_filename"].append(groupname)
+        results["defocusU"].append(defocusU)
+        results["defocusV"].append(defocusV)
+        results["defocus_truth"].append(defocus_truth)
+
+    df = pd.DataFrame(results)
 
     # plot the results
     plt.rcParams["font.size"] = 24
     plt.style.use("seaborn-whitegrid")
-    fig, ax = plt.subplots(figsize=(10, 10))
-    # for name, group in df_grouped:
-    #     ax.scatter(group["defocus_truth"], group["defocusU"], label=name)
+    fig, ax = plt.subplots(1, 2, figsize=(16, 8), sharey=True)
     sns.scatterplot(
         x="defocus_truth",
         y="defocusU",
         data=df,
-        ax=ax,
+        ax=ax[0],
+        hue="ugraph_filename",
+        palette=palette,
+        legend=False,
+        marker="+",
+    )
+    sns.scatterplot(
+        x="defocus_truth",
+        y="defocusV",
+        data=df,
+        ax=ax[1],
         hue="ugraph_filename",
         palette=palette,
         legend=False,
         marker="+",
     )
     # add identity line
-    min_defocusU_truth = df["defocus_truth"].min()
-    max_defocusU_truth = df["defocus_truth"].max()
-    ax.plot(
-        [min_defocusU_truth, max_defocusU_truth],
-        [min_defocusU_truth, max_defocusU_truth],
+    min_defocus_truth = df["defocus_truth"].min()
+    max_defocus_truth = df["defocus_truth"].max()
+    ax[0].plot(
+        [min_defocus_truth, max_defocus_truth],
+        [min_defocus_truth, max_defocus_truth],
         color="black",
         linestyle="--",
         alpha=0.5,
     )
+    ax[1].plot(
+        [min_defocus_truth, max_defocus_truth],
+        [min_defocus_truth, max_defocus_truth],
+        color="black",
+        linestyle="--",
+        alpha=0.5,
+    )
+
     # add labels
-    ax.set_xlabel("defocus truth [$\u212B$]")
-    ax.set_ylabel("defocusU estimated [$\u212B$]")
+    ax[0].set_xlabel("defocus truth [$\u212B$]")
+    ax[1].set_xlabel("defocus truth [$\u212B$]")
+    ax[0].set_ylabel("defocusU estimated [$\u212B$]")
+    ax[0].set_title("defocusU")
+    ax[1].set_title("defocusV")
     # add colorbar legend
     sm = plt.cm.ScalarMappable(
         cmap=palette,
@@ -111,6 +155,7 @@ def plot_defocus_scatter(df, palette="BuGn"):
     sm._A = []
     cbar = plt.colorbar(sm)
     cbar.set_label("micrograph")
+    fig.tight_layout()
     return fig, ax
 
 
@@ -160,9 +205,18 @@ def _convert_1d_ctf_to_2d_ctf(ctf_1d):
     return ctf_2d
 
 
-def plot_CTF(df, mrc_dir, ugraph_index=0):
+def plot_CTF(
+    df_picked,
+    df_truth,
+    mrc_dir,
+    ugraph_index=0,
+    amp=0.1,
+    Cs=2.7,
+    Bfac=0,
+    kV=300,
+):
     # get the micrograph name
-    ugraph_filename = np.unique(df["ugraph_filename"])[ugraph_index]
+    ugraph_filename = np.unique(df_picked["ugraph_filename"])[ugraph_index]
     print(f"plotted index {ugraph_index}; micrograph: {ugraph_filename}")
     ugraph_path = os.path.join(mrc_dir, ugraph_filename)
     ugraph = mrcfile.open(ugraph_path).data[0, :, :]
@@ -174,22 +228,12 @@ def plot_CTF(df, mrc_dir, ugraph_index=0):
     vmax = np.percentile(ugraph_ft_crop, 99.99)
 
     # get the CTF values for the micrograph from the dataframe
-    data_ugraph = df.groupby("ugraph_filename").get_group(ugraph_filename)
+    data_ugraph = df_picked.groupby("ugraph_filename").get_group(
+        ugraph_filename
+    )
     defocusU = np.array(data_ugraph["defocusU"])[
         0
     ]  # assume all particles have the same defocusU
-    amp = np.array(data_ugraph["amp"])[
-        0
-    ]  # assume all particles have the same amp
-    Cs = np.array(data_ugraph["Cs"])[
-        0
-    ]  # assume all particles have the same Cs
-    Bfac = np.array(data_ugraph["Bfac"])[
-        0
-    ]  # assume all particles have the same Bfac
-    kV = np.array(data_ugraph["kV"])[
-        0
-    ]  # assume all particles have the same kV
 
     ctf_estimated_1D = _simulate_CTF_curve(
         defocusU, amp, Cs, Bfac, kV, max_freq=0.05, num_points=2000 // 2
@@ -208,28 +252,18 @@ def plot_CTF(df, mrc_dir, ugraph_index=0):
     vmax_ctf = np.nanpercentile(ctf_estimated_2D, 99.99) * 1.5
 
     # get the truth values
-    defocus_truth = np.array(data_ugraph["defocus_truth"])[
-        0
-    ]  # assume all particles have the same defocus
-    amp_truth = np.zeros_like(
-        defocus_truth
-    )  # amplitude is 0 for all particles
-    Cs_truth = np.array(data_ugraph["Cs_truth"])[
-        0
-    ]  # assume all particles have the same Cs
-    Bfac_truth = np.zeros_like(
-        defocus_truth
-    )  # B-factor is 0 for all particles
-    kV_truth = np.array(data_ugraph["kV_truth"])[
-        0
-    ]  # assume all particles have the same kV
+    defocus_truth = np.abs(
+        df_truth.groupby("ugraph_filename")
+        .get_group(ugraph_filename)["defocus"]
+        .values[0]
+    )
 
     ctf_truth_1d = _simulate_CTF_curve(
         defocus_truth,
-        amp_truth,
-        Cs_truth,
-        Bfac_truth,
-        kV_truth,
+        amp,
+        Cs,
+        Bfac,
+        kV,
         max_freq=0.05,
         num_points=2000 // 2,
     )
