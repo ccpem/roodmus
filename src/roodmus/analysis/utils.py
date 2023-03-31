@@ -446,6 +446,7 @@ class load_data(object):
                 metadata
             )  # the shape of the micrograph
             if ugraph_shape is not None:
+                ugraph_shape = ugraph_shape[mask]
                 self.results_picking["ugraph_shape"].extend(ugraph_shape)
             else:
                 self.results_picking["ugraph_shape"].extend(
