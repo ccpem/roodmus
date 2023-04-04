@@ -157,7 +157,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 
 
 def get_name():
-    return "waymarking"
+    return "conformations_sampling"
 
 
 def get_trajfiles(

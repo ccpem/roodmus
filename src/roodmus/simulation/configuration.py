@@ -1,6 +1,6 @@
 # configutation class to setup the parameters for Parakeet
 import os
-from typing import Any
+from typing import Any, List
 
 import yaml
 
@@ -249,7 +249,7 @@ class Configuration(object):
                 config.LocalMolecule(filename=pdb_file, instances=instance)
             )
 
-    def add_molecules(self, frames: list[str], instances: list[int]):
+    def add_molecules(self, frames: List[str], instances: List[int]):
         """Add molecules to the configuration file.
 
         Args:
