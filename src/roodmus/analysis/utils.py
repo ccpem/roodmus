@@ -41,6 +41,14 @@ class IO(object):
         return ugraph_paths
 
     @classmethod
+    def get_uid_cs(self, metadata_cs: np.recarray):
+        if "uid" in metadata_cs.dtype.names:
+            uid = metadata_cs["uid"]
+        else:
+            uid = None
+        return uid
+
+    @classmethod
     def get_ctf_cs(self, metadata_cs: np.recarray):
         if "ctf/df1_A" in metadata_cs.dtype.names:
             defocusU = metadata_cs["ctf/df1_A"]
@@ -55,28 +63,34 @@ class IO(object):
 
     @classmethod
     def get_positions_cs(self, metadata_cs: np.recarray):
-        ugraph_shape = metadata_cs["location/micrograph_shape"]
-        # print(type(ugraph_shape), len(ugraph_shape), ugraph_shape.shape)
-        x = metadata_cs["location/center_x_frac"]
-        y = metadata_cs["location/center_y_frac"]
-        # convert to absolute coordinates
-        x_abs = (
-            x * ugraph_shape[0, 0]
-        )  # assuming all micrographs have the same shape
-        y_abs = y * ugraph_shape[0, 1]
-        # conver to single array
-        pos = np.stack([x_abs, y_abs], axis=1)
-        return pos
+        if "location/center_x_frac" in metadata_cs.dtype.names:
+            ugraph_shape = metadata_cs["location/micrograph_shape"]
+            # print(type(ugraph_shape), len(ugraph_shape), ugraph_shape.shape)
+            x = metadata_cs["location/center_x_frac"]
+            y = metadata_cs["location/center_y_frac"]
+            # convert to absolute coordinates
+            x_abs = (
+                x * ugraph_shape[0, 0]
+            )  # assuming all micrographs have the same shape
+            y_abs = y * ugraph_shape[0, 1]
+            # conver to single array
+            pos = np.stack([x_abs, y_abs], axis=1)
+            return pos
+        else:
+            return None
 
     @classmethod
-    def get_orientations_cs(self, metadata_cs: dict[str, Any]):
-        pose = metadata_cs[
-            "alignments3D/pose"
-        ]  # orientations as rotation vectors
-        euler = R.from_rotvec(pose).as_euler(
-            "zyx", degrees=False
-        )  # convert to euler angles
-        return euler
+    def get_orientations_cs(self, metadata_cs: np.recarray):
+        if "alignments3D/pose" in metadata_cs.dtype.names:
+            pose = metadata_cs[
+                "alignments3D/pose"
+            ]  # orientations as rotation vectors
+            euler = R.from_rotvec(pose).as_euler(
+                "zyx", degrees=False
+            )  # convert to euler angles
+            return euler
+        else:
+            return None
 
     @classmethod
     def get_ugraph_shape_cs(self, metadata_cs: np.recarray):
@@ -84,6 +98,8 @@ class IO(object):
             ugraph_shape = metadata_cs["location/micrograph_shape"]
         elif "blob/shape" in metadata_cs.dtype.names:
             ugraph_shape = metadata_cs["blob/shape"]
+        else:
+            ugraph_shape = None
         return ugraph_shape
 
     @classmethod
@@ -171,35 +187,31 @@ class IO(object):
 
     @classmethod
     def get_orientations_star(self, metadata_star) -> np.ndarray:
-        euler = np.stack(
-            [
-                metadata_star.column_as_list("particles", "_rlnAngleRot"),
-                metadata_star.column_as_list("particles", "_rlnAngleTilt"),
-                metadata_star.column_as_list("particles", "_rlnAnglePsi"),
-            ],
-            axis=1,
+        euler_phi = metadata_star.column_as_list("particles", "_rlnAngleRot")
+        euler_theta = metadata_star.column_as_list(
+            "particles", "_rlnAngleTilt"
         )
-        return euler
+        euler_psi = metadata_star.column_as_list("particles", "_rlnAnglePsi")
 
-    @classmethod
-    def get_ugraph_shape_star(self, metadata_star) -> np.ndarray:
-        ugraph_shape = np.stack(
-            [
-                metadata_star.column_as_list(
-                    "particles", "_rlnMicrographOriginalPixelSize"
-                ),
-                metadata_star.column_as_list(
-                    "particles", "_rlnMicrographOriginalPixelSize"
-                ),
-            ],
-            axis=1,
+        num_particles = np.max(
+            [len(euler_phi), len(euler_theta), len(euler_psi)]
         )
-        return ugraph_shape
+        if not euler_phi:  # if empty
+            euler_phi = [np.nan] * num_particles
+        if not euler_theta:
+            euler_theta = [np.nan] * num_particles
+        if not euler_psi:
+            euler_psi = [np.nan] * num_particles
+        euler = np.stack([euler_phi, euler_theta, euler_psi], axis=1)
+        return euler
 
     @classmethod
     def get_class2D_star(self, metadata_star):
         class2d = metadata_star.column_as_list("particles", "_rlnClassNumber")
-        return class2d
+        if class2d:
+            return np.array(class2d)
+        else:
+            return None
 
     # loading the config file
     @classmethod
@@ -218,7 +230,7 @@ class load_data(object):
         ugraph_shape: Tuple[int, int] = (4000, 4000),
         results_picking: dict | None = None,
         results_truth: dict | None = None,
-        verbose: bool = False,
+        verbose: bool = True,
     ):
         self.meta_file = meta_file
         self.config_dir = config_dir
@@ -230,6 +242,9 @@ class load_data(object):
             "ugraph_filename": [],
             "position_x": [],
             "position_y": [],
+            "euler_phi": [],
+            "euler_theta": [],
+            "euler_psi": [],
             "ugraph_shape": [],
             "defocusU": [],
             "defocusV": [],
@@ -245,6 +260,9 @@ class load_data(object):
             "position_x": [],
             "position_y": [],
             "position_z": [],
+            "euler_phi": [],
+            "euler_theta": [],
+            "euler_psi": [],
             "defocus": [],
         }
         if results_truth is not None:
@@ -265,7 +283,7 @@ class load_data(object):
         self,
         meta_file: str = "",
         config_dir: str = "",
-        verbose: bool = False,
+        verbose: bool = True,
     ):
         """Processing of the particle positions from a .cs or .star file and
         from the Parakeet config files.
@@ -318,9 +336,14 @@ class load_data(object):
                     )
                 )
                 print(f"added {num_particles} particles from {self.meta_file}")
-            self.results_picking["metadata_filename"].extend(
-                [self.meta_file] * num_particles
-            )  # add the metadata file to the picking results
+            if isinstance(self.meta_file, str):
+                self.results_picking["metadata_filename"].extend(
+                    [self.meta_file] * num_particles
+                )  # add the metadata file to the picking results
+            elif isinstance(self.meta_file, list):
+                self.results_picking["metadata_filename"].extend(
+                    [self.meta_file[0]] * num_particles
+                )  # add the metadata file to the picking results
 
         # next, check if any new ugraphs need to be loaded
         ugraphs_to_load = np.unique(
@@ -386,23 +409,55 @@ class load_data(object):
         return
 
     def _load_metadata(
-        self, meta_file: str = "", verbose: bool = False
+        self, meta_file: str | List[str] = "", verbose: bool = False
     ) -> Tuple[dict, str]:
-        print(meta_file)
-        if meta_file.endswith(".star"):
-            metadata = IO.load_star(meta_file)
-            file_type = "star"
-        elif meta_file.endswith(".cs"):
-            metadata = IO.load_cs(meta_file)
-            file_type = "cs"
-        else:
-            raise ValueError(f"unknown metadata file type: {meta_file}")
+        if isinstance(meta_file, str):
+            print(meta_file)
+            if meta_file.endswith(".star"):
+                metadata = IO.load_star(meta_file)
+                file_type = "star"
+            elif meta_file.endswith(".cs"):
+                metadata = IO.load_cs(meta_file)
+                file_type = "cs"
+            else:
+                raise ValueError(f"unknown metadata file type: {meta_file}")
 
-        if verbose:
-            print(
-                "loaded metadata from"
-                " {}. determined file type: {}".format(meta_file, file_type)
-            )
+            if verbose:
+                print(
+                    "loaded metadata from"
+                    " {}. determined file type: {}".format(
+                        meta_file, file_type
+                    )
+                )
+        elif isinstance(meta_file, list):
+            metadata = []
+            file_types = []
+            for file in meta_file:
+                print(file)
+                if file.endswith(".star"):
+                    metadata.append(IO.load_star(file))
+                    file_type = "star"
+                    file_types.append(file_type)
+                elif file.endswith(".cs"):
+                    metadata.append(IO.load_cs(file))
+                    file_type = "cs"
+                    file_types.append(file_type)
+                else:
+                    raise ValueError(f"unknown metadata file type: {file}")
+                if verbose:
+                    print(
+                        "loaded metadata from"
+                        " {}. determined file type: {}".format(
+                            meta_file, file_type
+                        )
+                    )
+            # check if the file types are the same
+            if len(set(file_types)) > 1:
+                raise ValueError(
+                    "multiple metadata files were given to combine, \
+                        but they are not all the same type"
+                )
+
         return metadata, file_type
 
     def _extract_from_metadata(self, metadata, file_type, verbose=False):
@@ -414,7 +469,144 @@ class load_data(object):
         of picked particles in the metadata file, determined by the length of
         the ugraph_filename list.
         """
-        if file_type == "cs":
+        if isinstance(metadata, list) and file_type == "cs":
+            print(f"loading {len(metadata)} files into the results")
+            tmp_results = {"uid": [], "mask": []}
+            for key in self.results_picking.keys():
+                tmp_results[key] = []
+
+            num_particles_loaded = 0
+            for m in metadata:
+                ugraph_filename = IO.get_ugraph_cs(m)
+                num_particles = len(
+                    ugraph_filename
+                )  # total number of particles in the metadata file
+                tmp_results["ugraph_filename"].extend(ugraph_filename)
+                mask = self._check_if_ugraphs_exist(ugraph_filename)
+                num_particles_loaded += np.sum(mask)
+                tmp_results["mask"].extend(mask)
+
+                uid = IO.get_uid_cs(m)
+                if uid is not None:
+                    tmp_results["uid"].extend(uid)
+                else:
+                    tmp_results["uid"].extend([np.nan] * num_particles)
+
+                pos = IO.get_positions_cs(m)  # an array of all the x-
+                # and y-positions in the metadata file
+                if pos is not None:
+                    tmp_results["position_x"].extend(
+                        pos[:, 0]
+                    )  # an array of all the x-positions in the metadata file
+                    tmp_results["position_y"].extend(
+                        pos[:, 1]
+                    )  # an array of all the y-positions in the metadata file
+                else:
+                    tmp_results["position_x"].extend([np.nan] * num_particles)
+                    tmp_results["position_y"].extend([np.nan] * num_particles)
+
+                orientation = IO.get_orientations_cs(
+                    m
+                )  # an array of all the orientations in the metadata file
+                if orientation is not None:
+                    tmp_results["euler_phi"].extend(orientation[:, 0])
+                    tmp_results["euler_theta"].extend(orientation[:, 1])
+                    tmp_results["euler_psi"].extend(orientation[:, 2])
+                else:
+                    tmp_results["euler_phi"].extend([np.nan] * num_particles)
+                    tmp_results["euler_theta"].extend([np.nan] * num_particles)
+                    tmp_results["euler_psi"].extend([np.nan] * num_particles)
+
+                ugraph_shape = IO.get_ugraph_shape_cs(
+                    m
+                )  # the shape of the micrograph
+                if ugraph_shape is not None:
+                    tmp_results["ugraph_shape"].extend(ugraph_shape)
+                else:
+                    tmp_results["ugraph_shape"].extend(
+                        [self.ugraph_shape] * num_particles
+                    )
+
+                defocus = IO.get_ctf_cs(
+                    m
+                )  # an array of all the defocus values in the metadata file
+                if defocus is not None:
+                    tmp_results["defocusU"].extend(defocus[:, 0])
+                    tmp_results["defocusV"].extend(defocus[:, 1])
+                else:
+                    tmp_results["defocusU"].extend([np.nan] * num_particles)
+                    tmp_results["defocusV"].extend([np.nan] * num_particles)
+
+                # an array of all the class labels in the metadata file
+                # if present, otherwise None
+                class2D = IO.get_class2D_cs(m)
+                if class2D is not None:
+                    tmp_results["class2D"].extend(class2D)
+                else:
+                    tmp_results["class2D"].extend([np.nan] * num_particles)
+
+            # combine the temporary results where the particles
+            # have the same uid
+            for uid in np.unique(tmp_results["uid"]):
+                idx = np.where(np.array(tmp_results["uid"]) == uid)[0]
+                idx = [int(r) for r in idx]
+                mask = np.sum(np.array(tmp_results["mask"])[idx]) > 0
+                if mask:
+                    # take the first non-nan value for each key
+                    posx = np.array(tmp_results["position_x"])[idx]
+                    posx = np.array(tmp_results["position_x"])[idx]
+                    posy = np.array(tmp_results["position_y"])[idx]
+                    euler_phi = np.array(tmp_results["euler_phi"])[idx]
+                    euler_theta = np.array(tmp_results["euler_theta"])[idx]
+                    euler_psi = np.array(tmp_results["euler_psi"])[idx]
+                    ugraph_shape = np.array(tmp_results["ugraph_shape"])[idx]
+                    defocusU = np.array(tmp_results["defocusU"])[idx]
+                    defocusV = np.array(tmp_results["defocusV"])[idx]
+                    class2D = np.array(tmp_results["class2D"])[idx]
+                    ugraph_filename = np.array(tmp_results["ugraph_filename"])[
+                        idx
+                    ]
+
+                    self.results_picking["position_x"].append(
+                        posx[~np.isnan(posx)][0]
+                    )
+                    self.results_picking["position_y"].append(
+                        posy[~np.isnan(posy)][0]
+                    )
+                    self.results_picking["euler_phi"].append(
+                        euler_phi[~np.isnan(euler_phi)][0]
+                    )
+                    self.results_picking["euler_theta"].append(
+                        euler_theta[~np.isnan(euler_theta)][0]
+                    )
+                    self.results_picking["euler_psi"].append(
+                        euler_psi[~np.isnan(euler_psi)][0]
+                    )
+                    self.results_picking["ugraph_shape"].append(
+                        ugraph_shape[~np.isnan(ugraph_shape[:, 0])][0]
+                    )
+                    self.results_picking["defocusU"].append(
+                        defocusU[~np.isnan(defocusU)][0]
+                    )
+                    self.results_picking["defocusV"].append(
+                        defocusV[~np.isnan(defocusV)][0]
+                    )
+                    self.results_picking["class2D"].append(
+                        class2D[~np.isnan(class2D)][0]
+                    )
+                    self.results_picking["ugraph_filename"].append(
+                        ugraph_filename[0]
+                    )
+
+            # remove the temporary results and update the number of particles
+            tmp_results = {}
+            num_particles = num_particles_loaded
+            print(f"found {num_particles} particles")
+
+        elif isinstance(metadata, list) and file_type == "star":
+            pass  # should not happen, but just in case we add it here
+
+        elif file_type == "cs":
             ugraph_filename = IO.get_ugraph_cs(
                 metadata
             )  # a list of all microraphs in the metadata file
@@ -441,6 +633,24 @@ class load_data(object):
                 self.results_picking["position_y"].extend(
                     [np.nan] * num_particles
                 )
+            orientation = IO.get_orientations_cs(
+                metadata
+            )  # an array of all the orientations in the metadata file
+            if orientation is not None:
+                orientation = orientation[mask]
+                self.results_picking["euler_phi"].extend(orientation[:, 0])
+                self.results_picking["euler_theta"].extend(orientation[:, 1])
+                self.results_picking["euler_psi"].extend(orientation[:, 2])
+            else:
+                self.results_picking["euler_phi"].extend(
+                    [np.nan] * num_particles
+                )
+                self.results_picking["euler_theta"].extend(
+                    [np.nan] * num_particles
+                )
+                self.results_picking["euler_psi"].extend(
+                    [np.nan] * num_particles
+                )
 
             ugraph_shape = IO.get_ugraph_shape_cs(
                 metadata
@@ -450,7 +660,7 @@ class load_data(object):
                 self.results_picking["ugraph_shape"].extend(ugraph_shape)
             else:
                 self.results_picking["ugraph_shape"].extend(
-                    [[np.nan, np.nan]] * num_particles
+                    [self.ugraph_shape] * num_particles
                 )
 
             defocus = IO.get_ctf_cs(
@@ -479,15 +689,84 @@ class load_data(object):
                 )
 
         elif file_type == "star":
-            # a list of all microraps in the metadata file
-            self.results_picking["ugraph_paths"] = IO.get_ugraph_star(metadata)
-            # an array of all the defocus values in the metadata file
-            self.results_picking["positions"] = IO.get_positions_star(metadata)
-            # an array of all the defocus values in the metadata file
-            self.results_picking["ctf"] = IO.get_ctf_star(metadata)
-            # an array of all the class labels in the metadata file
-            self.results_picking["class2D"] = IO.get_class2D_star(metadata)
+            ugraph_filename = IO.get_ugraph_star(
+                metadata
+            )  # a list of all microraphs in the metadata file
+            print("checking if ugraphs exist...")
+            mask = self._check_if_ugraphs_exist(ugraph_filename)
+            ugraph_filename = np.array(ugraph_filename)[mask]
+            num_particles = len(ugraph_filename)
+            self.results_picking["ugraph_filename"].extend(ugraph_filename)
 
+            pos = IO.get_positions_star(
+                metadata
+            )  # an array of all the x- and y-positions in the metadata file
+            if pos is not None:
+                self.results_picking["position_x"].extend(
+                    pos[:, 0][mask]
+                )  # an array of all the x-positions in the metadata file
+                self.results_picking["position_y"].extend(
+                    pos[:, 1][mask]
+                )  # an array of all the y-positions in the metadata file
+            else:
+                self.results_picking["position_x"].extend(
+                    [np.nan] * num_particles
+                )
+                self.results_picking["position_y"].extend(
+                    [np.nan] * num_particles
+                )
+            orientation = IO.get_orientations_star(
+                metadata
+            )  # an array of all the orientations in the metadata file
+            if orientation is not None:
+                orientation = orientation[mask]
+                self.results_picking["euler_phi"].extend(orientation[:, 0])
+                self.results_picking["euler_theta"].extend(orientation[:, 1])
+                self.results_picking["euler_psi"].extend(orientation[:, 2])
+            else:
+                self.results_picking["euler_phi"].extend(
+                    [np.nan] * num_particles
+                )
+                self.results_picking["euler_theta"].extend(
+                    [np.nan] * num_particles
+                )
+                self.results_picking["euler_psi"].extend(
+                    [np.nan] * num_particles
+                )
+
+            ugraph_shape = None  # not stored in .star files
+            if ugraph_shape is not None:
+                ugraph_shape = ugraph_shape[mask]
+                self.results_picking["ugraph_shape"].extend(ugraph_shape)
+            else:
+                self.results_picking["ugraph_shape"].extend(
+                    [self.ugraph_shape] * num_particles
+                )
+
+            defocus = IO.get_ctf_star(
+                metadata
+            )  # an array of all the defocus values in the metadata file
+            if defocus is not None:
+                defocus = defocus[mask]
+                self.results_picking["defocusU"].extend(defocus[:, 0])
+                self.results_picking["defocusV"].extend(defocus[:, 1])
+            else:
+                self.results_picking["defocusU"].extend(
+                    [np.nan] * num_particles
+                )
+                self.results_picking["defocusV"].extend(
+                    [np.nan] * num_particles
+                )
+
+            # an array of all the class labels in the metadata file if present
+            # otherwise None
+            class2D = IO.get_class2D_star(metadata)
+            if class2D is not None:
+                self.results_picking["class2D"].extend(class2D[mask])
+            else:
+                self.results_picking["class2D"].extend(
+                    [np.nan] * num_particles
+                )
         else:
             raise ValueError(f"unknown metadata file type: {file_type}")
 
@@ -502,7 +781,11 @@ class load_data(object):
         """
         mask = np.array(
             [
-                os.path.exists(os.path.join(self.config_dir, ugraph))
+                os.path.exists(
+                    os.path.join(
+                        self.config_dir, ugraph.replace(".mrc", ".yaml")
+                    )
+                )
                 for ugraph in ugraph_filename
             ]
         )
@@ -515,16 +798,21 @@ class load_data(object):
         ice_thickness = config["sample"]["box"][2]
         pixel_size = config["microscope"]["detector"]["pixel_size"]
         positions_list: List = []
+        orientations_list: List = []
         filenames = []
         for molecules in config["sample"]["molecules"]["local"]:
             f = molecules["filename"]
             for instance in molecules["instances"]:
                 position = instance["position"]
+                orientation = instance["orientation"]
+                euler = R.from_rotvec(orientation).as_euler("zyx")
+                orientations_list.append(euler)
                 positions_list.append(position)
                 filenames.append(f)
         positions: np.ndarray = (
             np.array(positions_list) / pixel_size
         )  # convert to pixels
+        orientations: np.ndarray = np.array(orientations_list)
 
         # add to results
         self.results_truth["pdb_filename"] = np.append(
@@ -538,6 +826,18 @@ class load_data(object):
         )
         self.results_truth["position_z"] = np.append(
             self.results_truth["position_z"], positions[:, 2]
+        )
+        self.results_truth["euler_phi"] = np.append(
+            self.results_truth["euler_phi"],
+            orientations[:, 0],
+        )
+        self.results_truth["euler_theta"] = np.append(
+            self.results_truth["euler_theta"],
+            orientations[:, 1],
+        )
+        self.results_truth["euler_psi"] = np.append(
+            self.results_truth["euler_psi"],
+            orientations[:, 2],
         )
         self.results_truth["defocus"] = np.append(
             self.results_truth["defocus"], [defocus] * len(positions)

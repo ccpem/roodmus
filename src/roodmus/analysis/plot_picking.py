@@ -192,12 +192,20 @@ def label_micrograph_truth(
 
 def label_micrograph_picked(
     particles: pd.DataFrame,
+    metadata_filename: str | list[str],
     ugraph_index: int = 0,
     mrc_dir: str = "",
     box_width: int = 50,
     box_height: int = 50,
     verbose: bool = False,
 ) -> Tuple[plt.Figure, plt.Axes]:
+    # group the picked particles by metadata file
+    if isinstance(metadata_filename, list):
+        metadata_filename = metadata_filename[0]
+    particles = particles.groupby("metadata_filename").get_group(
+        metadata_filename
+    )
+
     # get the micrograph name
     ugraph_filename = np.unique(particles["ugraph_filename"])[ugraph_index]
     print(f"plotted index {ugraph_index}; micrograph: {ugraph_filename}")
@@ -254,6 +262,7 @@ def label_micrograph_picked(
 
 def label_micrograph_truth_and_picked(
     picked_particles: pd.DataFrame,
+    metadata_filename: str | list[str],
     truth_particles: pd.DataFrame,
     ugraph_index: int = 0,
     mrc_dir: str = "",
@@ -261,6 +270,12 @@ def label_micrograph_truth_and_picked(
     box_height: int = 50,
     verbose: bool = False,
 ) -> Tuple[plt.Figure, plt.Axes]:
+    # group the picked particles by metadata file
+    if isinstance(metadata_filename, list):
+        metadata_filename = metadata_filename[0]
+    picked_particles = picked_particles.groupby("metadata_filename").get_group(
+        metadata_filename
+    )
     # get the micrograph name
     ugraph_filename = np.unique(truth_particles["ugraph_filename"])[
         ugraph_index
@@ -337,7 +352,11 @@ def label_micrograph_truth_and_picked(
     return fig, ax
 
 
-def plot_precision(df_precision: pd.DataFrame, jobtypes: Dict[str, str]):
+def plot_precision(
+    df_precision: pd.DataFrame,
+    jobtypes: Dict[str, str],
+    order: list[str] | None = None,
+):
     """Precision is calculated as follows:
     precision = TP / (TP + FP)
     where TP is the number of true positives, which is stored in the picked
@@ -356,6 +375,7 @@ def plot_precision(df_precision: pd.DataFrame, jobtypes: Dict[str, str]):
         ax=ax,
         fliersize=0,
         palette="Blues",
+        order=order,
     )
     sns.stripplot(
         x="metadata_filename",
@@ -365,14 +385,22 @@ def plot_precision(df_precision: pd.DataFrame, jobtypes: Dict[str, str]):
         hue="defocus",
         alpha=0.7,
         palette="RdYlBu",
+        order=order,
     )
     # change the xticklabels to the jobtype
-    ax.set_xticklabels(
-        [
-            jobtypes[metadata_filename]
-            for metadata_filename in df_precision["metadata_filename"].unique()
-        ]
-    )
+    if order is None:
+        ax.set_xticklabels(
+            [
+                jobtypes[metadata_filename]
+                for metadata_filename in df_precision[
+                    "metadata_filename"
+                ].unique()
+            ]
+        )
+    else:
+        ax.set_xticklabels(
+            [jobtypes[metadata_filename] for metadata_filename in order]
+        )
     # remove legend
     ax.legend().remove()
     # add colorbar
@@ -398,7 +426,11 @@ def plot_precision(df_precision: pd.DataFrame, jobtypes: Dict[str, str]):
     return fig, ax
 
 
-def plot_recall(df_precision: pd.DataFrame, jobtypes: Dict[str, str]):
+def plot_recall(
+    df_precision: pd.DataFrame,
+    jobtypes: Dict[str, str],
+    order: list[str] | None = None,
+):
     fig, ax = plt.subplots(figsize=(10, 5))
     sns.boxplot(
         x="metadata_filename",
@@ -407,6 +439,7 @@ def plot_recall(df_precision: pd.DataFrame, jobtypes: Dict[str, str]):
         ax=ax,
         fliersize=0,
         palette="Blues",
+        order=order,
     )
     sns.stripplot(
         x="metadata_filename",
@@ -416,14 +449,22 @@ def plot_recall(df_precision: pd.DataFrame, jobtypes: Dict[str, str]):
         hue="defocus",
         alpha=0.7,
         palette="RdYlBu",
+        order=order,
     )
     # change the xticklabels to the jobtype
-    ax.set_xticklabels(
-        [
-            jobtypes[metadata_filename]
-            for metadata_filename in df_precision["metadata_filename"].unique()
-        ]
-    )
+    if order is None:
+        ax.set_xticklabels(
+            [
+                jobtypes[metadata_filename]
+                for metadata_filename in df_precision[
+                    "metadata_filename"
+                ].unique()
+            ]
+        )
+    else:
+        ax.set_xticklabels(
+            [jobtypes[metadata_filename] for metadata_filename in order]
+        )
     # remove legend
     ax.legend().remove()
     # add colorbar
@@ -456,6 +497,9 @@ def plot_boundary_investigation(
     bin_width: int = 100,
     axis: str = "x",
 ):
+    if isinstance(metadata_filename, list):
+        metadata_filename = metadata_filename[0]
+
     particles_per_ugraph = (
         df_truth.groupby("ugraph_filename")
         .size()
@@ -531,7 +575,7 @@ def plot_boundary_investigation(
 
 def plot_overlap_investigation(
     df_overlap: pd.DataFrame,
-    metadata_filename: str | None = None,
+    metadata_filename: str | list[str] | None = None,
     jobtypes: Dict[str, str] | None = None,
 ):
     if metadata_filename is None:
@@ -571,6 +615,8 @@ def plot_overlap_investigation(
         return fig, ax
 
     else:
+        if isinstance(metadata_filename, list):
+            metadata_filename = metadata_filename[0]
         print(f"plotting overlap for {metadata_filename}")
         # make a plot for each metadata file
         fig, ax = plt.subplots(figsize=(18, 8))

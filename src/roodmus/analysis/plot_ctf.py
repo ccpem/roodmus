@@ -69,7 +69,16 @@ def get_name():
     return "plot_ctf"
 
 
-def plot_defocus_scatter(df_picked, df_truth, palette="BuGn"):
+def plot_defocus_scatter(
+    df_picked, metadata_filename, df_truth, palette="BuGn"
+):
+    # extract the group from the picked data frame
+    if isinstance(metadata_filename, list):
+        metadata_filename = metadata_filename[0]
+    df_picked = df_picked.groupby("metadata_filename").get_group(
+        metadata_filename
+    )
+
     # from the data frames, extract the defocus values
     df_picked_grouped = df_picked.groupby("ugraph_filename")
     df_truth_grouped = df_truth.groupby("ugraph_filename")
@@ -207,6 +216,7 @@ def _convert_1d_ctf_to_2d_ctf(ctf_1d):
 
 def plot_CTF(
     df_picked,
+    metadata_filename,
     df_truth,
     mrc_dir,
     ugraph_index=0,
@@ -215,6 +225,14 @@ def plot_CTF(
     Bfac=0,
     kV=300,
 ):
+    # group the picked data frame
+    if metadata_filename is not None:
+        if isinstance(metadata_filename, list):
+            metadata_filename = metadata_filename[0]
+        df_picked = df_picked.groupby("metadata_filename").get_group(
+            metadata_filename
+        )
+
     # get the micrograph name
     ugraph_filename = np.unique(df_picked["ugraph_filename"])[ugraph_index]
     print(f"plotted index {ugraph_index}; micrograph: {ugraph_filename}")
