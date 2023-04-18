@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import mrcfile
 
-from .analyse_ctf import ctf_estimation
+from roodmus.analysis.utils import load_data
 
 
 def add_arguments(parser):
@@ -25,7 +25,7 @@ def add_arguments(parser):
         "--mrc-dir",
         help=(
             "Directory with .mrc files. Assumed to be the same as"
-            " 'config-dir'by default",
+            " 'config-dir'by default"
         ),
         type=str,
         default=None,
@@ -351,14 +351,18 @@ def main(args):
         tt = time.time()
         print("loading particles ...")
     mrc_dir = args.mrc_dir if args.mrc_dir else args.config_dir
-    picked_particles = ctf_estimation(
-        args.meta_file, args.config_dir, verbose=args.verbose
+    analysis = load_data(
+        args.meta_file,
+        args.config_dir,
+        particle_diameter=0,
+        verbose=args.verbose,
     )
-    picked_particles = pd.DataFrame(picked_particles.results)
+    df_picked = pd.DataFrame(analysis.results_picking)
+    df_truth = pd.DataFrame(analysis.results_truth)
     if args.verbose:
         print(
             "Loaded {} particles from {}. starting plotting ...".format(
-                len(picked_particles), args.meta_file
+                len(df_picked), args.meta_file
             )
         )
         print(f"time taken: {time.time()-tt:.2f} seconds")
@@ -370,7 +374,11 @@ def main(args):
                 tt = time.time()
                 print("Plotting defocus scatter plot ...")
             filename = os.path.join(args.plot_dir, "ctf_scatter.png")
-            fig, ax = plot_defocus_scatter(picked_particles)
+            fig, ax = plot_defocus_scatter(
+                df_picked=df_picked,
+                metadata_filename=args.meta_file,
+                df_truth=df_truth,
+            )
             fig.savefig(filename, dpi=300, bbox_inches="tight")
             plt.close(fig)
             if args.verbose:
@@ -382,7 +390,7 @@ def main(args):
             else:
                 print(f"Plotting CTF for {args.num_ugraphs} micrographs ...")
 
-            for ugraph_index in np.unique(picked_particles["ugraph_filename"])[
+            for ugraph_index in np.unique(df_picked["ugraph_filename"])[
                 : args.num_ugraphs
             ]:
                 if args.verbose:
@@ -392,7 +400,14 @@ def main(args):
                 filename = os.path.join(
                     args.plot_dir, f"ctf_{ugraph_index}.png"
                 )
-                fig, ax = plot_CTF(picked_particles, mrc_dir, ugraph_index)
+
+                fig, ax = plot_CTF(
+                    df_picked=df_picked,
+                    metadata_filename=args.meta_file,
+                    df_truth=df_truth,
+                    mrc_dir=mrc_dir,
+                    ugraph_index=ugraph_index,
+                )
                 fig.savefig(filename, dpi=300, bbox_inches="tight")
                 plt.close(fig)
                 if args.verbose:
