@@ -10,6 +10,8 @@ import roodmus.simulation.run_parakeet
 import roodmus.trajectory.conformations_sampling
 import roodmus.analysis.plot_ctf
 import roodmus.analysis.plot_picking
+import roodmus.analysis.plot_frames
+import roodmus.analysis.plot_classes
 
 # import analysis.analyse_alignment
 
@@ -34,6 +36,8 @@ def main():
         roodmus.trajectory.conformations_sampling,
         roodmus.analysis.plot_ctf,
         roodmus.analysis.plot_picking,
+        roodmus.analysis.plot_frames,
+        roodmus.analysis.plot_classes,
     ]
 
     for module in modules:

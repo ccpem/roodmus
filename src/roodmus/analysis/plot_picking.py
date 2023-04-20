@@ -12,7 +12,7 @@ from matplotlib import patches
 import numpy as np
 import mrcfile
 
-from .analyse_picking import particle_picking
+from roodmus.analysis.utils import load_data
 
 
 def add_arguments(parser):
@@ -490,6 +490,127 @@ def plot_recall(
     return fig, ax
 
 
+def plot_precision_and_recall(
+    df_precision: pd.DataFrame,
+    jobtypes: Dict[str, str],
+    order: list[str] | None = None,
+):
+    # get all column names
+    col_names = df_precision.columns.tolist()
+    # remove the precsion and recall columns
+    col_names.remove("precision")
+    col_names.remove("recall")
+    df = df_precision.melt(
+        id_vars=col_names, var_name="variable", value_name="value"
+    )
+
+    plt.rcParams["font.size"] = 20
+    fig, ax = plt.subplots(figsize=(10, 10))
+    sns.boxplot(
+        x="metadata_filename",
+        y="value",
+        data=df,
+        ax=ax,
+        fliersize=0,
+        palette="RdYlBu",
+        hue="variable",
+        order=order,
+    )
+    ax.set_ylabel("")
+    ax.set_xlabel("")
+    # change the xtix labels to the jobtypes
+    ax.set_xticklabels(
+        [
+            jobtypes[meta_file]
+            for meta_file in np.unique(df["metadata_filename"])
+            if meta_file in jobtypes.keys()
+        ]
+    )
+    plt.setp(
+        ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor"
+    )
+    # add legend below axis
+    ax.legend().set_visible(False)
+    handles, labels = ax.get_legend_handles_labels()
+    fig.legend(
+        handles, labels, loc="lower center", ncol=1, bbox_to_anchor=(1.1, 0.85)
+    )
+    fig.tight_layout()
+    return fig, ax
+
+
+def plot_f1_score(
+    df_precision: pd.DataFrame,
+    jobtypes: Dict[str, str],
+    order: list[str] | None = None,
+):
+    # compute f1 score from the precision and recall
+    df_precision["f1_score"] = (
+        2
+        * (df_precision["precision"] * df_precision["recall"])
+        / (df_precision["precision"] + df_precision["recall"])
+    )
+    fig, ax = plt.subplots(figsize=(10, 5))
+    sns.boxplot(
+        x="metadata_filename",
+        y="f1_score",
+        data=df_precision,
+        ax=ax,
+        fliersize=0,
+        palette="Blues",
+        order=order,
+    )
+
+    sns.stripplot(
+        x="metadata_filename",
+        y="f1_score",
+        data=df_precision,
+        ax=ax,
+        hue="defocus",
+        alpha=0.7,
+        palette="RdYlBu",
+        order=order,
+    )
+
+    # change the xticklabels to the jobtype
+    if order is None:
+        ax.set_xticklabels(
+            [
+                jobtypes[metadata_filename]
+                for metadata_filename in df_precision[
+                    "metadata_filename"
+                ].unique()
+            ]
+        )
+    else:
+        ax.set_xticklabels(
+            [jobtypes[metadata_filename] for metadata_filename in order]
+        )
+    # remove legend
+    ax.legend().remove()
+    # add colorbar
+    sm = plt.cm.ScalarMappable(
+        cmap="RdYlBu",
+        norm=plt.Normalize(
+            vmin=df_precision["defocus"].min(),
+            vmax=df_precision["defocus"].max(),
+        ),
+    )
+    sm._A = []
+    cbar = fig.colorbar(sm, ax=ax)
+    cbar.set_label("defocus (Å)", rotation=270, labelpad=20)
+    # add labels
+    ax.set_xlabel("job type")
+    ax.set_ylabel("f1 score")
+    ax.set_title("F1 score for different job types")
+    # rotate xtiklabels 45 degrees
+    plt.setp(
+        ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor"
+    )
+    fig.tight_layout()
+    return fig, ax
+
+
 def plot_boundary_investigation(
     df_truth: pd.DataFrame,
     df_picked: pd.DataFrame,
@@ -662,14 +783,14 @@ def main(args):
 
     for i, meta_file in enumerate(args.meta_file):
         if i == 0:
-            analysis = particle_picking(
+            analysis = load_data(
                 meta_file,
                 args.config_dir,
                 args.particle_diameter,
                 verbose=args.verbose,
             )
         else:
-            analysis.compute(meta_file, args.config_dir, verbose=args.verbose)
+            analysis.add_data(meta_file, args.config_dir, verbose=args.verbose)
     df_picked = pd.DataFrame(
         analysis.results_picking
     )  # data frame containing the picked particles
@@ -679,58 +800,46 @@ def main(args):
 
     for plot_type in args.plot_types:
         if plot_type == "label_truth":  # plot the ground-truth particles
-            for meta_file in args.meta_file:
-                meta_basename = os.path.basename(meta_file)
-                df_truth_grouped = df_truth.groupby(
-                    "metadata_filename"
-                ).get_group(meta_file)
-                for ugraph_index, ugraph_filename in enumerate(
-                    np.unique(df_truth_grouped["ugraph_filename"])[
-                        : args.num_ugraphs
-                    ]
-                ):
-                    print(
-                        "Plotting micrograph {}, from metadata file {}".format(
-                            ugraph_filename,
-                            meta_basename,
-                        )
+            for ugraph_index, ugraph_filename in enumerate(
+                np.unique(df_truth["ugraph_filename"])[: args.num_ugraphs]
+            ):
+                print(
+                    "Plotting truth particles in micrograph {}".format(
+                        ugraph_filename,
                     )
-                    print("Plotting ground-truth particles...")
-                    fig, ax = label_micrograph_truth(
-                        df_truth_grouped,
-                        ugraph_index,
-                        args.mrc_dir,
-                        box_width=args.box_width,
-                        box_height=args.box_height,
-                        verbose=args.verbose,
-                    )
-                    outfilename = os.path.join(
-                        args.plot_dir,
-                        "{}_{}_truth.png".format(
-                            ugraph_filename.strip(".mrc"),
-                            meta_basename.split(".")[0],
-                        ),
-                    )
-                    fig.savefig(outfilename)
-                    fig.clf()
+                )
+                fig, ax = label_micrograph_truth(
+                    df_truth,
+                    ugraph_index,
+                    args.mrc_dir,
+                    box_width=args.box_width,
+                    box_height=args.box_height,
+                    verbose=args.verbose,
+                )
+                outfilename = os.path.join(
+                    args.plot_dir,
+                    "{}_truth.png".format(
+                        ugraph_filename.strip(".mrc"),
+                    ),
+                )
+                fig.savefig(outfilename)
+                fig.clf()
 
         if plot_type == "label_picked":  # plot the picked particles
             for meta_file in args.meta_file:
                 meta_basename = os.path.basename(meta_file)
-                df_truth_grouped = df_truth.groupby(
-                    "metadata_filename"
-                ).get_group(meta_file)
                 for ugraph_index, ugraph_filename in enumerate(
                     np.unique(df_picked["ugraph_filename"])[: args.num_ugraphs]
                 ):
                     print(
-                        "Plotting micrograph {}, from metadata file {}".format(
+                        "Plotting picked particles in micrograph {}, \
+                        from metadata file {}".format(
                             ugraph_filename, meta_basename
                         )
                     )
-                    print("Plotting picked particles...")
                     fig, ax = label_micrograph_picked(
                         df_picked,
+                        meta_file,
                         ugraph_index,
                         args.mrc_dir,
                         box_width=args.box_width,
@@ -749,22 +858,19 @@ def main(args):
 
         if plot_type == "label_truth_and_picked":
             for meta_file in args.meta_file:
-                df_truth_grouped = df_truth.groupby(
-                    "metadata_filename"
-                ).get_group(meta_file)
                 for ugraph_index, ugraph_filename in enumerate(
                     np.unique(df_picked["ugraph_filename"])[: args.num_ugraphs]
                 ):
                     print(
-                        "Plotting micrograph"
+                        "Plotting picked and truth particles in micrograph"
                         " {}, from metadata file {}".format(
                             ugraph_filename,
                             meta_basename,
                         )
                     )
-                    print("plotting picked particles...")
                     fig, ax = label_micrograph_truth_and_picked(
                         df_picked,
+                        meta_file,
                         df_truth,
                         ugraph_index,
                         args.mrc_dir,
@@ -784,7 +890,9 @@ def main(args):
 
         if plot_type == "precision":
             # first need to compute the precision statistics
-            df_precision = analysis.compute_precision(df_picked, df_truth)
+            df_precision, _ = analysis.compute_precision(
+                df_picked, df_truth, verbose=args.verbose
+            )
             # then get a dictionary of the jobtypes
             if args.jobtypes is not None:
                 jobtypes = {
@@ -799,14 +907,30 @@ def main(args):
                     for meta_file in args.meta_file
                 }
             print("plotting precision...")
-            fig, ax = plot_precision(df_precision, jobtypes)
+            fig, ax = plot_precision(df_precision, jobtypes, args.meta_file)
             outfilename = os.path.join(args.plot_dir, "precision.png")
             fig.savefig(outfilename)
             fig.clf()
 
             print("plotting recall...")
-            fig, ax = plot_recall(df_precision, jobtypes)
+            fig, ax = plot_recall(df_precision, jobtypes, args.meta_file)
             outfilename = os.path.join(args.plot_dir, "recall.png")
+            fig.savefig(outfilename)
+            fig.clf()
+
+            print("plotting precsion and recall in one plot...")
+            fig, ax = plot_precision_and_recall(
+                df_precision, jobtypes, args.meta_file
+            )
+            outfilename = os.path.join(
+                args.plot_dir, "precision_and_recall.png"
+            )
+            fig.savefig(outfilename)
+            fig.clf()
+
+            print("plotting F1 score...")
+            fig, ax = plot_f1_score(df_precision, jobtypes, args.meta_file)
+            outfilename = os.path.join(args.plot_dir, "f1_score.png")
             fig.savefig(outfilename)
             fig.clf()
 
