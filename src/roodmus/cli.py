@@ -12,6 +12,7 @@ import roodmus.analysis.plot_ctf
 import roodmus.analysis.plot_picking
 import roodmus.analysis.plot_frames
 import roodmus.analysis.plot_classes
+import roodmus.analysis.extract_particles
 
 # import analysis.analyse_alignment
 
@@ -38,6 +39,7 @@ def main():
         roodmus.analysis.plot_picking,
         roodmus.analysis.plot_frames,
         roodmus.analysis.plot_classes,
+        roodmus.analysis.extract_particles,
     ]
 
     for module in modules:
