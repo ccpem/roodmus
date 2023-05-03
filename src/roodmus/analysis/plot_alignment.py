@@ -16,6 +16,11 @@ from roodmus.analysis.utils import load_data
 
 def add_arguments(parser):
     parser.add_argument(
+        "--config-dir",
+        help="Directory with .mrc files and .yaml config files",
+        type=str,
+    )
+    parser.add_argument(
         "--mrc-dir",
         help="directory with .mrc files and .yaml config files",
         type=str,
@@ -27,6 +32,7 @@ def add_arguments(parser):
             " (RELION) or .cs (CryoSPARC)"
         ),
         type=str,
+        nargs="+",
     )
     parser.add_argument(
         "--plot-dir",
@@ -35,13 +41,19 @@ def add_arguments(parser):
         default="alignment.png",
     )
     parser.add_argument(
+        "--csparc",
+        help="if metadata file is in CryoSPARC format, \
+            combine the metadata files into one",
+        action="store_true",
+    )
+    parser.add_argument(
         "--verbose", help="Increase output verbosity", action="store_true"
     )
     return parser
 
 
 def get_name():
-    return "analyse_alignment"
+    return "plot_alignment"
 
 
 def plot_picked_pose_distribution(
@@ -199,16 +211,32 @@ def main(args):
     if args.mrc_dir is None:
         args.mrc_dir = args.config_dir
 
-    for i, meta_file in enumerate(args.meta_file):
-        if i == 0:
-            analysis = load_data(
-                meta_file,
-                args.config_dir,
-                args.particle_diameter,
-                verbose=args.verbose,
-            )
-        else:
-            analysis.add_data(meta_file, args.config_dir, verbose=args.verbose)
+    # if the metadata is in cryosparc format
+    # presume the files are from the same job
+    # and combine them into one dataframe
+    if args.csparc:
+        analysis = load_data(
+            args.meta_file,
+            args.config_dir,
+            0,  # not relevant for this script
+            verbose=args.verbose,
+        )
+
+    # otherwise, treat each file as a separate job
+    else:
+        for i, meta_file in enumerate(args.meta_file):
+            if i == 0:
+                analysis = load_data(
+                    meta_file,
+                    args.config_dir,
+                    0,  # not relevant for this script
+                    verbose=args.verbose,
+                )
+            else:
+                analysis.add_data(
+                    meta_file, args.config_dir, verbose=args.verbose
+                )
+
     df_picked = pd.DataFrame(
         analysis.results_picking
     )  # data frame containing the picked particles
@@ -217,12 +245,11 @@ def main(args):
     )  # data frame containing the ground-truth particles
 
     # plot the picked particle pose distribution
-    vmin_total = 0
-    vmax_total = 0
-    for meta_file in args.meta_file:
+    if args.csparc:
+        meta_file = args.meta_file[0]
         grid, vmin, vmax = plot_picked_pose_distribution(df_picked, meta_file)
-        vmin_total = min(vmin_total, vmin)
-        vmax_total = max(vmax_total, vmax)
+        vmin_total = vmin
+        vmax_total = vmax
 
         # save the plot
         outfilename = os.path.join(
@@ -231,6 +258,26 @@ def main(args):
             + "_picked_pose_distribution.png",
         )
         grid.savefig(outfilename, dpi=300, bbox_inches="tight")
+
+    else:
+        for i, meta_file in enumerate(args.meta_file):
+            grid, vmin, vmax = plot_picked_pose_distribution(
+                df_picked, meta_file
+            )
+            if i == 0:
+                vmin_total = vmin
+                vmax_total = vmax
+            else:
+                vmin_total = min(vmin_total, vmin)
+                vmax_total = max(vmax_total, vmax)
+
+            # save the plot
+            outfilename = os.path.join(
+                args.plot_dir,
+                os.path.splitext(os.path.basename(meta_file))[0]
+                + "_picked_pose_distribution.png",
+            )
+            grid.savefig(outfilename, dpi=300, bbox_inches="tight")
 
     # plot the true particle pose distribution
     grid = plot_true_pose_distribution(df_truth, vmin_total, vmax_total)

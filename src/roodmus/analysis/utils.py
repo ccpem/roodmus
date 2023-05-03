@@ -8,7 +8,6 @@ import numpy as np
 from scipy.spatial import cKDTree
 from tqdm import tqdm
 import pandas as pd
-from scipy.spatial.transform.rotation import Rotation as R
 
 from pipeliner.jobstar_reader import RelionStarFile
 
@@ -84,10 +83,13 @@ class IO(object):
         if "alignments3D/pose" in metadata_cs.dtype.names:
             pose = metadata_cs[
                 "alignments3D/pose"
-            ]  # orientations as rotation vectors
-            euler = R.from_rotvec(pose).as_euler(
-                "zyx", degrees=False
-            )  # convert to euler angles
+            ]  # orientations as rodriques vectors
+            # convert to euler angles
+            euler = [geom.rot2euler(geom.expmap(p)) for p in pose]
+            euler = np.array(euler)
+            # euler = R.from_rotvec(pose).as_euler(
+            #     "zyx", degrees=False
+            # )  # convert to euler angles
             return euler
         else:
             return None
@@ -96,8 +98,6 @@ class IO(object):
     def get_ugraph_shape_cs(self, metadata_cs: np.recarray):
         if "location/micrograph_shape" in metadata_cs.dtype.names:
             ugraph_shape = metadata_cs["location/micrograph_shape"]
-        elif "blob/shape" in metadata_cs.dtype.names:
-            ugraph_shape = metadata_cs["blob/shape"]
         else:
             ugraph_shape = None
         return ugraph_shape
@@ -221,10 +221,63 @@ class IO(object):
         return config
 
 
+class geom(object):
+    # adapted from the pyem package by Daniel Asarnow.
+    # Under the GNU General Public License v3.0
+    @classmethod
+    def expmap(self, e):
+        """Convert axis-angle vector into 3D rotation matrix"""
+        theta = np.linalg.norm(e)
+        if theta < 1e-16:
+            return np.identity(3, dtype=e.dtype)
+        w = e / theta
+        k = np.array(
+            [[0, w[2], -w[1]], [-w[2], 0, w[0]], [w[1], -w[0], 0]],
+            dtype=e.dtype,
+        )
+        r = (
+            np.identity(3, dtype=e.dtype)
+            + np.sin(theta) * k
+            + (1 - np.cos(theta)) * np.dot(k, k)
+        )
+        return r
+
+    @classmethod
+    def rot2euler(self, r):
+        """Decompose rotation matrix into Euler angles"""
+        # assert(isrotation(r))
+        # Shoemake rotation matrix decomposition
+        # algorithm with same conventions as Relion.
+        epsilon = np.finfo(np.double).eps
+        abs_sb = np.sqrt(r[0, 2] ** 2 + r[1, 2] ** 2)
+        if abs_sb > 16 * epsilon:
+            gamma = np.arctan2(r[1, 2], -r[0, 2])
+            alpha = np.arctan2(r[2, 1], r[2, 0])
+            if np.abs(np.sin(gamma)) < epsilon:
+                sign_sb = np.sign(-r[0, 2]) / np.cos(gamma)
+            else:
+                sign_sb = (
+                    np.sign(r[1, 2])
+                    if np.sin(gamma) > 0
+                    else -np.sign(r[1, 2])
+                )
+            beta = np.arctan2(sign_sb * abs_sb, r[2, 2])
+        else:
+            if np.sign(r[2, 2]) > 0:
+                alpha = 0
+                beta = 0
+                gamma = np.arctan2(-r[1, 0], r[0, 0])
+            else:
+                alpha = 0
+                beta = np.pi
+                gamma = np.arctan2(r[1, 0], -r[0, 0])
+        return alpha, beta, gamma
+
+
 class load_data(object):
     def __init__(
         self,
-        meta_file: str,
+        meta_file: str | List[str],
         config_dir: str,
         particle_diameter: float,
         ugraph_shape: Tuple[int, int] = (4000, 4000),
@@ -281,7 +334,7 @@ class load_data(object):
 
     def add_data(
         self,
-        meta_file: str = "",
+        meta_file: str | List[str] = "",
         config_dir: str = "",
         verbose: bool = True,
     ):
@@ -356,7 +409,9 @@ class load_data(object):
         if len(ugraphs_to_load) > 0:
             total_num_particles = 0
             progressbar = tqdm(
-                total=len(ugraphs_to_load), desc="loading micrographs"
+                total=len(ugraphs_to_load),
+                desc="loading micrographs",
+                disable=not self.verbose,
             )
             for ugraph_path in ugraphs_to_load:
                 if not os.path.isfile(
@@ -412,7 +467,6 @@ class load_data(object):
         self, meta_file: str | List[str] = "", verbose: bool = False
     ) -> Tuple[dict, str]:
         if isinstance(meta_file, str):
-            print(meta_file)
             if meta_file.endswith(".star"):
                 metadata = IO.load_star(meta_file)
                 file_type = "star"
@@ -433,7 +487,6 @@ class load_data(object):
             metadata = []
             file_types = []
             for file in meta_file:
-                print(file)
                 if file.endswith(".star"):
                     metadata.append(IO.load_star(file))
                     file_type = "star"
@@ -447,9 +500,7 @@ class load_data(object):
                 if verbose:
                     print(
                         "loaded metadata from"
-                        " {}. determined file type: {}".format(
-                            meta_file, file_type
-                        )
+                        " {}. determined file type: {}".format(file, file_type)
                     )
             # check if the file types are the same
             if len(set(file_types)) > 1:
@@ -545,58 +596,51 @@ class load_data(object):
                 else:
                     tmp_results["class2D"].extend([np.nan] * num_particles)
 
-            # combine the temporary results where the particles
-            # have the same uid
-            for uid in np.unique(tmp_results["uid"]):
-                idx = np.where(np.array(tmp_results["uid"]) == uid)[0]
-                idx = [int(r) for r in idx]
-                mask = np.sum(np.array(tmp_results["mask"])[idx]) > 0
-                if mask:
-                    # take the first non-nan value for each key
-                    posx = np.array(tmp_results["position_x"])[idx]
-                    posx = np.array(tmp_results["position_x"])[idx]
-                    posy = np.array(tmp_results["position_y"])[idx]
-                    euler_phi = np.array(tmp_results["euler_phi"])[idx]
-                    euler_theta = np.array(tmp_results["euler_theta"])[idx]
-                    euler_psi = np.array(tmp_results["euler_psi"])[idx]
-                    ugraph_shape = np.array(tmp_results["ugraph_shape"])[idx]
-                    defocusU = np.array(tmp_results["defocusU"])[idx]
-                    defocusV = np.array(tmp_results["defocusV"])[idx]
-                    class2D = np.array(tmp_results["class2D"])[idx]
-                    ugraph_filename = np.array(tmp_results["ugraph_filename"])[
-                        idx
-                    ]
+            if "metadata_filename" in tmp_results.keys():
+                tmp_results.pop("metadata_filename")
+            df_tmp = pd.DataFrame(tmp_results, columns=tmp_results.keys())
+            mask_true = df_tmp["mask"]
+            df_tmp = df_tmp.groupby("uid").agg(
+                {
+                    "ugraph_filename": lambda x: x[mask_true].iloc[0],
+                    "mask": "sum",
+                    "position_x": "first",
+                    "position_y": "first",
+                    "euler_phi": "first",
+                    "euler_theta": "first",
+                    "euler_psi": "first",
+                    "ugraph_shape": "first",
+                    "defocusU": "first",
+                    "defocusV": "first",
+                    "class2D": "first",
+                }
+            )
 
-                    self.results_picking["position_x"].append(
-                        posx[~np.isnan(posx)][0]
-                    )
-                    self.results_picking["position_y"].append(
-                        posy[~np.isnan(posy)][0]
-                    )
-                    self.results_picking["euler_phi"].append(
-                        euler_phi[~np.isnan(euler_phi)][0]
-                    )
-                    self.results_picking["euler_theta"].append(
-                        euler_theta[~np.isnan(euler_theta)][0]
-                    )
-                    self.results_picking["euler_psi"].append(
-                        euler_psi[~np.isnan(euler_psi)][0]
-                    )
-                    self.results_picking["ugraph_shape"].append(
-                        ugraph_shape[~np.isnan(ugraph_shape[:, 0])][0]
-                    )
-                    self.results_picking["defocusU"].append(
-                        defocusU[~np.isnan(defocusU)][0]
-                    )
-                    self.results_picking["defocusV"].append(
-                        defocusV[~np.isnan(defocusV)][0]
-                    )
-                    self.results_picking["class2D"].append(
-                        class2D[~np.isnan(class2D)][0]
-                    )
-                    self.results_picking["ugraph_filename"].append(
-                        ugraph_filename[0]
-                    )
+            # add the temporary results to the results
+            self.results_picking["position_x"].extend(
+                df_tmp["position_x"].values
+            )
+            self.results_picking["position_y"].extend(
+                df_tmp["position_y"].values
+            )
+            self.results_picking["euler_phi"].extend(
+                df_tmp["euler_phi"].values
+            )
+            self.results_picking["euler_theta"].extend(
+                df_tmp["euler_theta"].values
+            )
+            self.results_picking["euler_psi"].extend(
+                df_tmp["euler_psi"].values
+            )
+            self.results_picking["ugraph_shape"].extend(
+                df_tmp["ugraph_shape"].values
+            )
+            self.results_picking["defocusU"].extend(df_tmp["defocusU"].values)
+            self.results_picking["defocusV"].extend(df_tmp["defocusV"].values)
+            self.results_picking["class2D"].extend(df_tmp["class2D"].values)
+            self.results_picking["ugraph_filename"].extend(
+                df_tmp["ugraph_filename"].values
+            )
 
             # remove the temporary results and update the number of particles
             tmp_results = {}
@@ -804,8 +848,10 @@ class load_data(object):
             f = molecules["filename"]
             for instance in molecules["instances"]:
                 position = instance["position"]
-                orientation = instance["orientation"]
-                euler = R.from_rotvec(orientation).as_euler("zyx")
+                orientation = instance["orientation"]  # rotation vector
+                # convert to euler angles
+                euler = geom.rot2euler(geom.expmap(np.array(orientation)))
+                # euler = R.from_rotvec(orientation).as_euler("zyx")
                 orientations_list.append(euler)
                 positions_list.append(position)
                 filenames.append(f)
