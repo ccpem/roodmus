@@ -26,18 +26,33 @@ class IO(object):
         return metadata
 
     @classmethod
-    def get_ugraph_cs(self, metadata_cs: np.recarray):
+    def get_ugraph_cs(self, metadata_cs: np.recarray, config_dir: str):
         if "location/micrograph_path" in metadata_cs.dtype.names:
             ugraph_paths = metadata_cs["location/micrograph_path"]
         elif "blob/path" in metadata_cs.dtype.names:
             ugraph_paths = metadata_cs["blob/path"]
 
-        # convert to basename and remove index
+        # make a mask to retain only the lines we have data files for
+        mask = np.array(
+            [
+                1
+                if os.path.exists(
+                    os.path.join(
+                        config_dir, path.decode("utf-8").split("_")[-1]
+                    )
+                )
+                else 0
+                for path in ugraph_paths
+            ],
+            dtype=bool,
+        )
+
+        ugraph_paths = ugraph_paths[mask]
         ugraph_paths = [
             os.path.basename(path).decode("utf-8").split("_")[-1]
             for path in ugraph_paths
         ]
-        return ugraph_paths
+        return ugraph_paths, mask
 
     @classmethod
     def get_uid_cs(self, metadata_cs: np.recarray):
@@ -48,14 +63,18 @@ class IO(object):
         return uid
 
     @classmethod
-    def get_ctf_cs(self, metadata_cs: np.recarray):
+    def get_ctf_cs(
+        self,
+        metadata_cs: np.recarray,
+        mask: np.ndarray,
+    ):
         if "ctf/df1_A" in metadata_cs.dtype.names:
-            defocusU = metadata_cs["ctf/df1_A"]
-            defocusV = metadata_cs["ctf/df2_A"]
-            kV = metadata_cs["ctf/accel_kv"]
-            Cs = metadata_cs["ctf/cs_mm"]
-            amp = metadata_cs["ctf/amp_contrast"]
-            Bfac = metadata_cs["ctf/bfactor"]
+            defocusU = metadata_cs["ctf/df1_A"][mask]
+            defocusV = metadata_cs["ctf/df2_A"][mask]
+            kV = metadata_cs["ctf/accel_kv"][mask]
+            Cs = metadata_cs["ctf/cs_mm"][mask]
+            amp = metadata_cs["ctf/amp_contrast"][mask]
+            Bfac = metadata_cs["ctf/bfactor"][mask]
             return np.stack([defocusU, defocusV, kV, Cs, amp, Bfac], axis=1)
         else:
             return None
@@ -117,19 +136,30 @@ class IO(object):
         return RelionStarFile(star_path)
 
     @classmethod
-    def get_ugraph_star(self, metadata_star):
+    def get_ugraph_star(self, metadata_star, config_dir: str):
         ugraph_paths = metadata_star.column_as_list(
             "particles", "_rlnMicrographName"
         )
-
+        mask = np.array(
+            [
+                1 if os.path.exists(os.path.join(config_dir, path)) else 0
+                for path in ugraph_paths
+            ],
+            dtype=bool,
+        )
+        ugraph_paths = ugraph_paths[mask]
         # convert to basename and remove index
         ugraph_paths = [
             os.path.basename(path).split("_")[-1] for path in ugraph_paths
         ]
-        return ugraph_paths
+        return ugraph_paths, mask
 
     @classmethod
-    def get_ctf_star(self, metadata_star) -> np.ndarray:
+    def get_ctf_star(
+        self,
+        metadata_star,
+        mask: np.ndarray,
+    ) -> np.ndarray:
         kV = [
             float(r)
             for r in metadata_star.column_as_list("optics", "_rlnVoltage")
@@ -150,11 +180,11 @@ class IO(object):
         defocusU = [
             float(r)
             for r in metadata_star.column_as_list("particles", "_rlnDefocusU")
-        ]
+        ][mask]
         defocusV = [
             float(r)
             for r in metadata_star.column_as_list("particles", "_rlnDefocusV")
-        ]
+        ][mask]
         Bfac = [0]  # not available in RELION star files
         return np.stack(
             [

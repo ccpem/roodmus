@@ -4,7 +4,7 @@
 """
 
 import os
-from typing import Tuple
+from typing import Tuple, List
 import argparse
 
 import numpy as np
@@ -157,12 +157,12 @@ def add_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 
 
 def get_name():
-    return "waymarking"
+    return "conformations_sampling"
 
 
 def get_trajfiles(
     trajfiles_dir_path: str, verbose: bool, traj_extension: str = ".dcd"
-) -> list[str]:
+) -> List[str]:
     """Grab an ordered list of trajectory files
 
     Args:
@@ -221,17 +221,17 @@ def load_traj(trajfile: str, topfile: str, verbose: bool) -> mdt.Trajectory:
 
 
 def waymark(
-    trajfiles: list[str],
+    trajfiles: List[str],
     topfile: str,
     rmsd: float,
     verbose: bool,
     atom_indices=None,
 ) -> Tuple[
-    list[list[int]],
-    list[list[np.int64]],
-    list[np.ndarray[np.int64, np.int64]],
+    List[List[int]],
+    List[List[np.int64]],
+    List[np.ndarray[np.int64, np.int64]],
     mdt.Trajectory,
-    list[int],
+    List[int],
 ]:
     """This function is designed to take a list of trajectory files making
     up a long trajectory) and return all non-redundant (according to rmsd
@@ -366,7 +366,7 @@ def waymark(
 def plot_waymarking(
     waymarking_plots: str,
     traj_steps: np.uint64,
-    waymarks: list[int],
+    waymarks: List[int],
     suffix: str | None = None,
     xlabel: str = "n_frames",
 ):
@@ -412,7 +412,7 @@ def plot_waymarking(
 
 
 def list_waymark_occupancy(
-    traj_steps: np.uint64, counts: list[int], suffix: str | None = None
+    traj_steps: np.uint64, counts: List[int], suffix: str | None = None
 ):
     """For each increment of the total number of waymark-sampled conformations,
      print verbose output of the index and the proportion of the total number
@@ -462,7 +462,7 @@ def write_non_redundant_confs(
 
 def get_traj_steps(
     trajfiles: list, topfile: str, verbose: bool
-) -> Tuple[np.uint64, list[np.uint64]]:
+) -> Tuple[np.uint64, List[np.uint64]]:
     """Load all the trajectories and count the frames
 
     Args:
@@ -504,9 +504,9 @@ def create_output_dir(output_dir: str, verbose: bool) -> None:
 
 
 def sample_dcd_evenly(
-    trajfiles: list[str],
+    trajfiles: List[str],
     topfile: str,
-    traj_indices: list[list[int]],
+    traj_indices: List[List[int]],
     verbose: bool,
     output_dir: str,
     digits: int = 6,
@@ -579,13 +579,13 @@ def sample_dcd_evenly(
 
 def get_traj_indices(
     traj_steps: np.uint64,
-    steps_per_file: list[np.uint64],
+    steps_per_file: List[np.uint64],
     verbose: bool,
     n_conformations: np.uint64 = 1,
     rnd_start: bool = False,
     seed: int = 1385737,
     contiguous: bool = False,
-) -> list[list[int]]:
+) -> List[List[int]]:
     """Determine the trajectory frame indices which you want to
     sample from full trajectory
 
