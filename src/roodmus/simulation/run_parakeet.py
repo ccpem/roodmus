@@ -8,6 +8,7 @@ from typing import Tuple, List
 
 import numpy as np
 from tqdm import tqdm
+from memory_profiler import profile
 
 import parakeet
 from .configuration import Configuration
@@ -798,6 +799,7 @@ def get_name():
     return "run_parakeet"
 
 
+@profile
 def sample_defocus(c_10: float, c_10_stddev: float) -> float:
     """Generate a defocus value from a Gaussian distribution
 
@@ -811,6 +813,7 @@ def sample_defocus(c_10: float, c_10_stddev: float) -> float:
     return np.random.normal(c_10, c_10_stddev)
 
 
+@profile
 def get_pdb_files(pdb_dir: str) -> List[str]:
     """Grab a list of molecule/structure definition files (such as PDBs) to add
     to micrographs
@@ -829,6 +832,7 @@ def get_pdb_files(pdb_dir: str) -> List[str]:
     return pdb_files
 
 
+@profile
 def get_instances(
     pdb_files: List[str], n_molecules: int, replace=True
 ) -> Tuple[List[str], List[int]]:
@@ -876,6 +880,7 @@ def get_instances(
     return new_pdb_files, new_n_instances
 
 
+@profile
 def main(args):
     """
     Loops over the number of images to generate. For each image,
