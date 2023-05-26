@@ -115,3 +115,7 @@ roodmus = "roodmus.cli:main"
 [project.urls]
 "Homepage" = "https://github.com/pypa/sampleproject"
 "Bug Tracker" = "https://github.com/pypa/sampleproject/issues"
+
+[tool.licensecheck]
+using = "requirements:requirements.txt;requirements-dev.txt"
+format = "json"

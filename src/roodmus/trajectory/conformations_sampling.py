@@ -285,7 +285,7 @@ def waymark(
     # rmsd thresh
     non_redundant_confs: mdt.Trajectory = trajfiles[0][0]
     non_redundant_confs_counter = 1
-    jlist: list[int] = [0]
+    frame_ind_list: list[int] = [0]
 
     # then for each trajectory (including the first one, calculate the
     # rmsd of the conformation from the original conformation and all
@@ -301,7 +301,7 @@ def waymark(
         if traj_file_n == 0:
             continue
         else:
-            jlist = []
+            frame_ind_list = []
             # if we're on the second or later trajfile, add the conformations
             # to the end of traj obj holding existin >rmsd thresh differing
             # traj'es
@@ -311,36 +311,43 @@ def waymark(
 
         # get the rmsd of structure from the first conformation for each other
         # conformation
-        r = mdt.rmsd(traj, traj, frame=0, atom_indices=atom_indices)
+        rms_dists = mdt.rmsd(traj, traj, frame=0, atom_indices=atom_indices)
         # grab the indices of the conformations which were different by
         # >rmsd threshold
-        j = np.argmax(r > rmsd)
+        frame_ind = np.argmax(rms_dists > rmsd)
         # convert array to at least 2d
-        rlist = np.atleast_2d(r)
+        rms_dists_list = np.atleast_2d(rms_dists)
 
         # using j>0 while loop with argmax still works for multiple dcd file
         # method as reference trajectory still includes first conformation
         # from the first trajectory file
-        while j > 0:
+        while frame_ind > 0:
             # only append to the non_redundant list of conformations if it is
             # not already going to be in there! (this wastes some computation
             # but oh well for now)
-            if j >= non_redundant_confs_counter:
-                non_redundant_confs = non_redundant_confs.join(traj[j])
+            if frame_ind >= non_redundant_confs_counter:
+                non_redundant_confs = non_redundant_confs.join(traj[frame_ind])
                 non_redundant_confs_counter += 1
-            jlist.append(j)
-            r = mdt.rmsd(traj, traj, frame=j, atom_indices=atom_indices)
-            rlist = np.append(rlist, np.atleast_2d(r), axis=0)
-            j = np.argmax(rlist.min(axis=0) > rmsd)
+            frame_ind_list.append(frame_ind)
+            rms_dists = mdt.rmsd(
+                traj, traj, frame=frame_ind, atom_indices=atom_indices
+            )
+            rms_dists_list = np.append(
+                rms_dists_list, np.atleast_2d(rms_dists), axis=0
+            )
+            frame_ind = np.argmax(rms_dists_list.min(axis=0) > rmsd)
 
         # these are kept for continuity in updating code but frankly will no
         # longer be useful to analyse things because
         # each iteration of for loop is not independent (as non-redundant_confs
         # is built upon each time!)
-        waymarks.append(jlist)
-        assignments.append(rlist.argmin(axis=0))
+        waymarks.append(frame_ind_list)
+        assignments.append(rms_dists_list.argmin(axis=0))
         counts.append(
-            [(rlist.argmin(axis=0) == i).sum() for i in range(len(jlist))]
+            [
+                (rms_dists_list.argmin(axis=0) == i).sum()
+                for i in range(len(frame_ind_list))
+            ]
         )
         non_redundant_confs_counter_list.append(non_redundant_confs_counter)
 
@@ -382,25 +389,26 @@ def plot_waymarking(
         Defaults to None.
         xlabel (str, optional): Label for plot x-axis. Defaults to n_frames
     """
-    snapshots = []
-    n_ways = []
+    frames = []
+    sum_frames = []
     nw = 0
     for nw, w in enumerate(waymarks):
-        snapshots.append(w)
-        n_ways.append(nw)
+        frames.append(w)
+        sum_frames.append(nw)
         nw += 1
-        snapshots.append(w)
-        n_ways.append(nw)
-    snapshots.append(traj_steps - 1)
-    n_ways.append(n_ways[-1])
+        frames.append(w)
+        sum_frames.append(nw)
+    frames.append(traj_steps - 1)
+    sum_frames.append(sum_frames[-1])
 
     # make sure dir exists to put the plots
     if not os.path.exists(waymarking_plots):
         os.makedirs(waymarking_plots)
 
-    plt.plot(snapshots, n_ways)
+    plt.plot(frames, sum_frames)
     plt.xlabel(xlabel)
     plt.ylabel("n_waymarks")
+    plt.tight_layout()
     plt.savefig(
         os.path.join(waymarking_plots, "waymark_{}.pdf".format(suffix))
     )
@@ -425,10 +433,10 @@ def list_waymark_occupancy(
         suffix (str, optional): Descriptive label for trajectory.
         Defaults to None.
     """
-    for i_way in np.argsort(counts)[::-1]:
+    for frame in np.argsort(counts)[::-1]:
         print(
             "Waymark {} {:2d}: {:5.2f}%".format(
-                suffix, i_way, counts[i_way] * 100 / traj_steps
+                suffix, frame, counts[frame] * 100 / traj_steps
             )
         )
     return
@@ -725,8 +733,8 @@ def main(args):
     if args.sampling_method == "waymark":
         # we want to get: Tuple[list[int], list[np.int64],
         # np.ndarray[np.int64,np.int64]]
-        # First is waymarks (jlist -> the trajectory frames which constitute a
-        # new conformation)
+        # First is waymarks (frame_ind_list -> the trajectory frames which
+        # constitute a new conformation)
         # Second is counts (the number of frames assigned to each conformation
         # Third is )
         (
