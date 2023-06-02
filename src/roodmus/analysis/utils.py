@@ -681,12 +681,11 @@ class load_data(object):
             pass  # should not happen, but just in case we add it here
 
         elif file_type == "cs":
-            ugraph_filename = IO.get_ugraph_cs(
-                metadata
+            ugraph_filename, mask = IO.get_ugraph_cs(
+                metadata,
+                self.config_dir,
             )  # a list of all microraphs in the metadata file
             print("checking if ugraphs exist...")
-            mask = self._check_if_ugraphs_exist(ugraph_filename)
-            ugraph_filename = np.array(ugraph_filename)[mask]
             num_particles = len(ugraph_filename)
             self.results_picking["ugraph_filename"].extend(ugraph_filename)
 
@@ -738,7 +737,8 @@ class load_data(object):
                 )
 
             defocus = IO.get_ctf_cs(
-                metadata
+                metadata,
+                mask,
             )  # an array of all the defocus values in the metadata file
             if defocus is not None:
                 defocus = defocus[mask]
