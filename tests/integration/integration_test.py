@@ -406,5 +406,29 @@ class IntegrationTest(unittest.TestCase):
                 )
 
 
+class IntegrationTestAnalysis(unittest.TestCase):
+    def setUp(self) -> None:
+        self.test_data = os.path.dirname(fixtures.__file__)
+        self.test_dir = tempfile.mkdtemp()
+
+        # Change to test directory
+        self._orig_dir = os.getcwd()
+        os.chdir(self.test_dir)
+
+        self.oldpath = os.environ["PATH"]
+
+        # for analysis code integration tests also need to set up
+        # the data objects which analysis utilities are applied to
+        self.config_dir = ""
+        return super().setUp()
+
+    def tearDown(self) -> None:
+        os.chdir(self._orig_dir)
+        if os.path.exists(self.test_dir):
+            shutil.rmtree(self.test_dir)
+        os.environ["PATH"] = self.oldpath
+        return super().tearDown()
+
+
 if __name__ == "__main__":
     unittest.main()
