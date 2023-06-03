@@ -59,6 +59,8 @@ def get_name():
 def plot_picked_pose_distribution(
     df_picked: pd.DataFrame,
     metadata_filename: str | List[str],
+    vmin: float | None = None,
+    vmax: float | None = None,
 ):
     # group the picked particles by metadata file
     if isinstance(metadata_filename, list):
@@ -128,8 +130,12 @@ def plot_picked_pose_distribution(
     cbar_ax = grid.fig.add_axes([1, 0.15, 0.02, 0.7])
     # add colorbar to the new subplot
     grid.fig.colorbar(grid.ax_joint.collections[0], cax=cbar_ax, label="count")
-    # get the limits of the colorbar
-    vmin, vmax = grid.ax_joint.collections[0].get_clim()
+    if vmin and vmax:
+        # set limits of the colorbar to the same as for the picked particles
+        grid.ax_joint.collections[0].set_clim(vmin, vmax)
+    else:
+        # get the limits of the colorbar
+        vmin, vmax = grid.ax_joint.collections[0].get_clim()
     # add title to the top of the jointplot
     grid.fig.suptitle("picked particle pose distribution", fontsize=20, y=1.05)
 
@@ -138,8 +144,8 @@ def plot_picked_pose_distribution(
 
 def plot_true_pose_distribution(
     df_truth: pd.DataFrame,
-    vmin: float,
-    vmax: float,
+    vmin: float | None = None,
+    vmax: float | None = None,
 ):
     df_truth["euler_phi"] = df_truth["euler_phi"].astype(float)
     df_truth["euler_theta"] = -(
@@ -196,12 +202,16 @@ def plot_true_pose_distribution(
     cbar_ax = grid.fig.add_axes([1, 0.15, 0.02, 0.7])
     # add colorbar to the new subplot
     grid.fig.colorbar(grid.ax_joint.collections[0], cax=cbar_ax, label="count")
-    # set the limits of the colorbar to the same as for the picked particles
-    grid.ax_joint.collections[0].set_clim(vmin, vmax)
+    if vmin and vmax:
+        # set limits of the colorbar to the same as for the picked particles
+        grid.ax_joint.collections[0].set_clim(vmin, vmax)
+    else:
+        # get the limits of the colorbar
+        vmin, vmax = grid.ax_joint.collections[0].get_clim()
     # add title to the top of the jointplot
     grid.fig.suptitle("true particle pose distribution", fontsize=20, y=1.05)
 
-    return grid
+    return grid, vmin, vmax
 
 
 def main(args):

@@ -741,7 +741,7 @@ class load_data(object):
                 mask,
             )  # an array of all the defocus values in the metadata file
             if defocus is not None:
-                defocus = defocus[mask]
+                # defocus = defocus[mask]
                 self.results_picking["defocusU"].extend(defocus[:, 0])
                 self.results_picking["defocusV"].extend(defocus[:, 1])
             else:
