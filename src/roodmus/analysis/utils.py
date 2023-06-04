@@ -142,15 +142,19 @@ class IO(object):
         )
         mask = np.array(
             [
-                1 if os.path.exists(os.path.join(config_dir, path)) else 0
+                1
+                if os.path.exists(
+                    os.path.join(config_dir, path.split("/")[-1])
+                )
+                else 0
                 for path in ugraph_paths
             ],
             dtype=bool,
         )
-        ugraph_paths = ugraph_paths[mask]
+        ugraph_paths = np.array(ugraph_paths)[mask]
         # convert to basename and remove index
         ugraph_paths = [
-            os.path.basename(path).split("_")[-1] for path in ugraph_paths
+            os.path.basename(path).split("/")[-1] for path in ugraph_paths
         ]
         return ugraph_paths, mask
 
@@ -177,14 +181,23 @@ class IO(object):
             )
         ]
 
-        defocusU = [
-            float(r)
-            for r in metadata_star.column_as_list("particles", "_rlnDefocusU")
-        ][mask]
-        defocusV = [
-            float(r)
-            for r in metadata_star.column_as_list("particles", "_rlnDefocusV")
-        ][mask]
+        defocusU = np.array(
+            [
+                float(r)
+                for r in metadata_star.column_as_list(
+                    "particles", "_rlnDefocusU"
+                )
+            ],
+            dtype=float,
+        )[mask].tolist()
+        defocusV = np.array(
+            [
+                float(r)
+                for r in metadata_star.column_as_list(
+                    "particles", "_rlnDefocusV"
+                )
+            ]
+        )[mask].tolist()
         Bfac = [0]  # not available in RELION star files
         return np.stack(
             [
@@ -763,12 +776,13 @@ class load_data(object):
                 )
 
         elif file_type == "star":
-            ugraph_filename = IO.get_ugraph_star(
-                metadata
+            ugraph_filename, mask = IO.get_ugraph_star(
+                metadata,
+                self.config_dir,
             )  # a list of all microraphs in the metadata file
             print("checking if ugraphs exist...")
-            mask = self._check_if_ugraphs_exist(ugraph_filename)
-            ugraph_filename = np.array(ugraph_filename)[mask]
+            # mask = self._check_if_ugraphs_exist(ugraph_filename)
+            # ugraph_filename = np.array(ugraph_filename)[mask]
             num_particles = len(ugraph_filename)
             self.results_picking["ugraph_filename"].extend(ugraph_filename)
 
@@ -818,10 +832,11 @@ class load_data(object):
                 )
 
             defocus = IO.get_ctf_star(
-                metadata
+                metadata,
+                mask,
             )  # an array of all the defocus values in the metadata file
             if defocus is not None:
-                defocus = defocus[mask]
+                # defocus = defocus[mask]
                 self.results_picking["defocusU"].extend(defocus[:, 0])
                 self.results_picking["defocusV"].extend(defocus[:, 1])
             else:

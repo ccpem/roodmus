@@ -17,18 +17,18 @@ from roodmus.analysis.utils import load_data
 
 def add_arguments(parser):
     parser.add_argument(
-        "--config-dir",
+        "--config_dir",
         help="Directory with .mrc files and .yaml config files",
         type=str,
     )
     parser.add_argument(
-        "--mrc-dir",
+        "--mrc_dir",
         help="Directory with .mrc files. The same as 'config-dir' by default",
         type=str,
         default=None,
     )
     parser.add_argument(
-        "--meta-file",
+        "--meta_file",
         help=(
             "Particle metadata file. Can be .star (RELION) or .cs (CryoSPARC)"
         ),
@@ -36,37 +36,37 @@ def add_arguments(parser):
         nargs="+",
     )
     parser.add_argument(
-        "--jobtypes",
+        "--job_types",
         help=(
             "Labels for each metadata file. Must be the same length as"
-            " 'meta-file'"
+            " 'meta_file'"
         ),
         type=str,
         nargs="+",
     )
     parser.add_argument(
         "-N",
-        "--num-ugraphs",
+        "--num_ugraphs",
         help="Number of micrographs to consider in analyses. Default 'all'",
         type=int,
         default=None,
     )
     parser.add_argument(
-        "--box-width",
+        "--box_width",
         help="Full width of overlay boxes on images",
         type=float,
-        default=50.0,
+        default=150.0,
         required=False,
     )
     parser.add_argument(
-        "--box-height",
+        "--box_height",
         help="Full height of overlay boxes on images",
         type=float,
-        default=50.0,
+        default=150.0,
         required=False,
     )
     parser.add_argument(
-        "--particle-diameter",
+        "--particle_diameter",
         help=(
             "Expected maximum particle diameter. Used to limit search radius"
             " for matching picked particles to truth particles"
@@ -75,9 +75,9 @@ def add_arguments(parser):
         default=250.0,
         required=False,
     )
-    parser.add_argument("--plot-dir", help="output file name", type=str)
+    parser.add_argument("--plot_dir", help="output file name", type=str)
     parser.add_argument(
-        "--plot-types",
+        "--plot_types",
         help="Types of analysis results to plot",
         type=str,
         nargs="+",
@@ -186,7 +186,9 @@ def label_micrograph_truth(
             )
             ax.add_patch(rect)
         green_patch = patches.Patch(color="green", label="Truth particles")
-        ax.legend(handles=[green_patch])
+        ax.legend(
+            handles=[green_patch], loc="upper left", bbox_to_anchor=(0, 1)
+        )
     return fig, ax
 
 
@@ -256,7 +258,7 @@ def label_micrograph_picked(
             )
             ax.add_patch(rect)
         red_patch = patches.Patch(color="red", label="Picked particles")
-        ax.legend(handles=[red_patch])
+        ax.legend(handles=[red_patch], loc="upper left", bbox_to_anchor=(0, 1))
     return fig, ax
 
 
@@ -348,13 +350,17 @@ def label_micrograph_truth_and_picked(
             )
             ax.add_patch(rect)
         green_patch = patches.Patch(color="green", label="Truth particles")
-        ax.legend(handles=[red_patch, green_patch])
+        ax.legend(
+            handles=[red_patch, green_patch],
+            loc="upper left",
+            bbox_to_anchor=(0, 1),
+        )
     return fig, ax
 
 
 def plot_precision(
     df_precision: pd.DataFrame,
-    jobtypes: Dict[str, str],
+    job_types: Dict[str, str],
     order: list[str] | None = None,
 ):
     """Precision is calculated as follows:
@@ -391,7 +397,7 @@ def plot_precision(
     if order is None:
         ax.set_xticklabels(
             [
-                jobtypes[metadata_filename]
+                job_types[metadata_filename]
                 for metadata_filename in df_precision[
                     "metadata_filename"
                 ].unique()
@@ -399,7 +405,7 @@ def plot_precision(
         )
     else:
         ax.set_xticklabels(
-            [jobtypes[metadata_filename] for metadata_filename in order]
+            [job_types[metadata_filename] for metadata_filename in order]
         )
     # remove legend
     ax.legend().remove()
@@ -428,7 +434,7 @@ def plot_precision(
 
 def plot_recall(
     df_precision: pd.DataFrame,
-    jobtypes: Dict[str, str],
+    job_types: Dict[str, str],
     order: list[str] | None = None,
 ):
     fig, ax = plt.subplots(figsize=(10, 5))
@@ -455,7 +461,7 @@ def plot_recall(
     if order is None:
         ax.set_xticklabels(
             [
-                jobtypes[metadata_filename]
+                job_types[metadata_filename]
                 for metadata_filename in df_precision[
                     "metadata_filename"
                 ].unique()
@@ -463,7 +469,7 @@ def plot_recall(
         )
     else:
         ax.set_xticklabels(
-            [jobtypes[metadata_filename] for metadata_filename in order]
+            [job_types[metadata_filename] for metadata_filename in order]
         )
     # remove legend
     ax.legend().remove()
@@ -492,7 +498,7 @@ def plot_recall(
 
 def plot_precision_and_recall(
     df_precision: pd.DataFrame,
-    jobtypes: Dict[str, str],
+    job_types: Dict[str, str],
     order: list[str] | None = None,
 ):
     # get all column names
@@ -518,12 +524,12 @@ def plot_precision_and_recall(
     )
     ax.set_ylabel("")
     ax.set_xlabel("")
-    # change the xtix labels to the jobtypes
+    # change the xtix labels to the job_types
     ax.set_xticklabels(
         [
-            jobtypes[meta_file]
+            job_types[meta_file]
             for meta_file in np.unique(df["metadata_filename"])
-            if meta_file in jobtypes.keys()
+            if meta_file in job_types.keys()
         ]
     )
     plt.setp(
@@ -541,7 +547,7 @@ def plot_precision_and_recall(
 
 def plot_f1_score(
     df_precision: pd.DataFrame,
-    jobtypes: Dict[str, str],
+    job_types: Dict[str, str],
     order: list[str] | None = None,
 ):
     # compute f1 score from the precision and recall
@@ -576,7 +582,7 @@ def plot_f1_score(
     if order is None:
         ax.set_xticklabels(
             [
-                jobtypes[metadata_filename]
+                job_types[metadata_filename]
                 for metadata_filename in df_precision[
                     "metadata_filename"
                 ].unique()
@@ -584,7 +590,7 @@ def plot_f1_score(
         )
     else:
         ax.set_xticklabels(
-            [jobtypes[metadata_filename] for metadata_filename in order]
+            [job_types[metadata_filename] for metadata_filename in order]
         )
     # remove legend
     ax.legend().remove()
@@ -697,7 +703,7 @@ def plot_boundary_investigation(
 def plot_overlap_investigation(
     df_overlap: pd.DataFrame,
     metadata_filename: str | list[str] | None = None,
-    jobtypes: Dict[str, str] | None = None,
+    job_types: Dict[str, str] | None = None,
 ):
     if metadata_filename is None:
         # plot all metadata files in one plot
@@ -778,6 +784,10 @@ def main(args):
     in a number of micrographs. It then makes quantitative comparisons between
     the two.
     """
+
+    if not os.path.isdir(args.plot_dir):
+        os.makedirs(args.plot_dir)
+
     if args.mrc_dir is None:
         args.mrc_dir = args.config_dir
 
@@ -893,34 +903,34 @@ def main(args):
             df_precision, _ = analysis.compute_precision(
                 df_picked, df_truth, verbose=args.verbose
             )
-            # then get a dictionary of the jobtypes
-            if args.jobtypes is not None:
-                jobtypes = {
+            # then get a dictionary of the job_types
+            if args.job_types is not None:
+                job_types = {
                     meta_file: jobtype
                     for meta_file, jobtype in zip(
-                        args.meta_file, args.jobtypes
+                        args.meta_file, args.job_types
                     )
                 }
             else:
-                jobtypes = {
+                job_types = {
                     meta_file: os.path.basename(meta_file).split(".")[0]
                     for meta_file in args.meta_file
                 }
             print("plotting precision...")
-            fig, ax = plot_precision(df_precision, jobtypes, args.meta_file)
+            fig, ax = plot_precision(df_precision, job_types, args.meta_file)
             outfilename = os.path.join(args.plot_dir, "precision.png")
             fig.savefig(outfilename)
             fig.clf()
 
             print("plotting recall...")
-            fig, ax = plot_recall(df_precision, jobtypes, args.meta_file)
+            fig, ax = plot_recall(df_precision, job_types, args.meta_file)
             outfilename = os.path.join(args.plot_dir, "recall.png")
             fig.savefig(outfilename)
             fig.clf()
 
             print("plotting precsion and recall in one plot...")
             fig, ax = plot_precision_and_recall(
-                df_precision, jobtypes, args.meta_file
+                df_precision, job_types, args.meta_file
             )
             outfilename = os.path.join(
                 args.plot_dir, "precision_and_recall.png"
@@ -929,7 +939,7 @@ def main(args):
             fig.clf()
 
             print("plotting F1 score...")
-            fig, ax = plot_f1_score(df_precision, jobtypes, args.meta_file)
+            fig, ax = plot_f1_score(df_precision, job_types, args.meta_file)
             outfilename = os.path.join(args.plot_dir, "f1_score.png")
             fig.savefig(outfilename)
             fig.clf()

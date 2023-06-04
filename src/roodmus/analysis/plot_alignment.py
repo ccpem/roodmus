@@ -16,17 +16,17 @@ from roodmus.analysis.utils import load_data
 
 def add_arguments(parser):
     parser.add_argument(
-        "--config-dir",
+        "--config_dir",
         help="Directory with .mrc files and .yaml config files",
         type=str,
     )
     parser.add_argument(
-        "--mrc-dir",
+        "--mrc_dir",
         help="directory with .mrc files and .yaml config files",
         type=str,
     )
     parser.add_argument(
-        "--meta-file",
+        "--meta_file",
         help=(
             "Particle metadata file. Can be .star"
             " (RELION) or .cs (CryoSPARC)"
@@ -35,7 +35,7 @@ def add_arguments(parser):
         nargs="+",
     )
     parser.add_argument(
-        "--plot-dir",
+        "--plot_dir",
         help="Output file name",
         type=str,
         default="alignment.png",
@@ -218,6 +218,10 @@ def main(args):
     """This script analsyses the alignment of the picked
     particles with the true particles.
     """
+
+    if not os.path.isdir(args.plot_dir):
+        os.makedirs(args.plot_dir)
+
     if args.mrc_dir is None:
         args.mrc_dir = args.config_dir
 
@@ -290,7 +294,9 @@ def main(args):
             grid.savefig(outfilename, dpi=300, bbox_inches="tight")
 
     # plot the true particle pose distribution
-    grid = plot_true_pose_distribution(df_truth, vmin_total, vmax_total)
+    grid, vmin, vmax = plot_true_pose_distribution(
+        df_truth, vmin_total, vmax_total
+    )
 
     # save the plot
     outfilename = os.path.join(args.plot_dir, "true_pose_distribution.png")

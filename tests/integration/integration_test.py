@@ -405,6 +405,8 @@ class IntegrationTest(unittest.TestCase):
                     my_mrc.data.shape
                 )
 
+    # maybe should add filecmp for run_parakeet_output/ files????
+
 
 class IntegrationTestAnalysis(unittest.TestCase):
     def setUp(self) -> None:
