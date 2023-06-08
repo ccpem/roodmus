@@ -18,12 +18,12 @@ from roodmus.analysis.utils import load_data
 
 def add_arguments(parser):
     parser.add_argument(
-        "--config-dir",
+        "--config_dir",
         help="Directory with .mrc files and .yaml config files",
         type=str,
     )
     parser.add_argument(
-        "--mrc-dir",
+        "--mrc_dir",
         help=(
             "Directory with .mrc files. Assumed to be the same as"
             " 'config-dir'by default"
@@ -33,13 +33,13 @@ def add_arguments(parser):
     )
     parser.add_argument(
         "-N",
-        "--num-ugraphs",
+        "--num_ugraphs",
         help="Number of micrographs to consider in analyses. Default 'all'",
         type=int,
         default=None,
     )
     parser.add_argument(
-        "--meta-file",
+        "--meta_file",
         help=(
             "Particle metadata file. Can be .star (RELION) or .cs"
             " (CryoSPARC)"
@@ -47,18 +47,18 @@ def add_arguments(parser):
         type=str,
     )
     parser.add_argument(
-        "--plot-dir",
-        help="output file name",
+        "--plot_dir",
+        help="Directory to output ctf file(s)",
         type=str,
-        default="ctf.png",
+        default="ctf_plots",
     )
     parser.add_argument(
-        "--plot-types",
+        "--plot_types",
         help="types of plots to generate",
         type=str,
         nargs="+",
         default=["scatter"],
-        choices=["scatter", "CTF"],
+        choices=["scatter", "ctf"],
     )
     parser.add_argument(
         "--verbose", help="increase output verbosity", action="store_true"
@@ -344,12 +344,15 @@ def main(args):
     """
 
     # create output directory if it does not exist
-    if not os.path.exists(args.plot_dir):
-        os.mkdir(args.plot_dir)
+    if not os.path.isdir(args.plot_dir):
+        os.makedirs(args.plot_dir)
 
+    # verbose outputs
     if args.verbose:
         tt = time.time()
         print("loading particles ...")
+
+    # load data from file(s)
     mrc_dir = args.mrc_dir if args.mrc_dir else args.config_dir
     analysis = load_data(
         args.meta_file,
@@ -368,9 +371,11 @@ def main(args):
         )
         print(f"time taken: {time.time()-tt:.2f} seconds")
 
-    # create the plots
+    # create the plots, which are:
+    # 1. single scatter plot of estimated vs truth defoci
+    # 2. per micrograph ctf plots
     for plot_type in args.plot_types:
-        if plot_type == "scatter":
+        if plot_type.lower() == "scatter":
             if args.verbose:
                 tt = time.time()
                 print("Plotting defocus scatter plot ...")
@@ -385,7 +390,7 @@ def main(args):
             if args.verbose:
                 print(f"Time taken: {time.time()-tt:.2f} seconds")
 
-        if plot_type == "CTF":
+        if plot_type.lower() == "ctf":
             if args.num_ugraphs is None:
                 print("Plotting CTF for all micrographs ...")
             else:

@@ -4,7 +4,7 @@
 
 import os
 import argparse
-from typing import Tuple
+from typing import Tuple, List
 
 import numpy as np
 from tqdm import tqdm
@@ -838,7 +838,7 @@ def sample_defocus(c_10: float, c_10_stddev: float) -> float:
     return np.random.normal(c_10, c_10_stddev)
 
 
-def get_pdb_files(pdb_dir: str) -> list[str]:
+def get_pdb_files(pdb_dir: str) -> List[str]:
     """Grab a list of molecule/structure definition files (such as PDBs) to add
     to micrographs
 
@@ -857,8 +857,8 @@ def get_pdb_files(pdb_dir: str) -> list[str]:
 
 
 def get_instances(
-    pdb_files: list[str], n_molecules: int, replace=True
-) -> Tuple[list[str], list[int]]:
+    pdb_files: List[str], n_molecules: int, replace=True
+) -> Tuple[List[str], List[int]]:
     """Determine the molecules to simulate in a given image and the number of
     occurrences of each
      in the image
@@ -886,6 +886,8 @@ def get_instances(
         # reach the number of molecules
         for n in range(n_molecules - sum(n_instances)):
             n_instances[np.random.randint(num_structures)] += 1
+        new_pdb_files = pdb_files
+        new_n_instances = n_instances
 
         return pdb_files, n_instances
 

@@ -1,0 +1,2615 @@
+cluster:
+  max_workers: 1
+  method: null
+device: gpu
+microscope:
+  beam:
+    acceleration_voltage_spread: 8.0e-07
+    electrons_per_angstrom: 45.0
+    energy: 300.0
+    energy_spread: 2.66e-06
+    illumination_semiangle: 0.02
+    phi: 0.0
+    theta: 0.0
+  detector:
+    dqe: true
+    nx: 4000
+    ny: 4000
+    origin:
+    - 0
+    - 0
+    pixel_size: 1.0
+  lens:
+    c_10: -5006.508150228457
+    c_12: 0.0
+    c_21: 0.0
+    c_23: 0.0
+    c_30: 2.7
+    c_32: 0.0
+    c_34: 0.0
+    c_41: 0.0
+    c_43: 0.0
+    c_45: 0.0
+    c_50: 0.0
+    c_52: 0.0
+    c_54: 0.0
+    c_56: 0.0
+    c_c: 2.7
+    current_spread: 3.3e-07
+    phi_12: 0.0
+    phi_21: 0.0
+    phi_23: 0.0
+    phi_32: 0.0
+    phi_34: 0.0
+    phi_41: 0.0
+    phi_43: 0.0
+    phi_45: 0.0
+    phi_52: 0.0
+    phi_54: 0.0
+    phi_56: 0.0
+  model: null
+  phase_plate: false
+sample:
+  box:
+  - 4000.0
+  - 4000.0
+  - 500.0
+  centre:
+  - 2000.0
+  - 2000.0
+  - 250.0
+  coords: null
+  ice:
+    density: 940.0
+    generate: false
+  molecules:
+    local:
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000000.pdb
+      instances:
+      - orientation:
+        - 0.3473077118396759
+        - -0.06582416594028473
+        - -0.014164300635457039
+        position:
+        - 3287.3662109375
+        - 275.7381286621094
+        - 316.9764709472656
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000024.pdb
+      instances:
+      - orientation:
+        - 0.007968941703438759
+        - 0.050271883606910706
+        - 0.5042223334312439
+        position:
+        - 1879.003173828125
+        - 157.2201385498047
+        - 403.9712829589844
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000090.pdb
+      instances:
+      - orientation:
+        - -0.027090564370155334
+        - -0.4326363205909729
+        - 0.6488710641860962
+        position:
+        - 2064.240966796875
+        - 3337.572998046875
+        - 95.90216827392578
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000091.pdb
+      instances:
+      - orientation:
+        - 0.8290943503379822
+        - 1.0692483186721802
+        - 0.298967182636261
+        position:
+        - 2235.40185546875
+        - 1502.39697265625
+        - 103.9095458984375
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000126.pdb
+      instances:
+      - orientation:
+        - -0.22356772422790527
+        - -0.17778994143009186
+        - -0.07669229805469513
+        position:
+        - 141.4235382080078
+        - 2045.320068359375
+        - 220.0583953857422
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000160.pdb
+      instances:
+      - orientation:
+        - -1.3131846189498901
+        - 0.7596604228019714
+        - 0.18809294700622559
+        position:
+        - 3222.139404296875
+        - 2714.814453125
+        - 226.71450805664062
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000171.pdb
+      instances:
+      - orientation:
+        - 1.0168765783309937
+        - -1.3754243850708008
+        - -0.5323584675788879
+        position:
+        - 870.556884765625
+        - 657.8529663085938
+        - 172.86546325683594
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000173.pdb
+      instances:
+      - orientation:
+        - 1.076965570449829
+        - -2.4864299297332764
+        - -0.9969915151596069
+        position:
+        - 2502.322265625
+        - 685.6884155273438
+        - 404.04144287109375
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000177.pdb
+      instances:
+      - orientation:
+        - 0.5983087420463562
+        - -1.9289889335632324
+        - -0.29351210594177246
+        position:
+        - 430.0878601074219
+        - 1725.2779541015625
+        - 403.6837463378906
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000230.pdb
+      instances:
+      - orientation:
+        - -0.31738799810409546
+        - 0.773296058177948
+        - -0.2326001524925232
+        position:
+        - 165.0654754638672
+        - 1884.5799560546875
+        - 94.99847412109375
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000319.pdb
+      instances:
+      - orientation:
+        - -0.07262735813856125
+        - -0.9348313808441162
+        - 0.608451247215271
+        position:
+        - 2112.082763671875
+        - 1454.0068359375
+        - 402.24664306640625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000349.pdb
+      instances:
+      - orientation:
+        - -1.262350082397461
+        - -2.1890904903411865
+        - -1.8187178373336792
+        position:
+        - 2269.044921875
+        - 3361.974365234375
+        - 147.57113647460938
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000380.pdb
+      instances:
+      - orientation:
+        - 1.3226288557052612
+        - 0.07048378884792328
+        - 0.7441651225090027
+        position:
+        - 2242.939208984375
+        - 2046.85400390625
+        - 405.1800842285156
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000408.pdb
+      instances:
+      - orientation:
+        - -0.20335529744625092
+        - -1.0084049701690674
+        - -0.8397462368011475
+        position:
+        - 1312.054931640625
+        - 627.4375
+        - 293.3182678222656
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000548.pdb
+      instances:
+      - orientation:
+        - -0.15953253209590912
+        - 0.2043166607618332
+        - -0.4460395574569702
+        position:
+        - 1791.0130615234375
+        - 2213.47607421875
+        - 324.7595520019531
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000571.pdb
+      instances:
+      - orientation:
+        - 0.2121097892522812
+        - -0.023972956463694572
+        - 1.7941774129867554
+        position:
+        - 234.87088012695312
+        - 2795.278076171875
+        - 399.7148742675781
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000576.pdb
+      instances:
+      - orientation:
+        - -1.1860036849975586
+        - -1.0048109292984009
+        - -0.8336420059204102
+        position:
+        - 2920.549072265625
+        - 3417.90185546875
+        - 387.76385498046875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000598.pdb
+      instances:
+      - orientation:
+        - 0.18843258917331696
+        - -0.033057209104299545
+        - 0.28425124287605286
+        position:
+        - 3154.05224609375
+        - 3905.806884765625
+        - 171.93881225585938
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000679.pdb
+      instances:
+      - orientation:
+        - -0.6478905081748962
+        - -0.8450522422790527
+        - -1.247554063796997
+        position:
+        - 3731.969482421875
+        - 380.2918701171875
+        - 99.06377410888672
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000681.pdb
+      instances:
+      - orientation:
+        - -0.06805246323347092
+        - -0.16417261958122253
+        - -0.0024612287525087595
+        position:
+        - 3010.603515625
+        - 3326.119873046875
+        - 95.43977355957031
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000682.pdb
+      instances:
+      - orientation:
+        - 2.753875494003296
+        - 0.5170984864234924
+        - -1.2054650783538818
+        position:
+        - 1005.9898071289062
+        - 2196.796630859375
+        - 389.46533203125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000716.pdb
+      instances:
+      - orientation:
+        - -0.023908983916044235
+        - -1.667906641960144
+        - 0.42502254247665405
+        position:
+        - 1073.8970947265625
+        - 3270.720458984375
+        - 363.30035400390625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000730.pdb
+      instances:
+      - orientation:
+        - -1.2477964162826538
+        - -0.903258740901947
+        - 1.3450629711151123
+        position:
+        - 2764.073486328125
+        - 3692.7841796875
+        - 357.9806213378906
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000750.pdb
+      instances:
+      - orientation:
+        - -1.2257556915283203
+        - 2.8571033477783203
+        - 0.25533461570739746
+        position:
+        - 320.1918640136719
+        - 3679.1015625
+        - 95.6580581665039
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000767.pdb
+      instances:
+      - orientation:
+        - 1.013239860534668
+        - -1.8020099401474
+        - 0.6232136487960815
+        position:
+        - 2820.060302734375
+        - 1971.528564453125
+        - 397.423828125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000819.pdb
+      instances:
+      - orientation:
+        - -1.5056521892547607
+        - -0.6472361087799072
+        - -1.105360984802246
+        position:
+        - 2630.478515625
+        - 2504.698974609375
+        - 295.9983215332031
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000845.pdb
+      instances:
+      - orientation:
+        - 0.5189627408981323
+        - -0.879216730594635
+        - -1.1400878429412842
+        position:
+        - 3461.38818359375
+        - 1350.7265625
+        - 97.02076721191406
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000863.pdb
+      instances:
+      - orientation:
+        - 1.640779972076416
+        - 0.7349070906639099
+        - -1.9837777614593506
+        position:
+        - 2252.366943359375
+        - 298.2459716796875
+        - 302.4571838378906
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000933.pdb
+      instances:
+      - orientation:
+        - 1.7106146812438965
+        - 0.18807172775268555
+        - 0.4530850648880005
+        position:
+        - 679.4150390625
+        - 1418.6085205078125
+        - 96.64885711669922
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000960.pdb
+      instances:
+      - orientation:
+        - -1.3474453687667847
+        - 0.859825074672699
+        - -0.9631910920143127
+        position:
+        - 3230.534912109375
+        - 2180.668212890625
+        - 333.57733154296875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000965.pdb
+      instances:
+      - orientation:
+        - 2.102771282196045
+        - -0.7047675848007202
+        - 0.6742604374885559
+        position:
+        - 1515.9947509765625
+        - 132.46424865722656
+        - 292.8202819824219
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_000985.pdb
+      instances:
+      - orientation:
+        - 0.6191941499710083
+        - -0.7596462368965149
+        - 0.04215000569820404
+        position:
+        - 273.4520263671875
+        - 403.32171630859375
+        - 299.05010986328125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001073.pdb
+      instances:
+      - orientation:
+        - 0.5066884160041809
+        - 1.0317221879959106
+        - -0.5436784625053406
+        position:
+        - 1310.4774169921875
+        - 2782.80029296875
+        - 149.4677734375
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001076.pdb
+      instances:
+      - orientation:
+        - -1.1052196025848389
+        - -0.25752297043800354
+        - -0.5014750957489014
+        position:
+        - 3255.493408203125
+        - 1669.086181640625
+        - 223.93695068359375
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001112.pdb
+      instances:
+      - orientation:
+        - 0.0645284354686737
+        - 0.682564914226532
+        - 1.1136572360992432
+        position:
+        - 780.22216796875
+        - 2408.863525390625
+        - 96.98140716552734
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001120.pdb
+      instances:
+      - orientation:
+        - 0.6202602386474609
+        - 0.41382932662963867
+        - 0.8030866384506226
+        position:
+        - 1036.440673828125
+        - 988.423095703125
+        - 245.67324829101562
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001155.pdb
+      instances:
+      - orientation:
+        - 1.1167000532150269
+        - -0.10393273830413818
+        - 0.2833781838417053
+        position:
+        - 218.18466186523438
+        - 1234.1199951171875
+        - 95.45823669433594
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001198.pdb
+      instances:
+      - orientation:
+        - -0.4205893278121948
+        - -1.5607026815414429
+        - -0.03963463753461838
+        position:
+        - 3869.848388671875
+        - 2834.6796875
+        - 212.7979278564453
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001268.pdb
+      instances:
+      - orientation:
+        - 1.3708993196487427
+        - 0.3300720751285553
+        - 2.3162381649017334
+        position:
+        - 1572.02685546875
+        - 2218.97998046875
+        - 96.8694076538086
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001276.pdb
+      instances:
+      - orientation:
+        - 0.03888056427240372
+        - 0.6303235292434692
+        - 0.15040992200374603
+        position:
+        - 891.9654541015625
+        - 1106.1585693359375
+        - 100.73082733154297
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001282.pdb
+      instances:
+      - orientation:
+        - 1.445874810218811
+        - -0.8556246757507324
+        - -0.5190205574035645
+        position:
+        - 3738.53125
+        - 195.05137634277344
+        - 150.24700927734375
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001305.pdb
+      instances:
+      - orientation:
+        - 0.05532258376479149
+        - -1.1521867513656616
+        - -0.7805302143096924
+        position:
+        - 2738.161865234375
+        - 3900.07958984375
+        - 366.9359436035156
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001316.pdb
+      instances:
+      - orientation:
+        - -2.5810647010803223
+        - -0.911483883857727
+        - -1.1541627645492554
+        position:
+        - 2572.3134765625
+        - 1892.6357421875
+        - 96.80009460449219
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001344.pdb
+      instances:
+      - orientation:
+        - -0.30117806792259216
+        - -2.4012019634246826
+        - 1.0123363733291626
+        position:
+        - 797.6369018554688
+        - 1569.5009765625
+        - 402.79498291015625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001363.pdb
+      instances:
+      - orientation:
+        - -0.13278543949127197
+        - 2.3311707973480225
+        - 0.13341981172561646
+        position:
+        - 1923.77099609375
+        - 2895.16455078125
+        - 403.022705078125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001451.pdb
+      instances:
+      - orientation:
+        - 0.03477754443883896
+        - 0.587395966053009
+        - 0.5539321303367615
+        position:
+        - 3661.48779296875
+        - 1160.7626953125
+        - 319.3025817871094
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001497.pdb
+      instances:
+      - orientation:
+        - -0.9702404141426086
+        - -1.523338794708252
+        - -1.7403173446655273
+        position:
+        - 904.2173461914062
+        - 2514.45068359375
+        - 247.81741333007812
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001553.pdb
+      instances:
+      - orientation:
+        - -0.0541844367980957
+        - -0.025622067973017693
+        - -0.0377071388065815
+        position:
+        - 2078.08349609375
+        - 456.4778137207031
+        - 210.29820251464844
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001562.pdb
+      instances:
+      - orientation:
+        - -0.050238173454999924
+        - 0.4471394717693329
+        - 0.5515856742858887
+        position:
+        - 3467.927490234375
+        - 2283.22119140625
+        - 320.9420166015625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001606.pdb
+      instances:
+      - orientation:
+        - 0.294244647026062
+        - -0.34404364228248596
+        - 0.0840369313955307
+        position:
+        - 461.63909912109375
+        - 710.8483276367188
+        - 95.90603637695312
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001690.pdb
+      instances:
+      - orientation:
+        - -0.23091840744018555
+        - -0.21134908497333527
+        - -0.04704686999320984
+        position:
+        - 3267.1708984375
+        - 1365.5311279296875
+        - 99.51038360595703
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001754.pdb
+      instances:
+      - orientation:
+        - 0.5020416378974915
+        - 0.37973299622535706
+        - 0.030096571892499924
+        position:
+        - 789.314697265625
+        - 2523.551513671875
+        - 403.5757141113281
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001761.pdb
+      instances:
+      - orientation:
+        - 0.4700440466403961
+        - -0.9076097011566162
+        - 0.5152480602264404
+        position:
+        - 933.14794921875
+        - 1495.392333984375
+        - 267.4725036621094
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_001769.pdb
+      instances:
+      - orientation:
+        - 1.6011555194854736
+        - 0.6382107138633728
+        - 0.19720375537872314
+        position:
+        - 2649.584228515625
+        - 2325.79345703125
+        - 97.09657287597656
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002000.pdb
+      instances:
+      - orientation:
+        - 0.13722233474254608
+        - 0.03908589482307434
+        - -0.2584396004676819
+        position:
+        - 3887.919921875
+        - 451.4545593261719
+        - 209.98855590820312
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002027.pdb
+      instances:
+      - orientation:
+        - -1.3046718835830688
+        - 1.9646015167236328
+        - -0.9621241688728333
+        position:
+        - 641.85009765625
+        - 479.53729248046875
+        - 405.07550048828125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002087.pdb
+      instances:
+      - orientation:
+        - 1.0421451330184937
+        - -0.37081897258758545
+        - -0.5184685587882996
+        position:
+        - 1980.0142822265625
+        - 1989.2117919921875
+        - 398.6739501953125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002128.pdb
+      instances:
+      - orientation:
+        - -0.0008916989318095148
+        - -0.011357374489307404
+        - -0.0006085016066208482
+        position:
+        - 2625.08251953125
+        - 1447.7567138671875
+        - 109.58446502685547
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002172.pdb
+      instances:
+      - orientation:
+        - 0.2903924584388733
+        - 0.8044160604476929
+        - -0.22261039912700653
+        position:
+        - 2800.15380859375
+        - 2417.9013671875
+        - 256.02606201171875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002216.pdb
+      instances:
+      - orientation:
+        - 0.04270868003368378
+        - 0.1627517193555832
+        - 1.187634825706482
+        position:
+        - 3022.68408203125
+        - 2395.947998046875
+        - 318.6852111816406
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002309.pdb
+      instances:
+      - orientation:
+        - 0.7767969965934753
+        - 1.0485786199569702
+        - 0.6472026705741882
+        position:
+        - 2397.57275390625
+        - 2538.973876953125
+        - 176.11212158203125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002319.pdb
+      instances:
+      - orientation:
+        - 1.8488818407058716
+        - -1.795914888381958
+        - -0.1137373223900795
+        position:
+        - 95.67032623291016
+        - 1316.7176513671875
+        - 402.69781494140625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002334.pdb
+      instances:
+      - orientation:
+        - 0.10814608633518219
+        - 0.9312353730201721
+        - 1.0396628379821777
+        position:
+        - 1486.982177734375
+        - 1590.230712890625
+        - 404.0784912109375
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002336.pdb
+      instances:
+      - orientation:
+        - -0.4251992404460907
+        - 0.3166869580745697
+        - 0.5677340030670166
+        position:
+        - 3011.10302734375
+        - 3827.484130859375
+        - 404.0015563964844
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002361.pdb
+      instances:
+      - orientation:
+        - -1.5918256044387817
+        - -1.3497637510299683
+        - 2.071368455886841
+        position:
+        - 1136.7825927734375
+        - 1659.3775634765625
+        - 97.74169158935547
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002430.pdb
+      instances:
+      - orientation:
+        - -1.7947802543640137
+        - -0.7115156054496765
+        - -1.730689525604248
+        position:
+        - 2134.243896484375
+        - 891.7756958007812
+        - 403.55517578125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002520.pdb
+      instances:
+      - orientation:
+        - 0.3973202109336853
+        - 0.05134547874331474
+        - -1.838754415512085
+        position:
+        - 1436.9970703125
+        - 3472.625
+        - 274.0982971191406
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002527.pdb
+      instances:
+      - orientation:
+        - 1.3014535903930664
+        - -0.08561116456985474
+        - 0.7045692801475525
+        position:
+        - 3108.78662109375
+        - 2851.14453125
+        - 108.3646240234375
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002560.pdb
+      instances:
+      - orientation:
+        - 1.4860581159591675
+        - -1.5749034881591797
+        - -1.9949887990951538
+        position:
+        - 1358.740234375
+        - 2385.924072265625
+        - 192.87991333007812
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002582.pdb
+      instances:
+      - orientation:
+        - -0.4672982096672058
+        - 1.8327165842056274
+        - -0.9005668759346008
+        position:
+        - 1189.494873046875
+        - 1536.257568359375
+        - 397.3318176269531
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002591.pdb
+      instances:
+      - orientation:
+        - 0.32934460043907166
+        - -1.5200666189193726
+        - -0.7002647519111633
+        position:
+        - 3824.080322265625
+        - 1462.527587890625
+        - 283.4278259277344
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002605.pdb
+      instances:
+      - orientation:
+        - -0.9204110503196716
+        - 0.8891777992248535
+        - 2.3172900676727295
+        position:
+        - 318.3870849609375
+        - 2257.787353515625
+        - 334.2712097167969
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002614.pdb
+      instances:
+      - orientation:
+        - -0.029690684750676155
+        - 0.12019886076450348
+        - 0.026100020855665207
+        position:
+        - 473.0097351074219
+        - 3869.890380859375
+        - 402.2388000488281
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002648.pdb
+      instances:
+      - orientation:
+        - -1.5360338687896729
+        - -2.094895362854004
+        - -0.7378996014595032
+        position:
+        - 629.1398315429688
+        - 1010.5613403320312
+        - 405.328857421875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002661.pdb
+      instances:
+      - orientation:
+        - -0.39673057198524475
+        - 0.38590073585510254
+        - 0.9353777766227722
+        position:
+        - 94.2430191040039
+        - 457.3427429199219
+        - 258.5946960449219
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002713.pdb
+      instances:
+      - orientation:
+        - -0.09016656130552292
+        - -0.3750363886356354
+        - 0.18691399693489075
+        position:
+        - 2427.412109375
+        - 1038.5029296875
+        - 153.19613647460938
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002770.pdb
+      instances:
+      - orientation:
+        - -0.15599077939987183
+        - -0.6844822764396667
+        - 0.8484359979629517
+        position:
+        - 338.4488220214844
+        - 2959.66845703125
+        - 403.4127197265625
+      - orientation:
+        - 0.4134586751461029
+        - -0.8510757088661194
+        - -1.2028898000717163
+        position:
+        - 1032.5294189453125
+        - 2624.48583984375
+        - 398.02764892578125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002833.pdb
+      instances:
+      - orientation:
+        - -0.8942451477050781
+        - 2.0220584869384766
+        - 1.6017301082611084
+        position:
+        - 519.2916870117188
+        - 3065.517333984375
+        - 403.6355895996094
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002850.pdb
+      instances:
+      - orientation:
+        - 0.9724549055099487
+        - -0.15350764989852905
+        - -1.558715581893921
+        position:
+        - 2519.35205078125
+        - 3468.25634765625
+        - 365.68994140625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002885.pdb
+      instances:
+      - orientation:
+        - 2.3376786708831787
+        - 0.5899537205696106
+        - 1.609316349029541
+        position:
+        - 1701.920166015625
+        - 3894.29736328125
+        - 344.924072265625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002896.pdb
+      instances:
+      - orientation:
+        - -0.20307163894176483
+        - 0.41147133708000183
+        - 0.260849267244339
+        position:
+        - 1358.981689453125
+        - 126.8278579711914
+        - 404.9391174316406
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002926.pdb
+      instances:
+      - orientation:
+        - -2.424535036087036
+        - -0.037374451756477356
+        - 1.059235692024231
+        position:
+        - 94.48941802978516
+        - 658.1222534179688
+        - 279.7180480957031
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_002994.pdb
+      instances:
+      - orientation:
+        - 0.3101613223552704
+        - -0.4907819628715515
+        - -0.12554363906383514
+        position:
+        - 877.6995239257812
+        - 2341.87255859375
+        - 379.7049255371094
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003013.pdb
+      instances:
+      - orientation:
+        - 1.5535390377044678
+        - 1.1295665502548218
+        - -1.3125149011611938
+        position:
+        - 2817.720703125
+        - 645.5350952148438
+        - 352.3111267089844
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003034.pdb
+      instances:
+      - orientation:
+        - 1.2673487663269043
+        - -0.5097286105155945
+        - 0.216938316822052
+        position:
+        - 791.944091796875
+        - 2714.203369140625
+        - 372.1771240234375
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003082.pdb
+      instances:
+      - orientation:
+        - -0.457518994808197
+        - -1.519141435623169
+        - 0.3085329532623291
+        position:
+        - 961.2267456054688
+        - 2108.34912109375
+        - 165.73516845703125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003128.pdb
+      instances:
+      - orientation:
+        - -0.49347469210624695
+        - -0.9697858691215515
+        - -1.2245018482208252
+        position:
+        - 1671.7774658203125
+        - 2053.3935546875
+        - 336.5191650390625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003197.pdb
+      instances:
+      - orientation:
+        - 2.141051769256592
+        - 1.5211777687072754
+        - -1.6386914253234863
+        position:
+        - 1020.6788330078125
+        - 1253.9271240234375
+        - 97.1429214477539
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003254.pdb
+      instances:
+      - orientation:
+        - 0.39561912417411804
+        - -0.4316568076610565
+        - 0.30742958188056946
+        position:
+        - 3901.107421875
+        - 286.7178039550781
+        - 95.41539001464844
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003316.pdb
+      instances:
+      - orientation:
+        - 0.1282069981098175
+        - 1.3696057796478271
+        - 1.3986284732818604
+        position:
+        - 3746.51318359375
+        - 2728.16845703125
+        - 395.6542663574219
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003365.pdb
+      instances:
+      - orientation:
+        - 0.7338568568229675
+        - 0.5046141147613525
+        - -0.013501415960490704
+        position:
+        - 602.7799072265625
+        - 2750.482177734375
+        - 386.73199462890625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003441.pdb
+      instances:
+      - orientation:
+        - -0.8729839324951172
+        - -1.4853435754776
+        - -1.8119161128997803
+        position:
+        - 1268.158935546875
+        - 1681.8563232421875
+        - 240.58224487304688
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003456.pdb
+      instances:
+      - orientation:
+        - 0.7945024967193604
+        - 0.2691207230091095
+        - -1.2278426885604858
+        position:
+        - 238.6549835205078
+        - 3572.311279296875
+        - 230.38824462890625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003556.pdb
+      instances:
+      - orientation:
+        - -0.0020138437394052744
+        - -0.07825236022472382
+        - 0.1168493703007698
+        position:
+        - 1279.4622802734375
+        - 837.3533935546875
+        - 96.41217803955078
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003569.pdb
+      instances:
+      - orientation:
+        - 0.1998138576745987
+        - -0.22996839880943298
+        - 0.2270379215478897
+        position:
+        - 2808.920654296875
+        - 2083.037109375
+        - 96.0331039428711
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003575.pdb
+      instances:
+      - orientation:
+        - 0.001305946265347302
+        - 0.0164037998765707
+        - 0.0005722976056858897
+        position:
+        - 2019.1893310546875
+        - 97.31454467773438
+        - 271.547119140625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003599.pdb
+      instances:
+      - orientation:
+        - -0.9038401246070862
+        - 1.6272202730178833
+        - -1.1739035844802856
+        position:
+        - 394.8877868652344
+        - 1158.4703369140625
+        - 96.0006332397461
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003646.pdb
+      instances:
+      - orientation:
+        - 1.7654176950454712
+        - -0.9290257096290588
+        - -0.38174402713775635
+        position:
+        - 3467.4775390625
+        - 3033.123046875
+        - 228.68946838378906
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003705.pdb
+      instances:
+      - orientation:
+        - -1.5641536712646484
+        - 0.3775195777416229
+        - -1.2039700746536255
+        position:
+        - 101.97232818603516
+        - 283.4031677246094
+        - 144.43270874023438
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003766.pdb
+      instances:
+      - orientation:
+        - -2.0037291049957275
+        - 2.132680654525757
+        - -1.0036027431488037
+        position:
+        - 1356.7030029296875
+        - 2074.374267578125
+        - 154.1410675048828
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003786.pdb
+      instances:
+      - orientation:
+        - 0.19259415566921234
+        - 1.0080124139785767
+        - -1.5236804485321045
+        position:
+        - 2061.31005859375
+        - 1854.25927734375
+        - 287.25732421875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003823.pdb
+      instances:
+      - orientation:
+        - -1.5474227666854858
+        - 1.3669029474258423
+        - -0.18179762363433838
+        position:
+        - 1303.0079345703125
+        - 1380.715576171875
+        - 403.93487548828125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003920.pdb
+      instances:
+      - orientation:
+        - 0.8416010141372681
+        - -0.4936882257461548
+        - 2.803556442260742
+        position:
+        - 2372.6123046875
+        - 1401.09375
+        - 272.1335144042969
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003941.pdb
+      instances:
+      - orientation:
+        - 0.2992810606956482
+        - 1.2212423086166382
+        - -0.24978958070278168
+        position:
+        - 2975.2236328125
+        - 833.781982421875
+        - 96.48519897460938
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003974.pdb
+      instances:
+      - orientation:
+        - -0.23846407234668732
+        - 1.0737570524215698
+        - -0.12197864800691605
+        position:
+        - 519.9635620117188
+        - 3319.89306640625
+        - 98.39218139648438
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_003999.pdb
+      instances:
+      - orientation:
+        - -1.118694543838501
+        - -1.9665706157684326
+        - -1.348042607307434
+        position:
+        - 1660.881591796875
+        - 2354.19970703125
+        - 402.2982482910156
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004000.pdb
+      instances:
+      - orientation:
+        - -0.4825001060962677
+        - 0.07243447005748749
+        - 1.0682709217071533
+        position:
+        - 370.4725341796875
+        - 2479.080810546875
+        - 310.2976989746094
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004006.pdb
+      instances:
+      - orientation:
+        - -0.16512137651443481
+        - 0.1398705691099167
+        - -0.19442296028137207
+        position:
+        - 3188.935791015625
+        - 2378.058349609375
+        - 104.08181762695312
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004009.pdb
+      instances:
+      - orientation:
+        - 0.22987720370292664
+        - 0.1952255219221115
+        - -0.2232917696237564
+        position:
+        - 1354.5794677734375
+        - 3119.595458984375
+        - 97.80795288085938
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004015.pdb
+      instances:
+      - orientation:
+        - 1.1889595985412598
+        - 0.36682742834091187
+        - -0.8927115797996521
+        position:
+        - 1914.5872802734375
+        - 1414.669921875
+        - 364.2108459472656
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004056.pdb
+      instances:
+      - orientation:
+        - -0.678712010383606
+        - -1.0120357275009155
+        - 0.6023766994476318
+        position:
+        - 2329.751220703125
+        - 2140.749267578125
+        - 257.606201171875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004060.pdb
+      instances:
+      - orientation:
+        - 1.4314427375793457
+        - -0.3290848433971405
+        - -1.7692381143569946
+        position:
+        - 2096.416015625
+        - 124.6984634399414
+        - 96.1686782836914
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004091.pdb
+      instances:
+      - orientation:
+        - 1.7861990928649902
+        - 2.0846729278564453
+        - -0.8109701871871948
+        position:
+        - 3709.749755859375
+        - 463.9933166503906
+        - 313.26629638671875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004101.pdb
+      instances:
+      - orientation:
+        - -0.011482469737529755
+        - -0.790643036365509
+        - -0.3759274184703827
+        position:
+        - 3333.09521484375
+        - 2612.419921875
+        - 97.32200622558594
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004109.pdb
+      instances:
+      - orientation:
+        - 1.728184700012207
+        - 0.0034608442801982164
+        - 0.017043961212038994
+        position:
+        - 263.2403259277344
+        - 579.7821044921875
+        - 226.4270477294922
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004248.pdb
+      instances:
+      - orientation:
+        - -0.0600784569978714
+        - -1.4047268629074097
+        - 0.8814219832420349
+        position:
+        - 2753.297119140625
+        - 1278.6214599609375
+        - 162.9132843017578
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004265.pdb
+      instances:
+      - orientation:
+        - 1.6797616481781006
+        - -2.373213291168213
+        - 0.8986334800720215
+        position:
+        - 3450.13232421875
+        - 1227.4735107421875
+        - 245.250732421875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004300.pdb
+      instances:
+      - orientation:
+        - 1.2548891305923462
+        - -1.0678595304489136
+        - -0.28096190094947815
+        position:
+        - 2431.0771484375
+        - 446.4486083984375
+        - 403.89544677734375
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004326.pdb
+      instances:
+      - orientation:
+        - 0.040007706731557846
+        - 0.4134327471256256
+        - 0.1638447493314743
+        position:
+        - 208.3349609375
+        - 93.03910064697266
+        - 403.40966796875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004365.pdb
+      instances:
+      - orientation:
+        - 0.7426936030387878
+        - -2.525710344314575
+        - 1.0244570970535278
+        position:
+        - 2630.395751953125
+        - 1663.5946044921875
+        - 96.51898956298828
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004426.pdb
+      instances:
+      - orientation:
+        - 0.7566825747489929
+        - 1.4795674085617065
+        - 0.7502815127372742
+        position:
+        - 775.0613403320312
+        - 776.4390869140625
+        - 378.2763671875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004464.pdb
+      instances:
+      - orientation:
+        - 0.7332649230957031
+        - 0.509416937828064
+        - 0.06727158278226852
+        position:
+        - 3324.88720703125
+        - 2524.6279296875
+        - 275.4031677246094
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004506.pdb
+      instances:
+      - orientation:
+        - -1.1053153276443481
+        - -0.15290717780590057
+        - 0.4732933044433594
+        position:
+        - 783.0814208984375
+        - 458.50885009765625
+        - 96.12391662597656
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004510.pdb
+      instances:
+      - orientation:
+        - 0.9212701320648193
+        - 1.5070428848266602
+        - -0.3014802038669586
+        position:
+        - 2435.0986328125
+        - 1962.0443115234375
+        - 240.0869903564453
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004532.pdb
+      instances:
+      - orientation:
+        - -0.011317678727209568
+        - 0.09192768484354019
+        - -0.029006170108914375
+        position:
+        - 516.8589477539062
+        - 830.5159912109375
+        - 397.9198913574219
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004540.pdb
+      instances:
+      - orientation:
+        - -0.07791099697351456
+        - 0.04449232667684555
+        - 0.32238441705703735
+        position:
+        - 104.24153137207031
+        - 1052.15625
+        - 208.2389678955078
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004752.pdb
+      instances:
+      - orientation:
+        - 0.3901851773262024
+        - -0.011566351167857647
+        - -0.7821006774902344
+        position:
+        - 3862.145751953125
+        - 380.607421875
+        - 401.83905029296875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004888.pdb
+      instances:
+      - orientation:
+        - -0.8635362386703491
+        - 1.6739381551742554
+        - 0.6739431619644165
+        position:
+        - 2554.395751953125
+        - 3807.959716796875
+        - 378.5184020996094
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004920.pdb
+      instances:
+      - orientation:
+        - 0.08479547500610352
+        - -0.46308988332748413
+        - 0.22274883091449738
+        position:
+        - 2822.94775390625
+        - 350.61712646484375
+        - 96.81704711914062
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004930.pdb
+      instances:
+      - orientation:
+        - 1.3615449666976929
+        - 0.46603986620903015
+        - -0.9462946653366089
+        position:
+        - 925.4921264648438
+        - 822.6767578125
+        - 262.3789367675781
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004951.pdb
+      instances:
+      - orientation:
+        - -0.00041523517575114965
+        - 0.004500871058553457
+        - -0.0009483018657192588
+        position:
+        - 2167.828369140625
+        - 2495.93701171875
+        - 352.4580078125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_004996.pdb
+      instances:
+      - orientation:
+        - -1.082607388496399
+        - 0.11574961245059967
+        - 1.9802838563919067
+        position:
+        - 3701.3037109375
+        - 2217.820068359375
+        - 96.90628051757812
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005037.pdb
+      instances:
+      - orientation:
+        - -0.02224007435142994
+        - 0.019430534914135933
+        - -0.04676949232816696
+        position:
+        - 3900.480224609375
+        - 1271.9803466796875
+        - 364.9673156738281
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005107.pdb
+      instances:
+      - orientation:
+        - 0.2502545118331909
+        - -0.27949413657188416
+        - 0.3649734556674957
+        position:
+        - 1231.0723876953125
+        - 1286.8909912109375
+        - 106.23812866210938
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005115.pdb
+      instances:
+      - orientation:
+        - 0.10841551423072815
+        - 0.7660830020904541
+        - 0.054869867861270905
+        position:
+        - 1060.7783203125
+        - 2373.735107421875
+        - 315.4992980957031
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005239.pdb
+      instances:
+      - orientation:
+        - 0.6206745505332947
+        - 2.3133482933044434
+        - 0.24548707902431488
+        position:
+        - 3795.255126953125
+        - 1879.9371337890625
+        - 193.48182678222656
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005244.pdb
+      instances:
+      - orientation:
+        - 0.36905667185783386
+        - 1.529502272605896
+        - 1.2118114233016968
+        position:
+        - 104.08919525146484
+        - 2716.099853515625
+        - 278.8060607910156
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005249.pdb
+      instances:
+      - orientation:
+        - 0.4605405926704407
+        - -0.11454164981842041
+        - 1.0073308944702148
+        position:
+        - 3137.513427734375
+        - 2571.349365234375
+        - 99.38987731933594
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005345.pdb
+      instances:
+      - orientation:
+        - -0.5527700781822205
+        - 1.6414947509765625
+        - -2.604374885559082
+        position:
+        - 3152.028564453125
+        - 155.01243591308594
+        - 395.5367431640625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005353.pdb
+      instances:
+      - orientation:
+        - 0.15225152671337128
+        - -0.5505212545394897
+        - 0.5953857898712158
+        position:
+        - 3421.2939453125
+        - 3398.060546875
+        - 402.0055236816406
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005365.pdb
+      instances:
+      - orientation:
+        - 1.8240352869033813
+        - -0.20640677213668823
+        - 1.0657070875167847
+        position:
+        - 3327.33056640625
+        - 1610.9185791015625
+        - 399.6402587890625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005417.pdb
+      instances:
+      - orientation:
+        - 0.08042548596858978
+        - 0.20365506410598755
+        - -0.6046693921089172
+        position:
+        - 630.2443237304688
+        - 447.1060791015625
+        - 214.8920440673828
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005510.pdb
+      instances:
+      - orientation:
+        - -0.5613579154014587
+        - 0.3300159275531769
+        - 2.901463508605957
+        position:
+        - 2443.802001953125
+        - 1518.5572509765625
+        - 115.04874420166016
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005526.pdb
+      instances:
+      - orientation:
+        - 0.05630124360322952
+        - 0.06069283187389374
+        - 0.11031995713710785
+        position:
+        - 447.0189208984375
+        - 530.6315307617188
+        - 386.6914978027344
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005558.pdb
+      instances:
+      - orientation:
+        - -0.07962606847286224
+        - -0.5520415306091309
+        - -0.5904489159584045
+        position:
+        - 623.3900146484375
+        - 755.7762451171875
+        - 251.16067504882812
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005567.pdb
+      instances:
+      - orientation:
+        - -1.6825474500656128
+        - -1.678600788116455
+        - 0.4012024998664856
+        position:
+        - 709.9076538085938
+        - 3077.02587890625
+        - 97.40843200683594
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005569.pdb
+      instances:
+      - orientation:
+        - -0.3671596646308899
+        - 0.615845263004303
+        - -0.6500256061553955
+        position:
+        - 209.96847534179688
+        - 1356.50634765625
+        - 249.53086853027344
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005582.pdb
+      instances:
+      - orientation:
+        - 0.6340330839157104
+        - 0.7164570689201355
+        - 0.2530243992805481
+        position:
+        - 305.1294250488281
+        - 1437.2601318359375
+        - 402.0255432128906
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005676.pdb
+      instances:
+      - orientation:
+        - -1.0352951288223267
+        - -0.5406291484832764
+        - -0.5626780986785889
+        position:
+        - 2460.552001953125
+        - 3660.834228515625
+        - 97.44856262207031
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005714.pdb
+      instances:
+      - orientation:
+        - -0.06242881715297699
+        - -2.0565168857574463
+        - -1.0731220245361328
+        position:
+        - 112.8996810913086
+        - 1072.0516357421875
+        - 402.4729919433594
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005749.pdb
+      instances:
+      - orientation:
+        - 0.8911839127540588
+        - -1.1270556449890137
+        - -0.06665583699941635
+        position:
+        - 347.9613342285156
+        - 1856.041259765625
+        - 270.1996154785156
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005767.pdb
+      instances:
+      - orientation:
+        - 1.5825769901275635
+        - 1.0686140060424805
+        - 1.5217623710632324
+        position:
+        - 674.4360961914062
+        - 2396.101806640625
+        - 301.0758972167969
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005803.pdb
+      instances:
+      - orientation:
+        - 0.30918940901756287
+        - 0.8247206807136536
+        - 0.5330626368522644
+        position:
+        - 3223.6083984375
+        - 1255.5115966796875
+        - 257.58013916015625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005819.pdb
+      instances:
+      - orientation:
+        - -0.10740595310926437
+        - 0.3863990008831024
+        - -0.3300239145755768
+        position:
+        - 3519.91162109375
+        - 3693.0517578125
+        - 401.568359375
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005837.pdb
+      instances:
+      - orientation:
+        - 1.5377095937728882
+        - -0.2319491058588028
+        - 0.3653286397457123
+        position:
+        - 2968.094482421875
+        - 1459.21923828125
+        - 300.29718017578125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005862.pdb
+      instances:
+      - orientation:
+        - -0.6956722736358643
+        - 0.9762183427810669
+        - 2.7110745906829834
+        position:
+        - 1129.614990234375
+        - 792.1583862304688
+        - 277.4197998046875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005958.pdb
+      instances:
+      - orientation:
+        - 0.5396643877029419
+        - -0.39496567845344543
+        - 1.4492093324661255
+        position:
+        - 3545.0732421875
+        - 2443.367431640625
+        - 227.14599609375
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_005987.pdb
+      instances:
+      - orientation:
+        - -1.3357027769088745
+        - 1.2147314548492432
+        - -1.0252645015716553
+        position:
+        - 668.671630859375
+        - 2084.864990234375
+        - 234.31959533691406
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006051.pdb
+      instances:
+      - orientation:
+        - -0.05339951813220978
+        - -1.2571994066238403
+        - -0.5402671694755554
+        position:
+        - 1857.765869140625
+        - 1815.900634765625
+        - 234.59730529785156
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006225.pdb
+      instances:
+      - orientation:
+        - -0.03666699677705765
+        - 0.08039841055870056
+        - 0.0013641139958053827
+        position:
+        - 993.2730712890625
+        - 2419.75048828125
+        - 100.92322540283203
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006255.pdb
+      instances:
+      - orientation:
+        - 2.0867555141448975
+        - 1.6401828527450562
+        - -0.5910595655441284
+        position:
+        - 512.2662353515625
+        - 1559.336181640625
+        - 102.81360626220703
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006300.pdb
+      instances:
+      - orientation:
+        - -0.4528062343597412
+        - -0.5460472702980042
+        - -0.21615135669708252
+        position:
+        - 573.2431640625
+        - 1940.0267333984375
+        - 400.7618713378906
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006312.pdb
+      instances:
+      - orientation:
+        - 0.06644908338785172
+        - -0.030171945691108704
+        - -0.006324441637843847
+        position:
+        - 1856.0572509765625
+        - 1005.2479858398438
+        - 295.751220703125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006323.pdb
+      instances:
+      - orientation:
+        - -0.4198218584060669
+        - 1.3019392490386963
+        - 1.1070672273635864
+        position:
+        - 3087.991943359375
+        - 1655.5882568359375
+        - 399.4728088378906
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006342.pdb
+      instances:
+      - orientation:
+        - 0.32503342628479004
+        - -0.42783328890800476
+        - 1.4626309871673584
+        position:
+        - 269.2877502441406
+        - 2880.691162109375
+        - 99.87068176269531
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006407.pdb
+      instances:
+      - orientation:
+        - -0.09683600068092346
+        - 0.3499487340450287
+        - -0.040971968322992325
+        position:
+        - 3893.453857421875
+        - 2919.97314453125
+        - 397.8651123046875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006453.pdb
+      instances:
+      - orientation:
+        - -0.6048689484596252
+        - 0.8124199509620667
+        - 2.0812535285949707
+        position:
+        - 583.8841552734375
+        - 880.2960205078125
+        - 99.85910034179688
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006474.pdb
+      instances:
+      - orientation:
+        - 0.07044193893671036
+        - -0.19981060922145844
+        - 0.5904456377029419
+        position:
+        - 3554.4931640625
+        - 3311.33447265625
+        - 172.69235229492188
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006486.pdb
+      instances:
+      - orientation:
+        - -0.4340544641017914
+        - -0.8620268702507019
+        - -2.103667974472046
+        position:
+        - 1634.826904296875
+        - 103.69557189941406
+        - 136.83750915527344
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006504.pdb
+      instances:
+      - orientation:
+        - 1.6510324478149414
+        - -0.11370590329170227
+        - 0.43661734461784363
+        position:
+        - 2981.5439453125
+        - 951.7716064453125
+        - 256.4639587402344
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006615.pdb
+      instances:
+      - orientation:
+        - 1.5959442853927612
+        - -1.445247769355774
+        - 0.2975025773048401
+        position:
+        - 1473.618896484375
+        - 1806.707763671875
+        - 352.0478820800781
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006662.pdb
+      instances:
+      - orientation:
+        - 1.430162787437439
+        - -0.5228835344314575
+        - 0.6643955111503601
+        position:
+        - 3053.28515625
+        - 327.31170654296875
+        - 344.1666564941406
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006690.pdb
+      instances:
+      - orientation:
+        - -0.4134427309036255
+        - 0.39526140689849854
+        - 0.08206135034561157
+        position:
+        - 2669.33251953125
+        - 2690.907470703125
+        - 229.57469177246094
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006725.pdb
+      instances:
+      - orientation:
+        - -0.5156975388526917
+        - 0.19461044669151306
+        - -0.14637809991836548
+        position:
+        - 207.07505798339844
+        - 3898.7392578125
+        - 263.41619873046875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006764.pdb
+      instances:
+      - orientation:
+        - 0.3517812490463257
+        - 0.23300839960575104
+        - -0.3989018499851227
+        position:
+        - 3101.99267578125
+        - 1337.3851318359375
+        - 398.29620361328125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006785.pdb
+      instances:
+      - orientation:
+        - 1.3606570959091187
+        - 1.826659083366394
+        - -2.021250009536743
+        position:
+        - 2022.4512939453125
+        - 1122.0926513671875
+        - 399.54168701171875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006841.pdb
+      instances:
+      - orientation:
+        - -0.5372709035873413
+        - 2.39555287361145
+        - 1.5983613729476929
+        position:
+        - 2304.63427734375
+        - 1688.3671875
+        - 401.5351867675781
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006865.pdb
+      instances:
+      - orientation:
+        - -1.1802340745925903
+        - 1.004036784172058
+        - -0.35803836584091187
+        position:
+        - 2278.8564453125
+        - 1869.3995361328125
+        - 324.4602966308594
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006869.pdb
+      instances:
+      - orientation:
+        - -1.9489614963531494
+        - 0.8710553050041199
+        - 2.108820676803589
+        position:
+        - 3155.863037109375
+        - 2119.81298828125
+        - 157.25315856933594
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006893.pdb
+      instances:
+      - orientation:
+        - -0.38625869154930115
+        - 0.05249299481511116
+        - -0.5037729740142822
+        position:
+        - 636.4318237304688
+        - 3217.70263671875
+        - 218.68386840820312
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006928.pdb
+      instances:
+      - orientation:
+        - -2.1654183864593506
+        - 0.33128252625465393
+        - 0.09546030312776566
+        position:
+        - 716.8740234375
+        - 1123.7872314453125
+        - 186.24002075195312
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_006956.pdb
+      instances:
+      - orientation:
+        - -1.1260181665420532
+        - -2.2760984897613525
+        - -0.087531678378582
+        position:
+        - 1683.6109619140625
+        - 104.19073486328125
+        - 389.8700256347656
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007015.pdb
+      instances:
+      - orientation:
+        - -1.9803558588027954
+        - 0.229765385389328
+        - -1.9353361129760742
+        position:
+        - 845.3106079101562
+        - 2080.13134765625
+        - 337.3244934082031
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007019.pdb
+      instances:
+      - orientation:
+        - -0.708497941493988
+        - -0.9685973525047302
+        - -0.7127488851547241
+        position:
+        - 102.82081604003906
+        - 3009.8017578125
+        - 101.248291015625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007026.pdb
+      instances:
+      - orientation:
+        - -0.13116341829299927
+        - -0.21740049123764038
+        - -0.37246328592300415
+        position:
+        - 2726.97412109375
+        - 487.4280090332031
+        - 253.2304229736328
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007029.pdb
+      instances:
+      - orientation:
+        - -0.11949417740106583
+        - 1.9897046089172363
+        - 2.0542266368865967
+        position:
+        - 629.2294921875
+        - 1742.758056640625
+        - 400.2085266113281
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007061.pdb
+      instances:
+      - orientation:
+        - -0.01206013560295105
+        - 0.08410236984491348
+        - -0.31513363122940063
+        position:
+        - 3454.01318359375
+        - 2315.142333984375
+        - 100.60932922363281
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007121.pdb
+      instances:
+      - orientation:
+        - -0.8685809969902039
+        - -0.34470346570014954
+        - -1.7117191553115845
+        position:
+        - 2230.470703125
+        - 2626.971923828125
+        - 100.16352081298828
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007129.pdb
+      instances:
+      - orientation:
+        - 1.4512163400650024
+        - 1.0960537195205688
+        - -1.5118945837020874
+        position:
+        - 2983.14697265625
+        - 2611.57421875
+        - 221.12705993652344
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007158.pdb
+      instances:
+      - orientation:
+        - 0.09926550835371017
+        - 0.5260375142097473
+        - -1.4485752582550049
+        position:
+        - 2336.689453125
+        - 2380.415771484375
+        - 280.8051452636719
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007159.pdb
+      instances:
+      - orientation:
+        - 0.3678636848926544
+        - -0.7783899307250977
+        - 1.8206896781921387
+        position:
+        - 3569.286865234375
+        - 99.26406860351562
+        - 113.5545654296875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007325.pdb
+      instances:
+      - orientation:
+        - 0.14195603132247925
+        - -1.0334049463272095
+        - -1.1396461725234985
+        position:
+        - 3895.7685546875
+        - 2592.44970703125
+        - 402.3458557128906
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007400.pdb
+      instances:
+      - orientation:
+        - 0.7840859889984131
+        - -1.4859191179275513
+        - 1.5479387044906616
+        position:
+        - 1220.553955078125
+        - 3489.830322265625
+        - 327.51318359375
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007461.pdb
+      instances:
+      - orientation:
+        - 1.5262720584869385
+        - 0.3215099275112152
+        - -0.5554403066635132
+        position:
+        - 1194.7071533203125
+        - 318.099853515625
+        - 99.05655670166016
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007659.pdb
+      instances:
+      - orientation:
+        - 1.517347812652588
+        - -0.7504497766494751
+        - 0.8087349534034729
+        position:
+        - 1794.7847900390625
+        - 1910.8243408203125
+        - 398.0579528808594
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007684.pdb
+      instances:
+      - orientation:
+        - -0.1795760840177536
+        - 0.06614591926336288
+        - -2.7069742679595947
+        position:
+        - 3558.66259765625
+        - 340.0498352050781
+        - 352.4258728027344
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007744.pdb
+      instances:
+      - orientation:
+        - -0.6912257075309753
+        - 0.10149393230676651
+        - -1.2564258575439453
+        position:
+        - 2098.42041015625
+        - 3378.585205078125
+        - 401.7086181640625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007756.pdb
+      instances:
+      - orientation:
+        - -1.2932019233703613
+        - -0.08857382088899612
+        - 1.8783246278762817
+        position:
+        - 3642.650634765625
+        - 2325.207763671875
+        - 401.04803466796875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007786.pdb
+      instances:
+      - orientation:
+        - 2.284938335418701
+        - 0.5554068088531494
+        - 0.9972578287124634
+        position:
+        - 1175.778076171875
+        - 110.4644546508789
+        - 99.0914306640625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007791.pdb
+      instances:
+      - orientation:
+        - -0.04706685245037079
+        - -0.0016073319129645824
+        - 0.025458453223109245
+        position:
+        - 679.5887451171875
+        - 3895.84033203125
+        - 275.45245361328125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007798.pdb
+      instances:
+      - orientation:
+        - 1.3589948415756226
+        - 0.5615145564079285
+        - -0.2504492700099945
+        position:
+        - 3175.360595703125
+        - 1502.88916015625
+        - 306.56634521484375
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007845.pdb
+      instances:
+      - orientation:
+        - 0.25444990396499634
+        - -1.8373675346374512
+        - 0.26270416378974915
+        position:
+        - 3005.84228515625
+        - 533.4994506835938
+        - 97.5897216796875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007864.pdb
+      instances:
+      - orientation:
+        - -0.07609982788562775
+        - 1.0909966230392456
+        - 1.030894160270691
+        position:
+        - 2542.89013671875
+        - 3281.503662109375
+        - 113.94358825683594
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007936.pdb
+      instances:
+      - orientation:
+        - 1.9956876039505005
+        - 1.081749677658081
+        - -0.5223541259765625
+        position:
+        - 1948.701904296875
+        - 3058.97802734375
+        - 100.11029052734375
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007958.pdb
+      instances:
+      - orientation:
+        - -1.3059262037277222
+        - 0.12367109954357147
+        - 0.71457439661026
+        position:
+        - 2497.97607421875
+        - 2794.27783203125
+        - 269.5027160644531
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_007974.pdb
+      instances:
+      - orientation:
+        - 1.8372082710266113
+        - -0.7919877767562866
+        - 1.0775065422058105
+        position:
+        - 98.03988647460938
+        - 254.69970703125
+        - 383.93316650390625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_008006.pdb
+      instances:
+      - orientation:
+        - -0.6128580570220947
+        - 0.07572248578071594
+        - 0.9610203504562378
+        position:
+        - 3805.861572265625
+        - 112.71605682373047
+        - 355.295166015625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_008108.pdb
+      instances:
+      - orientation:
+        - -0.1921890676021576
+        - -0.6865255236625671
+        - -0.1019965335726738
+        position:
+        - 2240.185791015625
+        - 927.6687622070312
+        - 98.76566314697266
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_008375.pdb
+      instances:
+      - orientation:
+        - -1.3250941038131714
+        - -2.0805532932281494
+        - -1.7030764818191528
+        position:
+        - 2825.52490234375
+        - 3244.80419921875
+        - 332.7370910644531
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_008392.pdb
+      instances:
+      - orientation:
+        - 0.5683898329734802
+        - -1.6413445472717285
+        - 1.067702054977417
+        position:
+        - 962.8460693359375
+        - 3147.19482421875
+        - 98.74694061279297
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_008430.pdb
+      instances:
+      - orientation:
+        - -0.0870480090379715
+        - 1.0201271772384644
+        - 0.7903715968132019
+        position:
+        - 3464.23974609375
+        - 3783.109619140625
+        - 233.0586395263672
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_008534.pdb
+      instances:
+      - orientation:
+        - 0.8118069171905518
+        - -0.21496127545833588
+        - 0.9438004493713379
+        position:
+        - 639.6414794921875
+        - 1251.1827392578125
+        - 319.8560791015625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_008541.pdb
+      instances:
+      - orientation:
+        - 1.009545922279358
+        - -1.2494032382965088
+        - -0.24500145018100739
+        position:
+        - 2047.6630859375
+        - 834.2586669921875
+        - 107.31031799316406
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_008684.pdb
+      instances:
+      - orientation:
+        - -0.5390725135803223
+        - 1.7763376235961914
+        - 0.9518303871154785
+        position:
+        - 3484.10205078125
+        - 1557.3670654296875
+        - 108.4074935913086
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_008788.pdb
+      instances:
+      - orientation:
+        - -0.18385052680969238
+        - 0.38998666405677795
+        - 0.06961692869663239
+        position:
+        - 2612.466796875
+        - 336.4547119140625
+        - 98.2784423828125
+      - orientation:
+        - 1.4745452404022217
+        - -0.7969024777412415
+        - 0.7073696255683899
+        position:
+        - 3387.42236328125
+        - 3444.059326171875
+        - 191.139404296875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_008828.pdb
+      instances:
+      - orientation:
+        - -0.9004005789756775
+        - 2.1745593547821045
+        - -0.004217630252242088
+        position:
+        - 2730.475341796875
+        - 2514.3505859375
+        - 101.4209213256836
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_008861.pdb
+      instances:
+      - orientation:
+        - -2.6009364128112793
+        - -0.4846574664115906
+        - 0.6079145073890686
+        position:
+        - 1098.886962890625
+        - 1089.9735107421875
+        - 400.3044128417969
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_008898.pdb
+      instances:
+      - orientation:
+        - 1.6597331762313843
+        - 1.9126614332199097
+        - 1.0356000661849976
+        position:
+        - 357.7217102050781
+        - 3760.574951171875
+        - 267.027587890625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_008917.pdb
+      instances:
+      - orientation:
+        - -0.5231987237930298
+        - 0.7725024819374084
+        - 0.26757583022117615
+        position:
+        - 3677.67626953125
+        - 563.2473754882812
+        - 140.40985107421875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_008995.pdb
+      instances:
+      - orientation:
+        - -0.8092918992042542
+        - -0.8822355270385742
+        - -0.3315032422542572
+        position:
+        - 2565.901611328125
+        - 824.015380859375
+        - 167.38064575195312
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_008998.pdb
+      instances:
+      - orientation:
+        - 1.763885259628296
+        - 0.6983488202095032
+        - -1.3398919105529785
+        position:
+        - 1758.05029296875
+        - 301.358642578125
+        - 342.34893798828125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009030.pdb
+      instances:
+      - orientation:
+        - -1.4429852962493896
+        - 1.1008663177490234
+        - 0.17640401422977448
+        position:
+        - 753.9534912109375
+        - 3430.451171875
+        - 357.05035400390625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009036.pdb
+      instances:
+      - orientation:
+        - 0.008204794488847256
+        - -0.07729724794626236
+        - 0.12757574021816254
+        position:
+        - 1572.218505859375
+        - 3173.22021484375
+        - 289.3746032714844
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009050.pdb
+      instances:
+      - orientation:
+        - -1.0956099033355713
+        - -0.14764194190502167
+        - -2.9361393451690674
+        position:
+        - 2772.9765625
+        - 1757.06884765625
+        - 338.6602478027344
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009053.pdb
+      instances:
+      - orientation:
+        - 0.17464947700500488
+        - 0.0008912769262678921
+        - -0.15075792372226715
+        position:
+        - 3084.322998046875
+        - 3535.358642578125
+        - 400.8376159667969
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009126.pdb
+      instances:
+      - orientation:
+        - -0.044732023030519485
+        - 0.5964779853820801
+        - 0.3585609197616577
+        position:
+        - 1156.71435546875
+        - 3219.844482421875
+        - 189.599365234375
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009148.pdb
+      instances:
+      - orientation:
+        - 0.16041025519371033
+        - -0.9591366648674011
+        - -0.7584896683692932
+        position:
+        - 3342.11083984375
+        - 503.2625427246094
+        - 401.5830383300781
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009158.pdb
+      instances:
+      - orientation:
+        - -0.15112245082855225
+        - 0.45560723543167114
+        - 0.21520987153053284
+        position:
+        - 3092.3330078125
+        - 3547.601318359375
+        - 114.68448638916016
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009182.pdb
+      instances:
+      - orientation:
+        - -0.004004648420959711
+        - -1.945447564125061
+        - 1.2219821214675903
+        position:
+        - 667.7098388671875
+        - 3617.435791015625
+        - 338.4835510253906
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009192.pdb
+      instances:
+      - orientation:
+        - 0.01700095646083355
+        - -0.012305982410907745
+        - -0.03371457755565643
+        position:
+        - 969.2250366210938
+        - 1835.110595703125
+        - 325.0521545410156
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009224.pdb
+      instances:
+      - orientation:
+        - 0.5302143692970276
+        - -0.8080606460571289
+        - 0.031520962715148926
+        position:
+        - 1241.8104248046875
+        - 1095.7603759765625
+        - 185.9892578125
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009265.pdb
+      instances:
+      - orientation:
+        - -1.1690095663070679
+        - -0.8884792923927307
+        - 0.24141421914100647
+        position:
+        - 361.80828857421875
+        - 2220.431396484375
+        - 112.61665344238281
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009328.pdb
+      instances:
+      - orientation:
+        - -0.3485635817050934
+        - -2.119673252105713
+        - 0.46069222688674927
+        position:
+        - 325.44586181640625
+        - 248.73617553710938
+        - 403.46771240234375
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009388.pdb
+      instances:
+      - orientation:
+        - 1.623824119567871
+        - 1.5939743518829346
+        - -0.10425744205713272
+        position:
+        - 2245.8046875
+        - 3474.215576171875
+        - 309.5103759765625
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009409.pdb
+      instances:
+      - orientation:
+        - -0.0851101353764534
+        - 0.18427923321723938
+        - -0.05218042805790901
+        position:
+        - 3388.519775390625
+        - 173.72225952148438
+        - 181.4604949951172
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009464.pdb
+      instances:
+      - orientation:
+        - -0.7146018743515015
+        - -0.1420203298330307
+        - -0.44811126589775085
+        position:
+        - 1093.3863525390625
+        - 339.49884033203125
+        - 329.6871032714844
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009475.pdb
+      instances:
+      - orientation:
+        - 0.7886043787002563
+        - -0.6381953954696655
+        - 0.11615792661905289
+        position:
+        - 972.0267944335938
+        - 679.93359375
+        - 392.5284118652344
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009482.pdb
+      instances:
+      - orientation:
+        - 0.9677464365959167
+        - -0.6514179706573486
+        - 1.7790011167526245
+        position:
+        - 117.64761352539062
+        - 2276.15380859375
+        - 301.4767761230469
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009549.pdb
+      instances:
+      - orientation:
+        - 0.6222575902938843
+        - -1.740771770477295
+        - 2.061445713043213
+        position:
+        - 2641.2490234375
+        - 2190.138671875
+        - 276.8810119628906
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009613.pdb
+      instances:
+      - orientation:
+        - -1.017964482307434
+        - 1.8821179866790771
+        - -0.3151285946369171
+        position:
+        - 3473.948974609375
+        - 591.649658203125
+        - 148.0686492919922
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009671.pdb
+      instances:
+      - orientation:
+        - -0.05386703833937645
+        - -0.02794349379837513
+        - -0.0005037889932282269
+        position:
+        - 2542.961669921875
+        - 3486.062255859375
+        - 169.7850341796875
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009774.pdb
+      instances:
+      - orientation:
+        - -1.2066138982772827
+        - -0.5351484417915344
+        - -2.3192529678344727
+        position:
+        - 3062.119873046875
+        - 3692.848876953125
+        - 257.6832580566406
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009804.pdb
+      instances:
+      - orientation:
+        - -2.7035717964172363
+        - -1.2927123308181763
+        - 0.22002290189266205
+        position:
+        - 2779.35400390625
+        - 140.3902130126953
+        - 399.9269714355469
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009839.pdb
+      instances:
+      - orientation:
+        - -2.3454904556274414
+        - 0.33587905764579773
+        - 0.2521462142467499
+        position:
+        - 951.1114501953125
+        - 2715.36181640625
+        - 234.09329223632812
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009878.pdb
+      instances:
+      - orientation:
+        - 1.8017090559005737
+        - 1.0596036911010742
+        - 0.7689364552497864
+        position:
+        - 1828.6717529296875
+        - 125.67906951904297
+        - 214.17422485351562
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009879.pdb
+      instances:
+      - orientation:
+        - -0.1527366191148758
+        - 1.1304833889007568
+        - -1.3075302839279175
+        position:
+        - 1730.7310791015625
+        - 567.9932861328125
+        - 285.6669006347656
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009961.pdb
+      instances:
+      - orientation:
+        - 1.3777917623519897
+        - -0.8936063647270203
+        - -1.3183985948562622
+        position:
+        - 1741.752685546875
+        - 1539.369873046875
+        - 133.4552459716797
+    - filename: /home/mjoosten1/projects/roodmus/data/6xm5_steered_Roodmus_1/pdb/conformation_009981.pdb
+      instances:
+      - orientation:
+        - -0.48614370822906494
+        - 0.08180274069309235
+        - 0.6528010368347168
+        position:
+        - 2779.866455078125
+        - 3773.2529296875
+        - 97.97827911376953
+    pdb: null
+  shape:
+    cube:
+      length: 1000.0
+    cuboid:
+      length_x: 4000.0
+      length_y: 4000.0
+      length_z: 500.0
+    cylinder:
+      axis:
+      - 0
+      - 1
+      - 0
+      length: 1000.0
+      offset_x: null
+      offset_z: null
+      radius: 500.0
+    margin:
+    - 100.0
+    - 100.0
+    - 40.0
+    type: cuboid
+  sputter: null
+scan:
+  angles: null
+  axis:
+  - 0.0
+  - 1.0
+  - 0.0
+  drift: null
+  exposure_time: 1
+  mode: still
+  num_fractions: 1
+  num_images: 1
+  num_nhelix: 1
+  phi: null
+  positions: null
+  start_angle: 0.0
+  start_pos: 0.0
+  step_angle: 0.0
+  step_pos: auto
+  theta: null
+simulation:
+  division_thickness: 100
+  ice: true
+  inelastic_model: null
+  margin: 0
+  mp_loss_position: peak
+  mp_loss_width: null
+  padding: 1
+  radiation_damage_model: false
+  sensitivity_coefficient: 0.022
+  slice_thickness: 3.0

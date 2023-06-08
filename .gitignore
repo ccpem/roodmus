@@ -8,3 +8,4 @@ src/*.egg-info
 src/roodmus/*pycache*
 *backup*
 *backup
+minimal_analysis_tmp.ipynb

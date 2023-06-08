@@ -16,17 +16,17 @@ from roodmus.analysis.utils import load_data
 
 def add_arguments(parser):
     parser.add_argument(
-        "--config-dir",
+        "--config_dir",
         help="Directory with .mrc files and .yaml config files",
         type=str,
     )
     parser.add_argument(
-        "--mrc-dir",
+        "--mrc_dir",
         help="directory with .mrc files and .yaml config files",
         type=str,
     )
     parser.add_argument(
-        "--meta-file",
+        "--meta_file",
         help=(
             "Particle metadata file. Can be .star"
             " (RELION) or .cs (CryoSPARC)"
@@ -35,7 +35,7 @@ def add_arguments(parser):
         nargs="+",
     )
     parser.add_argument(
-        "--plot-dir",
+        "--plot_dir",
         help="Output file name",
         type=str,
         default="alignment.png",
@@ -59,6 +59,8 @@ def get_name():
 def plot_picked_pose_distribution(
     df_picked: pd.DataFrame,
     metadata_filename: str | List[str],
+    vmin: float | None = None,
+    vmax: float | None = None,
 ):
     # group the picked particles by metadata file
     if isinstance(metadata_filename, list):
@@ -128,8 +130,12 @@ def plot_picked_pose_distribution(
     cbar_ax = grid.fig.add_axes([1, 0.15, 0.02, 0.7])
     # add colorbar to the new subplot
     grid.fig.colorbar(grid.ax_joint.collections[0], cax=cbar_ax, label="count")
-    # get the limits of the colorbar
-    vmin, vmax = grid.ax_joint.collections[0].get_clim()
+    if vmin and vmax:
+        # set limits of the colorbar to the same as for the picked particles
+        grid.ax_joint.collections[0].set_clim(vmin, vmax)
+    else:
+        # get the limits of the colorbar
+        vmin, vmax = grid.ax_joint.collections[0].get_clim()
     # add title to the top of the jointplot
     grid.fig.suptitle("picked particle pose distribution", fontsize=20, y=1.05)
 
@@ -138,8 +144,8 @@ def plot_picked_pose_distribution(
 
 def plot_true_pose_distribution(
     df_truth: pd.DataFrame,
-    vmin: float,
-    vmax: float,
+    vmin: float | None = None,
+    vmax: float | None = None,
 ):
     df_truth["euler_phi"] = df_truth["euler_phi"].astype(float)
     df_truth["euler_theta"] = -(
@@ -196,18 +202,26 @@ def plot_true_pose_distribution(
     cbar_ax = grid.fig.add_axes([1, 0.15, 0.02, 0.7])
     # add colorbar to the new subplot
     grid.fig.colorbar(grid.ax_joint.collections[0], cax=cbar_ax, label="count")
-    # set the limits of the colorbar to the same as for the picked particles
-    grid.ax_joint.collections[0].set_clim(vmin, vmax)
+    if vmin and vmax:
+        # set limits of the colorbar to the same as for the picked particles
+        grid.ax_joint.collections[0].set_clim(vmin, vmax)
+    else:
+        # get the limits of the colorbar
+        vmin, vmax = grid.ax_joint.collections[0].get_clim()
     # add title to the top of the jointplot
     grid.fig.suptitle("true particle pose distribution", fontsize=20, y=1.05)
 
-    return grid
+    return grid, vmin, vmax
 
 
 def main(args):
     """This script analsyses the alignment of the picked
     particles with the true particles.
     """
+
+    if not os.path.isdir(args.plot_dir):
+        os.makedirs(args.plot_dir)
+
     if args.mrc_dir is None:
         args.mrc_dir = args.config_dir
 
@@ -280,7 +294,9 @@ def main(args):
             grid.savefig(outfilename, dpi=300, bbox_inches="tight")
 
     # plot the true particle pose distribution
-    grid = plot_true_pose_distribution(df_truth, vmin_total, vmax_total)
+    grid, vmin, vmax = plot_true_pose_distribution(
+        df_truth, vmin_total, vmax_total
+    )
 
     # save the plot
     outfilename = os.path.join(args.plot_dir, "true_pose_distribution.png")

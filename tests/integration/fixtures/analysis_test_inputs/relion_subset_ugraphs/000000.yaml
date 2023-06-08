@@ -1,0 +1,3111 @@
+cluster:
+  max_workers: 1
+  method: null
+device: gpu
+microscope:
+  beam:
+    acceleration_voltage_spread: 8.0e-07
+    electrons_per_angstrom: 45.0
+    energy: 300.0
+    energy_spread: 2.66e-06
+    illumination_semiangle: 0.02
+    phi: 0.0
+    theta: 0.0
+  detector:
+    dqe: true
+    nx: 4000
+    ny: 4000
+    origin:
+    - 0
+    - 0
+    pixel_size: 1.0
+  lens:
+    c_10: -15309.73434082482
+    c_12: 0.0
+    c_21: 0.0
+    c_23: 0.0
+    c_30: 2.7
+    c_32: 0.0
+    c_34: 0.0
+    c_41: 0.0
+    c_43: 0.0
+    c_45: 0.0
+    c_50: 0.0
+    c_52: 0.0
+    c_54: 0.0
+    c_56: 0.0
+    c_c: 2.7
+    current_spread: 3.3e-07
+    phi_12: 0.0
+    phi_21: 0.0
+    phi_23: 0.0
+    phi_32: 0.0
+    phi_34: 0.0
+    phi_41: 0.0
+    phi_43: 0.0
+    phi_45: 0.0
+    phi_52: 0.0
+    phi_54: 0.0
+    phi_56: 0.0
+  model: null
+  phase_plate: false
+sample:
+  box:
+  - 4000.0
+  - 4000.0
+  - 500.0
+  centre:
+  - 2000.0
+  - 2000.0
+  - 250.0
+  coords: null
+  ice:
+    density: 940.0
+    generate: false
+  molecules:
+    local:
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000019.pdb
+      instances:
+      - orientation:
+        - -1.3119010925292969
+        - 2.035346031188965
+        - -1.3129370212554932
+        position:
+        - 2034.7222900390625
+        - 328.1455383300781
+        - 103.19911193847656
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000040.pdb
+      instances:
+      - orientation:
+        - -0.7647660374641418
+        - -1.391761064529419
+        - 0.3375961482524872
+        position:
+        - 3784.304931640625
+        - 444.0520324707031
+        - 248.13645935058594
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000043.pdb
+      instances:
+      - orientation:
+        - -1.4539600610733032
+        - 1.0374188423156738
+        - -0.9730333685874939
+        position:
+        - 2240.10107421875
+        - 1350.425537109375
+        - 385.806396484375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000082.pdb
+      instances:
+      - orientation:
+        - -1.6321935653686523
+        - -0.9035832285881042
+        - -1.0046656131744385
+        position:
+        - 601.4187622070312
+        - 118.07099914550781
+        - 107.70601654052734
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000119.pdb
+      instances:
+      - orientation:
+        - 0.3720696270465851
+        - -2.4544334411621094
+        - -0.2329283058643341
+        position:
+        - 107.85700225830078
+        - 998.5550537109375
+        - 203.53933715820312
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000125.pdb
+      instances:
+      - orientation:
+        - -0.217767596244812
+        - 0.48497045040130615
+        - 0.4865988492965698
+        position:
+        - 2784.05810546875
+        - 3003.484375
+        - 188.64285278320312
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000163.pdb
+      instances:
+      - orientation:
+        - -1.9046441316604614
+        - -1.8463631868362427
+        - -0.9776795506477356
+        position:
+        - 2654.853515625
+        - 2906.116455078125
+        - 373.9136657714844
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000228.pdb
+      instances:
+      - orientation:
+        - 0.8657691478729248
+        - -1.0691241025924683
+        - -0.4339962601661682
+        position:
+        - 1815.15869140625
+        - 1123.0133056640625
+        - 395.96270751953125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000231.pdb
+      instances:
+      - orientation:
+        - 0.9573965668678284
+        - 1.4559162855148315
+        - -1.3660963773727417
+        position:
+        - 211.84214782714844
+        - 3893.185546875
+        - 393.185791015625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000249.pdb
+      instances:
+      - orientation:
+        - -1.2169321775436401
+        - 0.27829447388648987
+        - 0.5208951830863953
+        position:
+        - 2920.117919921875
+        - 3657.109375
+        - 392.6050109863281
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000250.pdb
+      instances:
+      - orientation:
+        - 0.9810193777084351
+        - -1.9678905010223389
+        - -1.284400463104248
+        position:
+        - 551.2545776367188
+        - 3682.738037109375
+        - 178.34498596191406
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000256.pdb
+      instances:
+      - orientation:
+        - -1.1958999633789062
+        - -0.06928063929080963
+        - 1.3995991945266724
+        position:
+        - 3706.462158203125
+        - 1870.9630126953125
+        - 379.0632019042969
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000272.pdb
+      instances:
+      - orientation:
+        - -0.000805552233941853
+        - -0.2903592586517334
+        - -0.1856839954853058
+        position:
+        - 2670.118408203125
+        - 2423.8701171875
+        - 193.47862243652344
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000300.pdb
+      instances:
+      - orientation:
+        - 0.26326751708984375
+        - -1.1041926145553589
+        - -0.19675758481025696
+        position:
+        - 1419.619873046875
+        - 1164.5811767578125
+        - 250.21006774902344
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000318.pdb
+      instances:
+      - orientation:
+        - -0.7572206258773804
+        - -0.8233833909034729
+        - -1.669531226158142
+        position:
+        - 3187.783203125
+        - 3718.53076171875
+        - 107.08521270751953
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000320.pdb
+      instances:
+      - orientation:
+        - -0.9386726021766663
+        - -2.9527440071105957
+        - -0.14932185411453247
+        position:
+        - 2256.77294921875
+        - 3409.6796875
+        - 107.2928466796875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000328.pdb
+      instances:
+      - orientation:
+        - -1.416445016860962
+        - 1.7367092370986938
+        - 0.1107468381524086
+        position:
+        - 1375.3829345703125
+        - 371.97210693359375
+        - 108.16499328613281
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000396.pdb
+      instances:
+      - orientation:
+        - -0.9553480744361877
+        - -0.8579966425895691
+        - 0.11913608759641647
+        position:
+        - 235.68394470214844
+        - 2116.104248046875
+        - 364.27081298828125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000440.pdb
+      instances:
+      - orientation:
+        - -1.6131871938705444
+        - -2.436776876449585
+        - 0.8497244119644165
+        position:
+        - 3171.45166015625
+        - 2302.29638671875
+        - 169.19985961914062
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000455.pdb
+      instances:
+      - orientation:
+        - -0.5743491649627686
+        - -0.9183275699615479
+        - 0.9866237044334412
+        position:
+        - 3265.6005859375
+        - 1637.9991455078125
+        - 103.75797271728516
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000471.pdb
+      instances:
+      - orientation:
+        - 0.43318384885787964
+        - 0.17740942537784576
+        - -0.09967505186796188
+        position:
+        - 685.6055908203125
+        - 1834.195068359375
+        - 393.8974304199219
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000505.pdb
+      instances:
+      - orientation:
+        - 2.2258872985839844
+        - 0.6956115365028381
+        - -1.783936858177185
+        position:
+        - 252.9861602783203
+        - 1503.680419921875
+        - 103.05272674560547
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000521.pdb
+      instances:
+      - orientation:
+        - -0.1664724051952362
+        - 0.36756205558776855
+        - 0.11888275295495987
+        position:
+        - 1809.337890625
+        - 1672.0220947265625
+        - 106.90379333496094
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000536.pdb
+      instances:
+      - orientation:
+        - -0.2559186518192291
+        - 0.9968891143798828
+        - 2.3293471336364746
+        position:
+        - 2212.01904296875
+        - 1131.3560791015625
+        - 393.13006591796875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000569.pdb
+      instances:
+      - orientation:
+        - 1.0829951763153076
+        - 0.42372244596481323
+        - 0.9235341548919678
+        position:
+        - 135.68817138671875
+        - 1718.7515869140625
+        - 306.50982666015625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000574.pdb
+      instances:
+      - orientation:
+        - 0.1567288488149643
+        - 0.22622479498386383
+        - 0.181101992726326
+        position:
+        - 139.43894958496094
+        - 801.6900024414062
+        - 118.04531860351562
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000602.pdb
+      instances:
+      - orientation:
+        - 1.537049651145935
+        - 0.07845070213079453
+        - 2.3623716831207275
+        position:
+        - 2993.665283203125
+        - 873.6854858398438
+        - 396.0880432128906
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000610.pdb
+      instances:
+      - orientation:
+        - -0.15519817173480988
+        - -0.4325169622898102
+        - -0.49621355533599854
+        position:
+        - 3176.303955078125
+        - 979.1544189453125
+        - 395.25140380859375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000616.pdb
+      instances:
+      - orientation:
+        - -1.4578638076782227
+        - -1.6010128259658813
+        - 0.05493003875017166
+        position:
+        - 125.09564208984375
+        - 117.1964111328125
+        - 182.89781188964844
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000630.pdb
+      instances:
+      - orientation:
+        - 0.02485758438706398
+        - 0.07769738137722015
+        - -0.07253935933113098
+        position:
+        - 987.0691528320312
+        - 3693.78125
+        - 312.4520568847656
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000675.pdb
+      instances:
+      - orientation:
+        - 0.5188454389572144
+        - -2.558537483215332
+        - -0.6879830360412598
+        position:
+        - 3043.8525390625
+        - 1670.554931640625
+        - 109.566162109375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000683.pdb
+      instances:
+      - orientation:
+        - -0.11745119094848633
+        - 0.04881730675697327
+        - -0.0028373904060572386
+        position:
+        - 1201.962158203125
+        - 1830.8365478515625
+        - 392.9660339355469
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000690.pdb
+      instances:
+      - orientation:
+        - -1.2619528770446777
+        - -0.3960922360420227
+        - 0.4734063148498535
+        position:
+        - 974.2276000976562
+        - 2965.202392578125
+        - 106.69035339355469
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000714.pdb
+      instances:
+      - orientation:
+        - 1.4955734014511108
+        - -2.1554510593414307
+        - 0.031064869835972786
+        position:
+        - 2295.257568359375
+        - 117.94174194335938
+        - 323.9859924316406
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000722.pdb
+      instances:
+      - orientation:
+        - 2.5782127380371094
+        - -0.29225319623947144
+        - -0.7507896423339844
+        position:
+        - 1888.4150390625
+        - 3025.468505859375
+        - 121.69415283203125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000731.pdb
+      instances:
+      - orientation:
+        - -0.29308828711509705
+        - -0.6559324860572815
+        - -0.6723009943962097
+        position:
+        - 1543.1173095703125
+        - 2087.381103515625
+        - 112.70933532714844
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000763.pdb
+      instances:
+      - orientation:
+        - 0.9977293014526367
+        - 2.092991590499878
+        - -0.34657132625579834
+        position:
+        - 227.24038696289062
+        - 549.3828735351562
+        - 366.310302734375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000855.pdb
+      instances:
+      - orientation:
+        - -0.36210495233535767
+        - 0.35018235445022583
+        - 0.15617068111896515
+        position:
+        - 294.7656555175781
+        - 2902.77197265625
+        - 391.12017822265625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000856.pdb
+      instances:
+      - orientation:
+        - 1.880947470664978
+        - -0.6112034916877747
+        - -0.05292310193181038
+        position:
+        - 3226.969482421875
+        - 708.058349609375
+        - 388.9186096191406
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000871.pdb
+      instances:
+      - orientation:
+        - -0.04723392054438591
+        - -0.7049331665039062
+        - -0.3645412027835846
+        position:
+        - 3206.525146484375
+        - 3497.566162109375
+        - 108.27053833007812
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000885.pdb
+      instances:
+      - orientation:
+        - 1.319689393043518
+        - -0.08910216391086578
+        - -1.74361252784729
+        position:
+        - 1184.3641357421875
+        - 922.5402221679688
+        - 107.41297912597656
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000919.pdb
+      instances:
+      - orientation:
+        - -1.3595725297927856
+        - -0.38219547271728516
+        - 0.90231853723526
+        position:
+        - 1820.8194580078125
+        - 791.6871948242188
+        - 386.7970275878906
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000957.pdb
+      instances:
+      - orientation:
+        - 0.648131251335144
+        - -0.06818555295467377
+        - 0.10266052186489105
+        position:
+        - 828.6771850585938
+        - 1442.01904296875
+        - 384.6267395019531
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_000964.pdb
+      instances:
+      - orientation:
+        - 1.2282925844192505
+        - 1.6969726085662842
+        - -0.7378197312355042
+        position:
+        - 3704.260009765625
+        - 1497.3438720703125
+        - 392.5611572265625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001022.pdb
+      instances:
+      - orientation:
+        - -0.15510788559913635
+        - 1.6874068975448608
+        - 1.9862717390060425
+        position:
+        - 2611.548828125
+        - 118.79337310791016
+        - 289.57379150390625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001070.pdb
+      instances:
+      - orientation:
+        - 0.4258856475353241
+        - -0.24050654470920563
+        - -0.024495577439665794
+        position:
+        - 3139.89794921875
+        - 3645.053955078125
+        - 381.08056640625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001094.pdb
+      instances:
+      - orientation:
+        - -0.8324392437934875
+        - 0.776633620262146
+        - -1.5005385875701904
+        position:
+        - 3791.095458984375
+        - 943.37255859375
+        - 390.1919250488281
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001107.pdb
+      instances:
+      - orientation:
+        - -1.8532614707946777
+        - -0.3389647603034973
+        - 1.0144702196121216
+        position:
+        - 108.53487396240234
+        - 116.16463470458984
+        - 395.6164855957031
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001109.pdb
+      instances:
+      - orientation:
+        - 1.3701897859573364
+        - 0.7020297050476074
+        - 1.2934845685958862
+        position:
+        - 3661.460693359375
+        - 3440.51123046875
+        - 106.32295227050781
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001116.pdb
+      instances:
+      - orientation:
+        - -0.007926438003778458
+        - 0.03278680518269539
+        - 0.027190346270799637
+        position:
+        - 1487.1788330078125
+        - 3681.92431640625
+        - 135.25241088867188
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001130.pdb
+      instances:
+      - orientation:
+        - -0.32304126024246216
+        - 0.7883869409561157
+        - -0.4386899769306183
+        position:
+        - 2761.706298828125
+        - 3380.420166015625
+        - 104.18612670898438
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001148.pdb
+      instances:
+      - orientation:
+        - 0.9193484783172607
+        - -0.6238120198249817
+        - 2.8220300674438477
+        position:
+        - 2503.900634765625
+        - 2923.658935546875
+        - 153.03054809570312
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001149.pdb
+      instances:
+      - orientation:
+        - 1.9111918210983276
+        - -1.129888892173767
+        - -1.7217546701431274
+        position:
+        - 838.1513671875
+        - 1593.189208984375
+        - 185.06983947753906
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001192.pdb
+      instances:
+      - orientation:
+        - -0.04086177051067352
+        - 0.24665763974189758
+        - -0.9344843626022339
+        position:
+        - 1604.79345703125
+        - 767.8433227539062
+        - 127.99810791015625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001241.pdb
+      instances:
+      - orientation:
+        - 1.186408281326294
+        - -2.140681028366089
+        - 0.9793386459350586
+        position:
+        - 3895.795654296875
+        - 1427.728271484375
+        - 333.0930480957031
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001285.pdb
+      instances:
+      - orientation:
+        - 1.7205103635787964
+        - 0.8587493896484375
+        - 0.3809988498687744
+        position:
+        - 914.403564453125
+        - 3883.371337890625
+        - 104.85237884521484
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001346.pdb
+      instances:
+      - orientation:
+        - -0.8158775568008423
+        - -1.9325493574142456
+        - -0.7035491466522217
+        position:
+        - 228.25303649902344
+        - 335.0216369628906
+        - 358.851806640625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001361.pdb
+      instances:
+      - orientation:
+        - -0.8816452026367188
+        - -0.004097728990018368
+        - 2.3115956783294678
+        position:
+        - 3226.02783203125
+        - 2526.267578125
+        - 197.76820373535156
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001368.pdb
+      instances:
+      - orientation:
+        - -0.08609623461961746
+        - -0.22628480195999146
+        - 0.8784734606742859
+        position:
+        - 3277.97021484375
+        - 2114.28125
+        - 115.83854675292969
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001437.pdb
+      instances:
+      - orientation:
+        - -1.178850531578064
+        - -0.32328277826309204
+        - 2.1030445098876953
+        position:
+        - 123.0494384765625
+        - 3122.274658203125
+        - 134.7943115234375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001474.pdb
+      instances:
+      - orientation:
+        - -0.03207797929644585
+        - -0.25321727991104126
+        - 0.628325879573822
+        position:
+        - 2708.1298828125
+        - 3602.346923828125
+        - 392.23822021484375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001495.pdb
+      instances:
+      - orientation:
+        - 0.8360195755958557
+        - 0.7880204319953918
+        - 0.15806826949119568
+        position:
+        - 129.00340270996094
+        - 3033.040283203125
+        - 396.856689453125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001507.pdb
+      instances:
+      - orientation:
+        - -0.8208845853805542
+        - -2.509138345718384
+        - 0.5513280630111694
+        position:
+        - 1116.258056640625
+        - 3510.707275390625
+        - 110.607421875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001544.pdb
+      instances:
+      - orientation:
+        - 0.5032102465629578
+        - -0.08395574986934662
+        - -0.052389223128557205
+        position:
+        - 2115.7138671875
+        - 2985.354248046875
+        - 235.96539306640625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001585.pdb
+      instances:
+      - orientation:
+        - 1.3010109663009644
+        - -1.5889517068862915
+        - -0.7645328640937805
+        position:
+        - 3165.991943359375
+        - 504.90032958984375
+        - 136.1195068359375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001612.pdb
+      instances:
+      - orientation:
+        - 2.2442893981933594
+        - 0.5012580752372742
+        - -0.014501786790788174
+        position:
+        - 2923.416259765625
+        - 1691.436767578125
+        - 283.4110107421875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001615.pdb
+      instances:
+      - orientation:
+        - -0.8970837593078613
+        - -2.540494441986084
+        - -0.1351652294397354
+        position:
+        - 1360.5684814453125
+        - 122.28311920166016
+        - 129.04617309570312
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001638.pdb
+      instances:
+      - orientation:
+        - -2.2018747329711914
+        - 0.9160497188568115
+        - 1.3313246965408325
+        position:
+        - 199.27044677734375
+        - 1532.943603515625
+        - 390.5295104980469
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001668.pdb
+      instances:
+      - orientation:
+        - -1.8245962858200073
+        - -0.7744362950325012
+        - -1.8272827863693237
+        position:
+        - 1311.1417236328125
+        - 3204.005615234375
+        - 255.69473266601562
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001692.pdb
+      instances:
+      - orientation:
+        - -0.07934370636940002
+        - -1.2860190868377686
+        - -1.6617852449417114
+        position:
+        - 1401.1259765625
+        - 681.7320556640625
+        - 398.3944091796875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001695.pdb
+      instances:
+      - orientation:
+        - 0.8619329929351807
+        - -0.6547739505767822
+        - -0.161410853266716
+        position:
+        - 107.5901107788086
+        - 2241.122314453125
+        - 108.41957092285156
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001718.pdb
+      instances:
+      - orientation:
+        - -1.3943734169006348
+        - -1.7999588251113892
+        - -1.6733989715576172
+        position:
+        - 607.5931396484375
+        - 394.1351623535156
+        - 106.14033508300781
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001850.pdb
+      instances:
+      - orientation:
+        - 0.07808340340852737
+        - 0.08720755577087402
+        - -0.004130654968321323
+        position:
+        - 2838.7822265625
+        - 459.19317626953125
+        - 107.28133392333984
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001872.pdb
+      instances:
+      - orientation:
+        - 0.3447985351085663
+        - 0.2616650462150574
+        - 0.2325209528207779
+        position:
+        - 2002.577880859375
+        - 1096.4552001953125
+        - 167.0294952392578
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001895.pdb
+      instances:
+      - orientation:
+        - -1.0390479564666748
+        - 1.0875402688980103
+        - 0.2659285366535187
+        position:
+        - 2048.04345703125
+        - 715.573974609375
+        - 106.83013916015625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001914.pdb
+      instances:
+      - orientation:
+        - -0.38537606596946716
+        - 0.543424665927887
+        - 0.3652976155281067
+        position:
+        - 3884.082763671875
+        - 1639.769287109375
+        - 393.85748291015625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001936.pdb
+      instances:
+      - orientation:
+        - 0.3892555832862854
+        - -0.21760952472686768
+        - 0.9181079268455505
+        position:
+        - 3669.36962890625
+        - 2260.690673828125
+        - 170.8128204345703
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001955.pdb
+      instances:
+      - orientation:
+        - -2.5282955169677734
+        - 0.5550458431243896
+        - -1.051891803741455
+        position:
+        - 762.0645751953125
+        - 2770.15087890625
+        - 265.63848876953125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001956.pdb
+      instances:
+      - orientation:
+        - 0.8665729761123657
+        - -1.8414194583892822
+        - 1.7277076244354248
+        position:
+        - 918.4318237304688
+        - 2692.31396484375
+        - 149.26416015625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_001968.pdb
+      instances:
+      - orientation:
+        - 0.529495894908905
+        - 0.2889072299003601
+        - 2.772217035293579
+        position:
+        - 2498.094970703125
+        - 2670.5302734375
+        - 393.2613525390625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002029.pdb
+      instances:
+      - orientation:
+        - 0.416557252407074
+        - -0.30102330446243286
+        - -0.5255046486854553
+        position:
+        - 531.7445068359375
+        - 2841.82470703125
+        - 321.9765625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002060.pdb
+      instances:
+      - orientation:
+        - 1.6449236869812012
+        - 0.40180686116218567
+        - -1.01750648021698
+        position:
+        - 413.6777038574219
+        - 995.2183227539062
+        - 390.94000244140625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002119.pdb
+      instances:
+      - orientation:
+        - -0.20343197882175446
+        - 0.17048616707324982
+        - 2.9521279335021973
+        position:
+        - 600.848876953125
+        - 720.7637329101562
+        - 279.8563232421875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002186.pdb
+      instances:
+      - orientation:
+        - 1.7524638175964355
+        - -0.5541666150093079
+        - 0.5533056259155273
+        position:
+        - 1917.4505615234375
+        - 2213.0087890625
+        - 108.43421173095703
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002261.pdb
+      instances:
+      - orientation:
+        - 0.7716701030731201
+        - 0.10699938982725143
+        - 0.44572097063064575
+        position:
+        - 2091.126953125
+        - 3609.218017578125
+        - 320.4692687988281
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002328.pdb
+      instances:
+      - orientation:
+        - -0.36873868107795715
+        - -1.6897701025009155
+        - 0.3499882221221924
+        position:
+        - 3299.911865234375
+        - 3890.8330078125
+        - 185.19131469726562
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002381.pdb
+      instances:
+      - orientation:
+        - 0.349721759557724
+        - 2.1603941917419434
+        - 1.4372719526290894
+        position:
+        - 2895.53369140625
+        - 3414.1728515625
+        - 265.8294372558594
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002404.pdb
+      instances:
+      - orientation:
+        - 0.005112159065902233
+        - -0.018407568335533142
+        - -0.01258922554552555
+        position:
+        - 3616.79541015625
+        - 3509.8330078125
+        - 393.0763854980469
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002409.pdb
+      instances:
+      - orientation:
+        - -1.0503098964691162
+        - 0.24022802710533142
+        - -0.4533795714378357
+        position:
+        - 732.6298217773438
+        - 2900.6728515625
+        - 104.70439910888672
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002412.pdb
+      instances:
+      - orientation:
+        - -2.022817373275757
+        - 0.7642644047737122
+        - -0.5669527649879456
+        position:
+        - 1223.1591796875
+        - 1450.970458984375
+        - 109.90508270263672
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002483.pdb
+      instances:
+      - orientation:
+        - -0.06861265748739243
+        - -0.26243218779563904
+        - -0.09321444481611252
+        position:
+        - 2783.891357421875
+        - 3085.320556640625
+        - 394.4067687988281
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002566.pdb
+      instances:
+      - orientation:
+        - 2.622628927230835
+        - -0.47573161125183105
+        - 0.9800949096679688
+        position:
+        - 111.3367691040039
+        - 2621.01708984375
+        - 106.47441101074219
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002586.pdb
+      instances:
+      - orientation:
+        - -0.3918302357196808
+        - 2.680905342102051
+        - -0.7559766173362732
+        position:
+        - 1088.9844970703125
+        - 3417.289794921875
+        - 305.9227294921875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002602.pdb
+      instances:
+      - orientation:
+        - -1.7254644632339478
+        - -0.2347799688577652
+        - -2.6055421829223633
+        position:
+        - 1849.0684814453125
+        - 2005.8016357421875
+        - 105.4589614868164
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002616.pdb
+      instances:
+      - orientation:
+        - -0.27887246012687683
+        - 0.0980561301112175
+        - 1.1287180185317993
+        position:
+        - 2786.72021484375
+        - 205.2140655517578
+        - 104.40019226074219
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002649.pdb
+      instances:
+      - orientation:
+        - -0.39363721013069153
+        - 1.3018088340759277
+        - 0.939740777015686
+        position:
+        - 1298.0562744140625
+        - 928.4550170898438
+        - 362.60052490234375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002664.pdb
+      instances:
+      - orientation:
+        - -1.3660024404525757
+        - -0.6975994110107422
+        - -2.553579807281494
+        position:
+        - 3833.189208984375
+        - 2219.739501953125
+        - 322.583740234375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002696.pdb
+      instances:
+      - orientation:
+        - -0.5854198336601257
+        - 0.3126903474330902
+        - -0.08566156774759293
+        position:
+        - 1812.5704345703125
+        - 3570.457275390625
+        - 383.947998046875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002745.pdb
+      instances:
+      - orientation:
+        - 2.080305337905884
+        - 1.801050066947937
+        - 1.005552053451538
+        position:
+        - 3357.660888671875
+        - 208.4481658935547
+        - 314.6304016113281
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002770.pdb
+      instances:
+      - orientation:
+        - 0.0003644878452178091
+        - 0.1516888588666916
+        - -0.21597369015216827
+        position:
+        - 1474.2747802734375
+        - 3895.600341796875
+        - 104.97695922851562
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002788.pdb
+      instances:
+      - orientation:
+        - 1.0775569677352905
+        - -0.7918845415115356
+        - 0.4939657747745514
+        position:
+        - 2856.466064453125
+        - 2781.656005859375
+        - 103.94242095947266
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002828.pdb
+      instances:
+      - orientation:
+        - -1.439825415611267
+        - 0.5786945223808289
+        - -1.2963987588882446
+        position:
+        - 3167.274169921875
+        - 1505.615234375
+        - 233.8468780517578
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002833.pdb
+      instances:
+      - orientation:
+        - -0.000925427651964128
+        - -0.0019273919751867652
+        - 0.012678256258368492
+        position:
+        - 3880.279541015625
+        - 1483.5897216796875
+        - 130.11351013183594
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002890.pdb
+      instances:
+      - orientation:
+        - 0.3440420627593994
+        - 0.7441008687019348
+        - 1.0432710647583008
+        position:
+        - 2514.951904296875
+        - 3594.48779296875
+        - 295.3785705566406
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002957.pdb
+      instances:
+      - orientation:
+        - 0.4620343744754791
+        - 0.7422021627426147
+        - -0.5577817559242249
+        position:
+        - 1601.817138671875
+        - 2131.242431640625
+        - 373.4198913574219
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002959.pdb
+      instances:
+      - orientation:
+        - -0.5034284591674805
+        - 0.058721285313367844
+        - -0.7675523161888123
+        position:
+        - 1330.7176513671875
+        - 3574.37890625
+        - 267.14593505859375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_002998.pdb
+      instances:
+      - orientation:
+        - 1.0637242794036865
+        - 0.23088382184505463
+        - 0.16247045993804932
+        position:
+        - 1487.234375
+        - 3766.42919921875
+        - 395.22222900390625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003063.pdb
+      instances:
+      - orientation:
+        - -0.9958122968673706
+        - -0.6979356408119202
+        - 0.019859520718455315
+        position:
+        - 730.22705078125
+        - 107.3715591430664
+        - 386.16522216796875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003109.pdb
+      instances:
+      - orientation:
+        - -0.006231597624719143
+        - 2.027334213256836
+        - 1.9035557508468628
+        position:
+        - 3895.90380859375
+        - 1690.0921630859375
+        - 105.63905334472656
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003124.pdb
+      instances:
+      - orientation:
+        - 0.5232517719268799
+        - -2.4792182445526123
+        - -0.30623936653137207
+        position:
+        - 1661.9278564453125
+        - 2274.58837890625
+        - 141.10147094726562
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003126.pdb
+      instances:
+      - orientation:
+        - -1.5704478025436401
+        - -1.5813552141189575
+        - 1.582903265953064
+        position:
+        - 3896.69970703125
+        - 3846.57275390625
+        - 103.9534912109375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003142.pdb
+      instances:
+      - orientation:
+        - 0.033493947237730026
+        - -0.25323471426963806
+        - 0.06145063415169716
+        position:
+        - 3761.381591796875
+        - 2831.32861328125
+        - 110.11833190917969
+      - orientation:
+        - -0.32324814796447754
+        - 0.6819661259651184
+        - 0.5022857785224915
+        position:
+        - 1954.3492431640625
+        - 934.8673095703125
+        - 293.4619445800781
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003144.pdb
+      instances:
+      - orientation:
+        - 0.075144462287426
+        - -0.21851308643817902
+        - -0.002311056712642312
+        position:
+        - 743.2277221679688
+        - 1082.664794921875
+        - 347.89801025390625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003151.pdb
+      instances:
+      - orientation:
+        - -1.2626006603240967
+        - -0.8578939437866211
+        - -0.7814898490905762
+        position:
+        - 1011.4840698242188
+        - 1155.224853515625
+        - 168.398193359375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003162.pdb
+      instances:
+      - orientation:
+        - 0.9486925601959229
+        - 0.03288797289133072
+        - 0.8994036316871643
+        position:
+        - 2854.434814453125
+        - 2831.482421875
+        - 314.5435791015625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003180.pdb
+      instances:
+      - orientation:
+        - -2.0340447425842285
+        - -0.606026828289032
+        - -0.2398543655872345
+        position:
+        - 2796.5478515625
+        - 1175.2684326171875
+        - 309.81500244140625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003279.pdb
+      instances:
+      - orientation:
+        - -2.997412919998169
+        - 0.4024747610092163
+        - 0.08615119755268097
+        position:
+        - 2545.738037109375
+        - 3294.16064453125
+        - 209.85733032226562
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003281.pdb
+      instances:
+      - orientation:
+        - 0.28383228182792664
+        - 0.03474844992160797
+        - 1.0373674631118774
+        position:
+        - 977.0040893554688
+        - 855.3827514648438
+        - 104.00028228759766
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003305.pdb
+      instances:
+      - orientation:
+        - 1.5338435173034668
+        - -1.1050140857696533
+        - -0.7801127433776855
+        position:
+        - 3347.908447265625
+        - 3894.42333984375
+        - 394.2286376953125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003353.pdb
+      instances:
+      - orientation:
+        - -1.2605551481246948
+        - 1.4919599294662476
+        - -0.6680676937103271
+        position:
+        - 1151.9129638671875
+        - 146.3816680908203
+        - 280.7760009765625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003499.pdb
+      instances:
+      - orientation:
+        - 0.37730392813682556
+        - -1.2690510749816895
+        - 1.8052427768707275
+        position:
+        - 698.1216430664062
+        - 2630.430419921875
+        - 109.82946014404297
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003529.pdb
+      instances:
+      - orientation:
+        - -0.21178708970546722
+        - -0.06989260017871857
+        - -0.13554297387599945
+        position:
+        - 1626.5625
+        - 243.0299835205078
+        - 107.97042846679688
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003550.pdb
+      instances:
+      - orientation:
+        - 0.30750423669815063
+        - -0.7628129720687866
+        - 0.011403130367398262
+        position:
+        - 918.5165405273438
+        - 687.4531860351562
+        - 305.0083923339844
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003596.pdb
+      instances:
+      - orientation:
+        - 1.0331830978393555
+        - -0.037220679223537445
+        - -0.4162862002849579
+        position:
+        - 3569.92529296875
+        - 2967.555419921875
+        - 138.56802368164062
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003605.pdb
+      instances:
+      - orientation:
+        - -0.938410758972168
+        - -0.19087915122509003
+        - 0.6385112404823303
+        position:
+        - 1026.26025390625
+        - 977.6695556640625
+        - 283.5794982910156
+      - orientation:
+        - -0.09456513822078705
+        - -0.23375026881694794
+        - 0.20705492794513702
+        position:
+        - 3694.8515625
+        - 665.6851196289062
+        - 104.64717864990234
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003642.pdb
+      instances:
+      - orientation:
+        - 0.26668864488601685
+        - -0.7546117901802063
+        - -0.8352633714675903
+        position:
+        - 2037.7279052734375
+        - 770.9302368164062
+        - 395.39154052734375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003645.pdb
+      instances:
+      - orientation:
+        - 0.06506118178367615
+        - -0.016462763771414757
+        - -0.007856598123908043
+        position:
+        - 2514.509765625
+        - 2546.13818359375
+        - 104.62857055664062
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003657.pdb
+      instances:
+      - orientation:
+        - 0.7960487604141235
+        - 0.5435066819190979
+        - 0.8102325201034546
+        position:
+        - 1033.185791015625
+        - 445.47430419921875
+        - 109.4970932006836
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003662.pdb
+      instances:
+      - orientation:
+        - 0.40742939710617065
+        - 1.5883417129516602
+        - -0.9575656652450562
+        position:
+        - 149.4639434814453
+        - 3644.62451171875
+        - 105.88916015625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003671.pdb
+      instances:
+      - orientation:
+        - -1.0231242179870605
+        - 1.399421215057373
+        - 0.965699315071106
+        position:
+        - 2656.84375
+        - 1545.87109375
+        - 104.41795349121094
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003727.pdb
+      instances:
+      - orientation:
+        - 2.1789212226867676
+        - -1.034255862236023
+        - -0.2551462650299072
+        position:
+        - 2928.180908203125
+        - 532.8546752929688
+        - 288.51959228515625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003760.pdb
+      instances:
+      - orientation:
+        - 0.31483107805252075
+        - 2.1277825832366943
+        - 1.9213513135910034
+        position:
+        - 528.5255737304688
+        - 3091.75244140625
+        - 105.16081237792969
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003761.pdb
+      instances:
+      - orientation:
+        - -0.6449002027511597
+        - 0.9080184102058411
+        - 1.2391036748886108
+        position:
+        - 3008.8271484375
+        - 3169.774169921875
+        - 258.8690185546875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003841.pdb
+      instances:
+      - orientation:
+        - -0.8937665820121765
+        - -0.0028121345676481724
+        - -1.2906959056854248
+        position:
+        - 107.02873229980469
+        - 3229.02587890625
+        - 322.3700256347656
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003918.pdb
+      instances:
+      - orientation:
+        - 1.3346506357192993
+        - -0.6806290149688721
+        - 1.7028098106384277
+        position:
+        - 335.0753173828125
+        - 235.0475616455078
+        - 183.70404052734375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_003961.pdb
+      instances:
+      - orientation:
+        - 0.5538794994354248
+        - 0.29024091362953186
+        - -0.5910651683807373
+        position:
+        - 2360.709228515625
+        - 2485.037109375
+        - 236.77967834472656
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004016.pdb
+      instances:
+      - orientation:
+        - -1.7051595449447632
+        - 0.05707244575023651
+        - 0.9032776951789856
+        position:
+        - 2660.69921875
+        - 2515.160888671875
+        - 386.7485656738281
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004037.pdb
+      instances:
+      - orientation:
+        - 2.0679726600646973
+        - 0.7644838690757751
+        - -1.8754336833953857
+        position:
+        - 3554.408447265625
+        - 2915.043212890625
+        - 394.0406799316406
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004043.pdb
+      instances:
+      - orientation:
+        - 0.2103157490491867
+        - -0.31484153866767883
+        - 0.0186394564807415
+        position:
+        - 2444.012939453125
+        - 2935.045654296875
+        - 363.17132568359375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004051.pdb
+      instances:
+      - orientation:
+        - -1.7025328874588013
+        - 0.5246865749359131
+        - -1.206440806388855
+        position:
+        - 3352.654052734375
+        - 3138.243896484375
+        - 393.58416748046875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004068.pdb
+      instances:
+      - orientation:
+        - 1.0049220323562622
+        - -0.3824731111526489
+        - -0.024776458740234375
+        position:
+        - 828.0699462890625
+        - 1037.9068603515625
+        - 117.04395294189453
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004101.pdb
+      instances:
+      - orientation:
+        - -0.043255485594272614
+        - -0.5723317861557007
+        - 0.5170968770980835
+        position:
+        - 833.2803344726562
+        - 3122.297607421875
+        - 177.423828125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004129.pdb
+      instances:
+      - orientation:
+        - 0.29317507147789
+        - 0.131163090467453
+        - 0.008100626990199089
+        position:
+        - 3327.1416015625
+        - 110.55589294433594
+        - 105.25786590576172
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004141.pdb
+      instances:
+      - orientation:
+        - -0.5641610026359558
+        - 0.4847620129585266
+        - -0.32885727286338806
+        position:
+        - 2820.822265625
+        - 118.06280517578125
+        - 341.61785888671875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004148.pdb
+      instances:
+      - orientation:
+        - -0.17486128211021423
+        - 1.0874900817871094
+        - 0.9285597801208496
+        position:
+        - 366.7437438964844
+        - 1408.369384765625
+        - 251.1067657470703
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004214.pdb
+      instances:
+      - orientation:
+        - 1.8621224164962769
+        - -0.039289530366659164
+        - -0.6133524775505066
+        position:
+        - 3680.62060546875
+        - 1279.025390625
+        - 394.17608642578125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004246.pdb
+      instances:
+      - orientation:
+        - 0.28148066997528076
+        - -1.5632368326187134
+        - -0.06824982166290283
+        position:
+        - 1071.3963623046875
+        - 1578.3446044921875
+        - 189.47787475585938
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004298.pdb
+      instances:
+      - orientation:
+        - -0.14721228182315826
+        - 0.34723585844039917
+        - -0.009428571909666061
+        position:
+        - 1408.1246337890625
+        - 1477.3455810546875
+        - 252.56793212890625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004393.pdb
+      instances:
+      - orientation:
+        - -0.08363589644432068
+        - 0.3660057485103607
+        - -0.002007308416068554
+        position:
+        - 2725.755126953125
+        - 3769.684814453125
+        - 106.67578887939453
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004428.pdb
+      instances:
+      - orientation:
+        - 1.0484949350357056
+        - 0.14867569506168365
+        - 0.7427690029144287
+        position:
+        - 790.6171875
+        - 287.29681396484375
+        - 103.27639770507812
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004472.pdb
+      instances:
+      - orientation:
+        - -1.3709203004837036
+        - 2.1751976013183594
+        - -0.2864316701889038
+        position:
+        - 2470.807373046875
+        - 311.017333984375
+        - 340.10076904296875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004548.pdb
+      instances:
+      - orientation:
+        - -1.0050169229507446
+        - -1.4127849340438843
+        - 0.29028940200805664
+        position:
+        - 834.302001953125
+        - 2394.920654296875
+        - 385.6243896484375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004566.pdb
+      instances:
+      - orientation:
+        - 0.031349554657936096
+        - -0.3126268982887268
+        - 1.2998814582824707
+        position:
+        - 429.8222351074219
+        - 1581.921142578125
+        - 389.2933044433594
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004598.pdb
+      instances:
+      - orientation:
+        - -0.7975161671638489
+        - -0.16590821743011475
+        - 1.254644751548767
+        position:
+        - 811.8013305664062
+        - 535.4490356445312
+        - 397.9695129394531
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004616.pdb
+      instances:
+      - orientation:
+        - 2.881649971008301
+        - -0.3704920709133148
+        - 0.8631597757339478
+        position:
+        - 2130.1318359375
+        - 581.9483642578125
+        - 395.99407958984375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004633.pdb
+      instances:
+      - orientation:
+        - -1.8336224555969238
+        - -1.4569841623306274
+        - -1.8953208923339844
+        position:
+        - 3020.74755859375
+        - 1245.67724609375
+        - 229.5372772216797
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004636.pdb
+      instances:
+      - orientation:
+        - 0.35896721482276917
+        - 2.7335164546966553
+        - 0.48832422494888306
+        position:
+        - 2513.8359375
+        - 2036.57470703125
+        - 240.58758544921875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004644.pdb
+      instances:
+      - orientation:
+        - 1.413655161857605
+        - 0.29953181743621826
+        - -1.819682002067566
+        position:
+        - 1067.252685546875
+        - 1890.7431640625
+        - 235.20289611816406
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004649.pdb
+      instances:
+      - orientation:
+        - -0.20782452821731567
+        - 0.2597625255584717
+        - 0.6854734420776367
+        position:
+        - 3721.6943359375
+        - 292.8084411621094
+        - 395.4615478515625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004674.pdb
+      instances:
+      - orientation:
+        - 0.7455756068229675
+        - -0.5465142726898193
+        - 0.5266752243041992
+        position:
+        - 2418.388427734375
+        - 3806.286376953125
+        - 394.13934326171875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004689.pdb
+      instances:
+      - orientation:
+        - 0.14790226519107819
+        - 0.5909168124198914
+        - -1.9849584102630615
+        position:
+        - 416.21820068359375
+        - 3831.620361328125
+        - 102.51808166503906
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004756.pdb
+      instances:
+      - orientation:
+        - -0.587751567363739
+        - 1.3492265939712524
+        - -0.8619686961174011
+        position:
+        - 595.2249755859375
+        - 1444.9893798828125
+        - 397.1295166015625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004865.pdb
+      instances:
+      - orientation:
+        - 2.545337438583374
+        - -1.0259008407592773
+        - 0.9159230589866638
+        position:
+        - 1376.7333984375
+        - 1903.50390625
+        - 219.10079956054688
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004873.pdb
+      instances:
+      - orientation:
+        - -0.23084864020347595
+        - -0.8351089954376221
+        - -0.10447900742292404
+        position:
+        - 1848.6024169921875
+        - 1738.0894775390625
+        - 394.3358459472656
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004875.pdb
+      instances:
+      - orientation:
+        - -1.883718729019165
+        - -1.449646234512329
+        - 0.29075369238853455
+        position:
+        - 2421.109375
+        - 2333.489013671875
+        - 102.908935546875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004891.pdb
+      instances:
+      - orientation:
+        - -0.17604774236679077
+        - 0.6089324355125427
+        - 0.09257649630308151
+        position:
+        - 2249.6591796875
+        - 2857.85498046875
+        - 358.1737365722656
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004898.pdb
+      instances:
+      - orientation:
+        - -1.1241521835327148
+        - -0.22298622131347656
+        - -0.06105009838938713
+        position:
+        - 372.2243957519531
+        - 3644.82421875
+        - 285.77020263671875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004941.pdb
+      instances:
+      - orientation:
+        - 1.4165953397750854
+        - -2.0333685874938965
+        - -0.14311379194259644
+        position:
+        - 1748.7159423828125
+        - 3704.70849609375
+        - 105.10372161865234
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004981.pdb
+      instances:
+      - orientation:
+        - -0.0026035988703370094
+        - -0.044165052473545074
+        - 0.03458420932292938
+        position:
+        - 3043.923095703125
+        - 3889.100830078125
+        - 130.49880981445312
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_004987.pdb
+      instances:
+      - orientation:
+        - 1.140816330909729
+        - -0.6460182666778564
+        - 2.493542194366455
+        position:
+        - 703.777099609375
+        - 1235.0731201171875
+        - 105.14636993408203
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005022.pdb
+      instances:
+      - orientation:
+        - -0.281259149312973
+        - -0.4715235233306885
+        - 0.6243135333061218
+        position:
+        - 3549.927490234375
+        - 3259.49267578125
+        - 128.15443420410156
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005037.pdb
+      instances:
+      - orientation:
+        - 0.04870638996362686
+        - -0.1320447027683258
+        - 0.06706909090280533
+        position:
+        - 3483.43798828125
+        - 1840.382568359375
+        - 396.166015625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005052.pdb
+      instances:
+      - orientation:
+        - 1.7785656452178955
+        - -0.9405581951141357
+        - -0.08127455413341522
+        position:
+        - 2814.417236328125
+        - 3579.452880859375
+        - 147.47581481933594
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005058.pdb
+      instances:
+      - orientation:
+        - -0.3485288918018341
+        - -1.183199167251587
+        - -2.7894022464752197
+        position:
+        - 1764.4273681640625
+        - 3884.4990234375
+        - 372.2458190917969
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005074.pdb
+      instances:
+      - orientation:
+        - -1.4264562129974365
+        - -1.3174597024917603
+        - -1.6096547842025757
+        position:
+        - 3049.56494140625
+        - 1526.5562744140625
+        - 400.46783447265625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005111.pdb
+      instances:
+      - orientation:
+        - 1.4769814014434814
+        - 0.24685527384281158
+        - -0.6426218748092651
+        position:
+        - 564.7640380859375
+        - 469.3882141113281
+        - 360.9479675292969
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005132.pdb
+      instances:
+      - orientation:
+        - -0.5367002487182617
+        - 0.10204070061445236
+        - 0.8083281517028809
+        position:
+        - 3468.33056640625
+        - 3347.677978515625
+        - 397.1305847167969
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005143.pdb
+      instances:
+      - orientation:
+        - 0.2699706554412842
+        - 1.745246171951294
+        - 1.1389440298080444
+        position:
+        - 614.3812255859375
+        - 3321.89794921875
+        - 102.92034149169922
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005145.pdb
+      instances:
+      - orientation:
+        - -1.3688340187072754
+        - 0.10833334177732468
+        - -0.2247868925333023
+        position:
+        - 3629.093994140625
+        - 403.99456787109375
+        - 104.17556762695312
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005168.pdb
+      instances:
+      - orientation:
+        - -0.8660959601402283
+        - -0.8139272928237915
+        - 0.31125858426094055
+        position:
+        - 1277.45263671875
+        - 2324.640625
+        - 191.73756408691406
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005182.pdb
+      instances:
+      - orientation:
+        - 0.20129680633544922
+        - -0.14965705573558807
+        - -0.22193923592567444
+        position:
+        - 2327.371826171875
+        - 3337.356689453125
+        - 395.46197509765625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005221.pdb
+      instances:
+      - orientation:
+        - -2.0288379192352295
+        - -0.5145536661148071
+        - -1.9699302911758423
+        position:
+        - 984.66455078125
+        - 2099.072509765625
+        - 273.1246032714844
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005238.pdb
+      instances:
+      - orientation:
+        - 0.008595393970608711
+        - 0.18604348599910736
+        - -1.6980979442596436
+        position:
+        - 3893.85986328125
+        - 257.8759460449219
+        - 259.8984069824219
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005257.pdb
+      instances:
+      - orientation:
+        - 0.46601250767707825
+        - 0.7438780665397644
+        - 0.8348895907402039
+        position:
+        - 3034.410888671875
+        - 2355.19482421875
+        - 393.96630859375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005274.pdb
+      instances:
+      - orientation:
+        - 0.38594305515289307
+        - -0.34415608644485474
+        - -0.6765273809432983
+        position:
+        - 2608.016357421875
+        - 1712.9256591796875
+        - 302.90106201171875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005361.pdb
+      instances:
+      - orientation:
+        - 0.07229998707771301
+        - 0.018064215779304504
+        - 2.4001002311706543
+        position:
+        - 1547.6571044921875
+        - 2641.717529296875
+        - 397.5184326171875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005424.pdb
+      instances:
+      - orientation:
+        - -0.45751965045928955
+        - 2.839503288269043
+        - 0.306062787771225
+        position:
+        - 3728.232421875
+        - 2073.193115234375
+        - 101.28497314453125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005444.pdb
+      instances:
+      - orientation:
+        - 0.4313385486602783
+        - -1.641231656074524
+        - 1.0668375492095947
+        position:
+        - 1966.0655517578125
+        - 2209.84716796875
+        - 397.76116943359375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005453.pdb
+      instances:
+      - orientation:
+        - 0.3351590633392334
+        - -1.1860179901123047
+        - -2.7595837116241455
+        position:
+        - 3635.312744140625
+        - 2075.2216796875
+        - 394.4566345214844
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005460.pdb
+      instances:
+      - orientation:
+        - 0.2381598949432373
+        - 0.9517355561256409
+        - -0.9949954152107239
+        position:
+        - 3495.17822265625
+        - 1523.9527587890625
+        - 395.6654968261719
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005525.pdb
+      instances:
+      - orientation:
+        - -0.09537167847156525
+        - 0.3112576901912689
+        - -0.9243483543395996
+        position:
+        - 3525.121337890625
+        - 2073.895751953125
+        - 104.2830810546875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005559.pdb
+      instances:
+      - orientation:
+        - 2.030754804611206
+        - -1.8305511474609375
+        - -0.5566440224647522
+        position:
+        - 2723.214111328125
+        - 891.0853271484375
+        - 232.5714874267578
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005561.pdb
+      instances:
+      - orientation:
+        - -1.6143171787261963
+        - 0.40813398361206055
+        - -0.026787390932440758
+        position:
+        - 1162.8431396484375
+        - 3607.33154296875
+        - 396.407470703125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005581.pdb
+      instances:
+      - orientation:
+        - -0.11205501109361649
+        - 1.2069846391677856
+        - 0.3338638246059418
+        position:
+        - 645.128173828125
+        - 3007.6943359375
+        - 261.66302490234375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005587.pdb
+      instances:
+      - orientation:
+        - 0.3488481640815735
+        - -2.22157621383667
+        - 0.7729455232620239
+        position:
+        - 1477.0843505859375
+        - 965.3361206054688
+        - 269.8650817871094
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005591.pdb
+      instances:
+      - orientation:
+        - -0.030228866264224052
+        - 0.25601035356521606
+        - -0.016112860292196274
+        position:
+        - 924.4773559570312
+        - 3312.954345703125
+        - 224.00656127929688
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005604.pdb
+      instances:
+      - orientation:
+        - -1.2698038816452026
+        - -0.6917046904563904
+        - -0.08750195801258087
+        position:
+        - 3062.664794921875
+        - 942.7959594726562
+        - 207.69921875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005662.pdb
+      instances:
+      - orientation:
+        - 0.5901444554328918
+        - 1.0715364217758179
+        - -0.198321133852005
+        position:
+        - 3484.975341796875
+        - 1032.2388916015625
+        - 105.92366027832031
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005663.pdb
+      instances:
+      - orientation:
+        - -0.7986388206481934
+        - -0.30966904759407043
+        - -2.812059164047241
+        position:
+        - 292.6961364746094
+        - 954.3505859375
+        - 104.8514404296875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005714.pdb
+      instances:
+      - orientation:
+        - -0.0019128915155306458
+        - 0.16113318502902985
+        - -0.6706230640411377
+        position:
+        - 1081.0804443359375
+        - 306.7309265136719
+        - 393.82940673828125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005724.pdb
+      instances:
+      - orientation:
+        - 0.07659616321325302
+        - 0.19767902791500092
+        - 0.2519158720970154
+        position:
+        - 1595.3162841796875
+        - 985.9533081054688
+        - 102.42402648925781
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005739.pdb
+      instances:
+      - orientation:
+        - 0.9856600165367126
+        - 0.03400585427880287
+        - 0.639724612236023
+        position:
+        - 2660.70654296875
+        - 779.9673461914062
+        - 397.1898193359375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005740.pdb
+      instances:
+      - orientation:
+        - -0.4354727864265442
+        - 0.17950330674648285
+        - -0.4424489736557007
+        position:
+        - 3515.904296875
+        - 3898.1474609375
+        - 107.05213928222656
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005746.pdb
+      instances:
+      - orientation:
+        - -0.34138962626457214
+        - -0.8515758514404297
+        - 1.011963129043579
+        position:
+        - 1649.0703125
+        - 1771.5360107421875
+        - 209.1392059326172
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005785.pdb
+      instances:
+      - orientation:
+        - 2.152190685272217
+        - -0.6655682325363159
+        - -0.3759608268737793
+        position:
+        - 3473.2333984375
+        - 2303.391357421875
+        - 105.03718566894531
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005818.pdb
+      instances:
+      - orientation:
+        - 0.04730117693543434
+        - 0.8113617300987244
+        - 0.019629670307040215
+        position:
+        - 2557.47412109375
+        - 720.5975341796875
+        - 224.67449951171875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005839.pdb
+      instances:
+      - orientation:
+        - 0.8981187343597412
+        - 1.323378324508667
+        - 2.412748336791992
+        position:
+        - 3427.202392578125
+        - 3709.153076171875
+        - 105.32307434082031
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005846.pdb
+      instances:
+      - orientation:
+        - 0.8239417672157288
+        - -0.38614287972450256
+        - -1.060340404510498
+        position:
+        - 2285.715087890625
+        - 721.4918212890625
+        - 395.9898376464844
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005875.pdb
+      instances:
+      - orientation:
+        - -0.03790119290351868
+        - 0.13949699699878693
+        - 0.004270504228770733
+        position:
+        - 3029.396728515625
+        - 732.704833984375
+        - 195.3180694580078
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005892.pdb
+      instances:
+      - orientation:
+        - -0.26234355568885803
+        - 1.4566278457641602
+        - 1.2786455154418945
+        position:
+        - 478.51910400390625
+        - 2008.831787109375
+        - 397.6864013671875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005984.pdb
+      instances:
+      - orientation:
+        - -0.9290921092033386
+        - -0.7249706983566284
+        - -0.06885862350463867
+        position:
+        - 1768.7252197265625
+        - 1039.045654296875
+        - 208.63565063476562
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_005998.pdb
+      instances:
+      - orientation:
+        - 0.5897135734558105
+        - -1.3562849760055542
+        - -0.30918312072753906
+        position:
+        - 1340.354736328125
+        - 102.95626831054688
+        - 357.4693298339844
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006004.pdb
+      instances:
+      - orientation:
+        - 0.11246853321790695
+        - -0.9054279923439026
+        - 0.9570440053939819
+        position:
+        - 2748.5078125
+        - 3260.054931640625
+        - 279.0182800292969
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006105.pdb
+      instances:
+      - orientation:
+        - -1.3119205236434937
+        - -1.8313722610473633
+        - -1.8889518976211548
+        position:
+        - 2176.649658203125
+        - 3886.50146484375
+        - 395.6514587402344
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006111.pdb
+      instances:
+      - orientation:
+        - 0.17139437794685364
+        - -0.08614981174468994
+        - 0.5718200206756592
+        position:
+        - 3420.855712890625
+        - 326.46807861328125
+        - 111.93545532226562
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006137.pdb
+      instances:
+      - orientation:
+        - 0.23115910589694977
+        - 2.9663150310516357
+        - -0.8859829306602478
+        position:
+        - 2125.07861328125
+        - 2291.49365234375
+        - 168.4610595703125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006138.pdb
+      instances:
+      - orientation:
+        - 0.905853271484375
+        - 0.49391838908195496
+        - 0.9670027494430542
+        position:
+        - 1216.1104736328125
+        - 1737.55078125
+        - 205.4097137451172
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006142.pdb
+      instances:
+      - orientation:
+        - 0.12221351265907288
+        - -0.9038302898406982
+        - 0.4831394851207733
+        position:
+        - 3818.955322265625
+        - 2635.16796875
+        - 200.90982055664062
+      - orientation:
+        - -0.8252637386322021
+        - 1.2876665592193604
+        - 0.8813581466674805
+        position:
+        - 1289.69287109375
+        - 357.5658874511719
+        - 394.98028564453125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006152.pdb
+      instances:
+      - orientation:
+        - -0.03531847521662712
+        - 0.06411998718976974
+        - 0.2215934544801712
+        position:
+        - 1564.887451171875
+        - 2797.091064453125
+        - 212.02340698242188
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006156.pdb
+      instances:
+      - orientation:
+        - -1.7977830171585083
+        - -0.5117107629776001
+        - 0.60030597448349
+        position:
+        - 414.9141845703125
+        - 115.31362915039062
+        - 356.6551208496094
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006174.pdb
+      instances:
+      - orientation:
+        - 0.6795217394828796
+        - -1.4696636199951172
+        - 1.70059335231781
+        position:
+        - 3611.3798828125
+        - 1068.6710205078125
+        - 395.9603271484375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006231.pdb
+      instances:
+      - orientation:
+        - 0.6725612282752991
+        - -0.4295145869255066
+        - -0.3429025411605835
+        position:
+        - 3506.52783203125
+        - 2772.3876953125
+        - 206.26486206054688
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006243.pdb
+      instances:
+      - orientation:
+        - 0.2728300392627716
+        - -0.7562375664710999
+        - 0.12191513180732727
+        position:
+        - 2838.87646484375
+        - 2630.4873046875
+        - 381.79412841796875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006274.pdb
+      instances:
+      - orientation:
+        - 0.3928344249725342
+        - 0.5150380730628967
+        - -2.797197103500366
+        position:
+        - 1570.803955078125
+        - 117.81723022460938
+        - 278.2657470703125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006278.pdb
+      instances:
+      - orientation:
+        - 0.644809901714325
+        - -0.6123807430267334
+        - -1.2976596355438232
+        position:
+        - 926.8687744140625
+        - 167.71934509277344
+        - 328.0807189941406
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006406.pdb
+      instances:
+      - orientation:
+        - -0.2801419496536255
+        - 0.3487432897090912
+        - -0.16691961884498596
+        position:
+        - 1330.478271484375
+        - 1653.3162841796875
+        - 394.9450378417969
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006447.pdb
+      instances:
+      - orientation:
+        - 2.788618564605713
+        - -0.35527047514915466
+        - -0.08362613618373871
+        position:
+        - 3344.072998046875
+        - 3323.87060546875
+        - 156.07144165039062
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006462.pdb
+      instances:
+      - orientation:
+        - -0.6843169927597046
+        - 0.1296178251504898
+        - -1.9624215364456177
+        position:
+        - 911.758056640625
+        - 3517.283935546875
+        - 394.50830078125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006501.pdb
+      instances:
+      - orientation:
+        - 0.5917515754699707
+        - 1.8063757419586182
+        - 0.09129615873098373
+        position:
+        - 474.2267761230469
+        - 1797.065185546875
+        - 394.311279296875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006530.pdb
+      instances:
+      - orientation:
+        - -0.185435950756073
+        - -1.345178246498108
+        - 0.2846677303314209
+        position:
+        - 1865.5843505859375
+        - 3887.86083984375
+        - 106.93994140625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006555.pdb
+      instances:
+      - orientation:
+        - -1.2432583570480347
+        - -1.837753176689148
+        - 0.7015078663825989
+        position:
+        - 2309.64404296875
+        - 2208.73388671875
+        - 225.4812469482422
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006588.pdb
+      instances:
+      - orientation:
+        - 1.3379374742507935
+        - -0.33557745814323425
+        - -1.2433745861053467
+        position:
+        - 3293.69970703125
+        - 1464.738525390625
+        - 395.5242004394531
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006670.pdb
+      instances:
+      - orientation:
+        - 0.056465838104486465
+        - -0.17275895178318024
+        - -0.19247694313526154
+        position:
+        - 3270.951904296875
+        - 907.8380126953125
+        - 221.45558166503906
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006691.pdb
+      instances:
+      - orientation:
+        - 0.12146648019552231
+        - -0.2846807837486267
+        - -0.09002499282360077
+        position:
+        - 2625.160400390625
+        - 3404.95166015625
+        - 370.5588073730469
+      - orientation:
+        - 2.059638261795044
+        - 0.45942261815071106
+        - -0.8167434334754944
+        position:
+        - 3690.14453125
+        - 823.2886962890625
+        - 242.64088439941406
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006710.pdb
+      instances:
+      - orientation:
+        - -1.164205551147461
+        - 0.7189188599586487
+        - 0.23627007007598877
+        position:
+        - 1500.2332763671875
+        - 2569.600830078125
+        - 187.3773956298828
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006726.pdb
+      instances:
+      - orientation:
+        - -0.9271665215492249
+        - -0.6053091883659363
+        - 0.2699175477027893
+        position:
+        - 3779.678955078125
+        - 3634.05712890625
+        - 315.8550109863281
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006752.pdb
+      instances:
+      - orientation:
+        - 2.0421395301818848
+        - 0.0964839980006218
+        - -1.0463991165161133
+        position:
+        - 2854.37109375
+        - 731.3802490234375
+        - 321.7028503417969
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006794.pdb
+      instances:
+      - orientation:
+        - -0.08136310428380966
+        - 0.013558960519731045
+        - -0.039175886660814285
+        position:
+        - 2884.0654296875
+        - 2240.060302734375
+        - 149.71620178222656
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006806.pdb
+      instances:
+      - orientation:
+        - 1.9166336059570312
+        - -0.8011947274208069
+        - -2.0060312747955322
+        position:
+        - 2318.2158203125
+        - 2020.62158203125
+        - 126.9193344116211
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006810.pdb
+      instances:
+      - orientation:
+        - 2.026834487915039
+        - -0.3170246183872223
+        - -0.40287157893180847
+        position:
+        - 2683.854248046875
+        - 436.36163330078125
+        - 252.60360717773438
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006909.pdb
+      instances:
+      - orientation:
+        - 1.243220567703247
+        - -2.0145223140716553
+        - 1.7072807550430298
+        position:
+        - 2057.204345703125
+        - 2481.193359375
+        - 275.49505615234375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006936.pdb
+      instances:
+      - orientation:
+        - -1.7289869785308838
+        - -1.4029655456542969
+        - 1.6707158088684082
+        position:
+        - 888.2981567382812
+        - 387.30682373046875
+        - 259.6674499511719
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_006967.pdb
+      instances:
+      - orientation:
+        - 0.859743058681488
+        - -2.2262797355651855
+        - 1.7050399780273438
+        position:
+        - 3437.93359375
+        - 2526.382080078125
+        - 280.4354553222656
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007006.pdb
+      instances:
+      - orientation:
+        - 0.8937285542488098
+        - -1.4243733882904053
+        - -2.3388009071350098
+        position:
+        - 436.7074279785156
+        - 3150.53466796875
+        - 395.19598388671875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007020.pdb
+      instances:
+      - orientation:
+        - -0.28788477182388306
+        - 2.0421526432037354
+        - -0.15959137678146362
+        position:
+        - 220.98544311523438
+        - 3560.1298828125
+        - 397.30279541015625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007030.pdb
+      instances:
+      - orientation:
+        - 0.9753810167312622
+        - 0.7838466167449951
+        - 0.7274741530418396
+        position:
+        - 902.5348510742188
+        - 1329.428466796875
+        - 107.00666809082031
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007100.pdb
+      instances:
+      - orientation:
+        - 1.2195850610733032
+        - 0.8252803683280945
+        - -1.948940396308899
+        position:
+        - 126.61861419677734
+        - 927.4324951171875
+        - 400.0208740234375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007186.pdb
+      instances:
+      - orientation:
+        - 0.2260066717863083
+        - -0.35891154408454895
+        - -0.4319826066493988
+        position:
+        - 1670.7041015625
+        - 3887.177734375
+        - 183.24942016601562
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007265.pdb
+      instances:
+      - orientation:
+        - 1.8241528272628784
+        - -0.5281864404678345
+        - -0.5789541602134705
+        position:
+        - 2770.2646484375
+        - 1730.5341796875
+        - 133.57286071777344
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007318.pdb
+      instances:
+      - orientation:
+        - -1.2321832180023193
+        - -0.6787523627281189
+        - -1.4783580303192139
+        position:
+        - 417.3390808105469
+        - 1975.134521484375
+        - 105.64153289794922
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007319.pdb
+      instances:
+      - orientation:
+        - 1.2496898174285889
+        - 0.5048559308052063
+        - 1.3589242696762085
+        position:
+        - 822.1148071289062
+        - 871.8518676757812
+        - 261.1233215332031
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007325.pdb
+      instances:
+      - orientation:
+        - 0.43219780921936035
+        - 0.6620653867721558
+        - -1.886957049369812
+        position:
+        - 1387.9552001953125
+        - 2729.760986328125
+        - 106.74591064453125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007335.pdb
+      instances:
+      - orientation:
+        - 0.16961926221847534
+        - 0.8129702210426331
+        - 1.401857614517212
+        position:
+        - 3561.144775390625
+        - 3859.093994140625
+        - 394.06268310546875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007348.pdb
+      instances:
+      - orientation:
+        - 0.4510984718799591
+        - -1.5811487436294556
+        - -0.654670774936676
+        position:
+        - 1605.256103515625
+        - 3452.98291015625
+        - 106.9906997680664
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007350.pdb
+      instances:
+      - orientation:
+        - 2.677250623703003
+        - 0.3126354515552521
+        - -0.32476189732551575
+        position:
+        - 3419.55908203125
+        - 813.3287353515625
+        - 105.94882202148438
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007375.pdb
+      instances:
+      - orientation:
+        - 0.3587142527103424
+        - 2.1036829948425293
+        - 0.3605160713195801
+        position:
+        - 547.6326904296875
+        - 3671.584228515625
+        - 395.63714599609375
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007403.pdb
+      instances:
+      - orientation:
+        - -0.5683271884918213
+        - -0.4709957540035248
+        - 0.9504347443580627
+        position:
+        - 3318.992919921875
+        - 1209.4603271484375
+        - 123.83881378173828
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007408.pdb
+      instances:
+      - orientation:
+        - 1.321597933769226
+        - 0.10976791381835938
+        - -0.6591876149177551
+        position:
+        - 3603.207275390625
+        - 1708.775146484375
+        - 283.612548828125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007420.pdb
+      instances:
+      - orientation:
+        - -0.44256308674812317
+        - 0.4716488718986511
+        - 0.16085363924503326
+        position:
+        - 1105.91552734375
+        - 2393.32666015625
+        - 394.9950256347656
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007504.pdb
+      instances:
+      - orientation:
+        - -1.5278105735778809
+        - 1.390581488609314
+        - 0.1016598492860794
+        position:
+        - 1320.47021484375
+        - 664.3030395507812
+        - 106.33905792236328
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007524.pdb
+      instances:
+      - orientation:
+        - 0.6082719564437866
+        - -1.4062663316726685
+        - 0.008488683961331844
+        position:
+        - 3800.58544921875
+        - 1877.5966796875
+        - 112.64691925048828
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007546.pdb
+      instances:
+      - orientation:
+        - -0.12453925609588623
+        - 0.006429021712392569
+        - 0.008498878218233585
+        position:
+        - 3824.236328125
+        - 105.57577514648438
+        - 389.91845703125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007570.pdb
+      instances:
+      - orientation:
+        - 0.029769424349069595
+        - 1.0811259746551514
+        - 1.6349847316741943
+        position:
+        - 3575.612548828125
+        - 544.3657836914062
+        - 258.6305847167969
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007572.pdb
+      instances:
+      - orientation:
+        - 1.4179878234863281
+        - 2.7908267974853516
+        - -0.11109057068824768
+        position:
+        - 3307.1103515625
+        - 1676.3118896484375
+        - 304.8877868652344
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007586.pdb
+      instances:
+      - orientation:
+        - 0.7540788054466248
+        - -1.6115601062774658
+        - 1.8418368101119995
+        position:
+        - 2205.98779296875
+        - 914.4933471679688
+        - 394.3603515625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007614.pdb
+      instances:
+      - orientation:
+        - 1.6166131496429443
+        - 1.2760841846466064
+        - 1.368906021118164
+        position:
+        - 2362.547119140625
+        - 1412.5152587890625
+        - 98.23676300048828
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007638.pdb
+      instances:
+      - orientation:
+        - -0.7815793752670288
+        - -0.3058072626590729
+        - -0.012908920645713806
+        position:
+        - 1412.8048095703125
+        - 2441.7763671875
+        - 330.6612854003906
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007644.pdb
+      instances:
+      - orientation:
+        - -0.4690842628479004
+        - -0.6711537837982178
+        - 0.6158082485198975
+        position:
+        - 1732.9952392578125
+        - 2862.034423828125
+        - 105.02684783935547
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007659.pdb
+      instances:
+      - orientation:
+        - -1.1552860736846924
+        - 0.3688872754573822
+        - 0.5625701546669006
+        position:
+        - 2250.939697265625
+        - 414.1837463378906
+        - 397.8722229003906
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007663.pdb
+      instances:
+      - orientation:
+        - 0.1645348072052002
+        - -2.418271541595459
+        - 1.1921113729476929
+        position:
+        - 3694.2021484375
+        - 3787.286376953125
+        - 106.24763488769531
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007670.pdb
+      instances:
+      - orientation:
+        - 1.4264147281646729
+        - -0.9864214658737183
+        - -2.085784673690796
+        position:
+        - 1191.2060546875
+        - 340.38916015625
+        - 205.55499267578125
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007680.pdb
+      instances:
+      - orientation:
+        - 1.4031754732131958
+        - -0.48462435603141785
+        - 0.5647404789924622
+        position:
+        - 1024.0953369140625
+        - 2787.251708984375
+        - 325.29449462890625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007703.pdb
+      instances:
+      - orientation:
+        - 0.27434784173965454
+        - -1.8230526447296143
+        - 1.2115358114242554
+        position:
+        - 694.3583374023438
+        - 3518.8466796875
+        - 107.18099212646484
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007716.pdb
+      instances:
+      - orientation:
+        - -1.0507678985595703
+        - 0.22701996564865112
+        - -1.8136147260665894
+        position:
+        - 3026.109375
+        - 118.47857666015625
+        - 310.4261779785156
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007753.pdb
+      instances:
+      - orientation:
+        - 0.1397484391927719
+        - 0.19080017507076263
+        - 0.43189042806625366
+        position:
+        - 3521.81640625
+        - 1494.6712646484375
+        - 107.99263000488281
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007774.pdb
+      instances:
+      - orientation:
+        - -0.6217473149299622
+        - 0.013188095763325691
+        - -1.1055022478103638
+        position:
+        - 1206.378173828125
+        - 2050.440673828125
+        - 197.98121643066406
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007793.pdb
+      instances:
+      - orientation:
+        - -0.08096858859062195
+        - -0.03676747530698776
+        - -0.036645639687776566
+        position:
+        - 129.76780700683594
+        - 1929.6453857421875
+        - 351.8250732421875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007803.pdb
+      instances:
+      - orientation:
+        - 0.07650019973516464
+        - 0.07152974605560303
+        - 0.03542957827448845
+        position:
+        - 1328.9840087890625
+        - 2942.670654296875
+        - 104.85330963134766
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007808.pdb
+      instances:
+      - orientation:
+        - -0.6921442747116089
+        - -0.12619830667972565
+        - 0.3322972357273102
+        position:
+        - 103.35450744628906
+        - 3720.2646484375
+        - 333.7467346191406
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007836.pdb
+      instances:
+      - orientation:
+        - -0.2045760303735733
+        - -0.3802627921104431
+        - 1.6186130046844482
+        position:
+        - 3834.67138671875
+        - 2368.09326171875
+        - 101.15300750732422
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007843.pdb
+      instances:
+      - orientation:
+        - -0.10411261022090912
+        - -0.222126767039299
+        - 0.03298623487353325
+        position:
+        - 1464.20263671875
+        - 474.27740478515625
+        - 391.9071044921875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007848.pdb
+      instances:
+      - orientation:
+        - -0.08439432829618454
+        - -0.10508564859628677
+        - -0.1441144049167633
+        position:
+        - 2391.74267578125
+        - 3732.628662109375
+        - 203.17544555664062
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007849.pdb
+      instances:
+      - orientation:
+        - -2.3247604370117188
+        - -0.983729362487793
+        - -1.204422950744629
+        position:
+        - 2277.88818359375
+        - 454.12664794921875
+        - 103.92886352539062
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007906.pdb
+      instances:
+      - orientation:
+        - 0.10745421797037125
+        - 1.1776636838912964
+        - 0.6118432283401489
+        position:
+        - 1903.1710205078125
+        - 164.4610137939453
+        - 141.78729248046875
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007943.pdb
+      instances:
+      - orientation:
+        - -0.9790336489677429
+        - -0.697679877281189
+        - -1.3957953453063965
+        position:
+        - 3321.058837890625
+        - 1432.996826171875
+        - 110.5534896850586
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_007946.pdb
+      instances:
+      - orientation:
+        - 1.5763897895812988
+        - 0.5275270342826843
+        - -0.6878856420516968
+        position:
+        - 2663.807373046875
+        - 2791.85546875
+        - 191.79623413085938
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_008006.pdb
+      instances:
+      - orientation:
+        - 0.0028521688655018806
+        - 0.016196168959140778
+        - 0.03475646302103996
+        position:
+        - 3336.042236328125
+        - 2707.593994140625
+        - 327.6143493652344
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_008012.pdb
+      instances:
+      - orientation:
+        - -1.6453838348388672
+        - 2.468602418899536
+        - 0.25936001539230347
+        position:
+        - 696.992431640625
+        - 1623.454833984375
+        - 343.4922790527344
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_008064.pdb
+      instances:
+      - orientation:
+        - -0.38919535279273987
+        - 1.313914179801941
+        - 2.736459255218506
+        position:
+        - 2060.706298828125
+        - 1514.65966796875
+        - 106.26959228515625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_008129.pdb
+      instances:
+      - orientation:
+        - 1.056026816368103
+        - 1.1448478698730469
+        - 2.712803363800049
+        position:
+        - 1668.15478515625
+        - 3054.989501953125
+        - 111.22482299804688
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_008162.pdb
+      instances:
+      - orientation:
+        - 0.42465919256210327
+        - -0.5094661712646484
+        - 0.8790841698646545
+        position:
+        - 1424.6307373046875
+        - 1695.0565185546875
+        - 211.69895935058594
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_008198.pdb
+      instances:
+      - orientation:
+        - 0.7185421586036682
+        - -0.032224878668785095
+        - 0.2410779744386673
+        position:
+        - 880.8161010742188
+        - 1897.929931640625
+        - 127.45677947998047
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_008208.pdb
+      instances:
+      - orientation:
+        - -0.12210419774055481
+        - 0.15133845806121826
+        - 1.930854082107544
+        position:
+        - 1919.119384765625
+        - 645.6630249023438
+        - 266.6672058105469
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_008220.pdb
+      instances:
+      - orientation:
+        - 0.03438006713986397
+        - -0.019758615642786026
+        - -0.06908087432384491
+        position:
+        - 2675.986572265625
+        - 3167.94189453125
+        - 102.57911682128906
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_008250.pdb
+      instances:
+      - orientation:
+        - -0.0006762699340470135
+        - -0.39220601320266724
+        - 0.2510203421115875
+        position:
+        - 1120.9105224609375
+        - 1624.9488525390625
+        - 394.27838134765625
+    - filename: /mnt/parakeet_storage4/ConformationSampling/DESRES-Trajectory_sarscov2-11021571-all-glueCA/even_sampling_8334/conformation_008308.pdb
+      instances:
+      - orientation:
+        - -2.841261625289917
+        - 0.25589439272880554
+        - 0.505369246006012
+        position:
+        - 1729.57763671875
+        - 1393.0408935546875
+        - 215.37135314941406
+    pdb: null
+  shape:
+    cube:
+      length: 1000.0
+    cuboid:
+      length_x: 4000.0
+      length_y: 4000.0
+      length_z: 500.0
+    cylinder:
+      axis:
+      - 0
+      - 1
+      - 0
+      length: 1000.0
+      offset_x: null
+      offset_z: null
+      radius: 500.0
+    margin:
+    - 0.0
+    - 0.0
+    - 0.0
+    type: cuboid
+  sputter: null
+scan:
+  angles: null
+  axis:
+  - 0.0
+  - 1.0
+  - 0.0
+  drift: null
+  exposure_time: 1
+  mode: still
+  num_fractions: 1
+  num_images: 1
+  num_nhelix: 1
+  phi: null
+  positions: null
+  start_angle: 0.0
+  start_pos: 0.0
+  step_angle: 0.0
+  step_pos: auto
+  theta: null
+simulation:
+  division_thickness: 100
+  ice: true
+  inelastic_model: null
+  margin: 0
+  mp_loss_position: peak
+  mp_loss_width: null
+  padding: 1
+  radiation_damage_model: false
+  sensitivity_coefficient: 0.022
+  slice_thickness: 3.0
