@@ -5,6 +5,7 @@ from typing import Any
 import yaml
 
 from parakeet import config
+from roodmus.simulation.orientation_generator import orientation_generator
 
 """
 from run_parakeet.orientation_generator import orientation_generator
@@ -34,6 +35,7 @@ class Configuration(object):
             self.optics_filename = os.path.join(args.mrc_dir, "optics.h5")
             self.image_filename = os.path.join(args.mrc_dir, "image.h5")
             self.leading_zeros = args.leading_zeros
+            self.verbose = args.verbose
             self._set_config(args)
 
     def _set_config(self, args):
@@ -249,18 +251,51 @@ class Configuration(object):
                 config.LocalMolecule(filename=pdb_file, instances=instance)
             )
 
-    def add_molecules(self, frames: list[str], instances: list[int]):
+    def add_molecules(
+        self,
+        frames: list[str],
+        instances: list[int],
+        orientation_method: str = "parakeet",
+    ):
         """Add molecules to the configuration file.
 
         Args:
             frames (str): Filepath of molecule to add to configuration file
             instances (int): Number of instances of molecule to
             add to configuration file
+            orientation_generator (str, optional): Orientation generator
         """
         for frame, instance in zip(frames, instances):
-            # self._add_molecule(frame, n=instance,
-            # orientation=orientation_generator.generate_inplane())
-            self._add_molecule(frame, n=instance)
+            if orientation_method == "parakeet":
+                # default behaviour
+                # let's parakeet generate the orientations
+                self._add_molecule(frame, n=instance)
+
+            elif orientation_method == "inplane":
+                # pre-defines orientations
+                # only generates in-plane rotations
+                # with no tilt
+                orientation = orientation_generator.generate_inplane(
+                    n=instance
+                )
+                self._add_molecule(frame, n=None, orientation=orientation)
+
+            elif "discrete_tilt" in orientation_method:
+                # pre-defines orientations
+                # samples elevation angles from a discrete set
+                # samples azimuthal and in-plane rotations from a
+                # continuous uniform distribution
+                k = int(orientation_method.split("_")[-1])
+                orientation = orientation_generator.generate_discrete_tilt(
+                    n=instance, k=k, save_to_file=self.verbose
+                )
+                self._add_molecule(frame, n=None, orientation=orientation)
+
+            else:
+                raise ValueError(
+                    f"Orientation generator {orientation_generator} \
+                        not supported"
+                )
 
         self._save_config()
 

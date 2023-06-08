@@ -10,6 +10,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy import interpolate
 import mrcfile
 
 from roodmus.analysis.utils import load_data
@@ -61,6 +62,9 @@ def add_arguments(parser):
     )
     parser.add_argument(
         "--verbose", help="increase output verbosity", action="store_true"
+    )
+    parser.add_argument(
+        "--tqdm", help="use tqdm progress bar", action="store_true"
     )
     return parser
 
@@ -169,13 +173,11 @@ def plot_defocus_scatter(
 
 
 def _relativistic_lambda(voltage):
+    # returns the relativistic wavelength in Angstrom
     return 12.2643247 / np.sqrt(voltage * (1 + voltage * 0.978466e-6))
 
 
-def _simulate_CTF_curve(
-    defocus, amp, Cs, B, voltage, max_freq=0.5, num_points=1024 // 2
-):
-    k = np.linspace(0, max_freq, num_points)
+def _simulate_CTF_curve(defocus, amp, Cs, B, voltage, k):
     wavelength = _relativistic_lambda(voltage)
     gamma = (-np.pi / 2) * Cs * np.power(wavelength, 3) * np.power(
         k, 4
@@ -184,33 +186,14 @@ def _simulate_CTF_curve(
     if B != 0:
         CTF *= np.exp(-B * k**2)
 
-    return k, CTF
+    return CTF
 
 
-def _convert_1d_ctf_to_2d_ctf(ctf_1d):
-    from scipy import interpolate
-
-    n = len(ctf_1d)
-    apix = 1
-    freq = np.linspace(1 / (n * apix), 1 / (2 * apix), n, endpoint=True)
-    assert len(freq) == len(
-        ctf_1d
-    ), "Frequency and CTF must have the same size"
+def _convert_1d_ctf_to_2d_ctf(ctf_1d, freq_1d, freq_2d):
     ctf_interpolate = interpolate.interp1d(
-        freq, ctf_1d, fill_value="extrapolate"
+        freq_1d, ctf_1d, fill_value="extrapolate"
     )
-
-    freq_x, freq_y = np.meshgrid(
-        np.linspace(-1 / (2 * apix), 1 / (2 * apix), 2 * n, endpoint=True),
-        np.linspace(-1 / (2 * apix), 1 / (2 * apix), 2 * n, endpoint=True),
-    )
-    # generate a 2d CTF grid
-    freq_2d = np.sqrt(freq_x**2 + freq_y**2)
-    # mask freq_2d
-    circular_mask = (freq_2d <= 1).astype(int)
-    freq_2d = freq_2d * circular_mask
     ctf_2d = ctf_interpolate(freq_2d)
-    # apply the CTF to the image
     return ctf_2d
 
 
@@ -236,14 +219,15 @@ def plot_CTF(
     # get the micrograph name
     ugraph_filename = np.unique(df_picked["ugraph_filename"])[ugraph_index]
     print(f"plotted index {ugraph_index}; micrograph: {ugraph_filename}")
+
     ugraph_path = os.path.join(mrc_dir, ugraph_filename)
     ugraph = mrcfile.open(ugraph_path).data[0, :, :]
+    ugraph_ft = np.fft.fftshift(np.fft.fft2(ugraph))
+    magnitude_spectrum = 20 * np.log(np.abs(ugraph_ft))
 
-    ugraph_ft = np.log(np.abs(np.fft.fftshift(np.fft.fft2(ugraph))))
-    L = ugraph_ft.shape[0] // 4
-    ugraph_ft_crop = ugraph_ft[L:-L, L:-L]
-    vmin = np.percentile(ugraph_ft_crop, 5)
-    vmax = np.percentile(ugraph_ft_crop, 99.99)
+    # for contrast, only plot the middle 80% of the spectrum
+    vmin = np.nanpercentile(magnitude_spectrum, 10)
+    vmax = np.nanpercentile(magnitude_spectrum, 90)
 
     # get the CTF values for the micrograph from the dataframe
     data_ugraph = df_picked.groupby("ugraph_filename").get_group(
@@ -253,19 +237,35 @@ def plot_CTF(
         0
     ]  # assume all particles have the same defocusU
 
+    # extract the frequency values from the micrograph
+    rows, cols = ugraph.shape
+    freq_rows = np.fft.fftfreq(rows, d=1)
+    freq_cols = np.fft.fftfreq(cols, d=1)
+    mesh_freq_cols, mesh_freq_rows = np.meshgrid(freq_cols, freq_rows)
+
+    # compute the 1D CTF curve
     ctf_estimated_1D = _simulate_CTF_curve(
-        defocusU, amp, Cs, Bfac, kV, max_freq=0.05, num_points=2000 // 2
+        defocusU, amp, Cs, Bfac, kV, freq_rows
     )
-    ctf_estimated_2D = _convert_1d_ctf_to_2d_ctf(ctf_estimated_1D[1])
+
+    # compute the 2D CTF curve
+    ctf_estimated_2D, freq_2d = _convert_1d_ctf_to_2d_ctf(ctf_estimated_1D)
     ctf_estimated_2D = np.abs(ctf_estimated_2D)
-    x = np.linspace(0, 1, ctf_estimated_2D.shape[0])
-    X, Y = np.meshgrid(x, x)
-    circle_mask = ((X - 0.5) ** 2 + (Y - 0.5) ** 2 <= 0.125).astype(int)
-    ctf_estimated_2D *= circle_mask
-    # turn the first 3 quadrants to nan
-    ctf_estimated_2D[ctf_estimated_2D.shape[0] // 2 :, :] = np.nan
-    ctf_estimated_2D[:, ctf_estimated_2D.shape[1] // 2 :] = np.nan
-    ctf_estimated_2D[ctf_estimated_2D == 0] = np.nan
+
+    # x = np.linspace(0, 1, ctf_estimated_2D.shape[0])
+    # X, Y = np.meshgrid(freq, freq)
+    # # crop out the centre
+    # ctf_estimated_2D = ctf_estimated_2D[
+    #     ctf_estimated_2D.shape[0] // 4 : -ctf_estimated_2D.shape[0] // 4,
+    #     ctf_estimated_2D.shape[1] // 4 : -ctf_estimated_2D.shape[1] // 4,
+    # ]
+    # circle_mask = ((X - 0.5) ** 2 + (Y - 0.5) ** 2 <= 0.125).astype(int)
+    # circle_mask = (freq_2d <= 0.375).astype(int)
+    # ctf_estimated_2D *= circle_mask
+    # # turn the first 3 quadrants to nan
+    # ctf_estimated_2D[ctf_estimated_2D.shape[0] // 2 :, :] = np.nan
+    # ctf_estimated_2D[:, ctf_estimated_2D.shape[1] // 2 :] = np.nan
+    # ctf_estimated_2D[ctf_estimated_2D == 0] = np.nan
     vmin_ctf = np.nanpercentile(ctf_estimated_2D, 5) * 0.5
     vmax_ctf = np.nanpercentile(ctf_estimated_2D, 99.99) * 1.5
 
@@ -285,7 +285,7 @@ def plot_CTF(
         max_freq=0.05,
         num_points=2000 // 2,
     )
-    ctf_truth_2d = _convert_1d_ctf_to_2d_ctf(ctf_truth_1d[1])
+    ctf_truth_2d, _ = _convert_1d_ctf_to_2d_ctf(ctf_truth_1d[1])
     ctf_truth_2d = np.abs(ctf_truth_2d)
     x = np.linspace(0, 1, ctf_truth_2d.shape[0])
     X, Y = np.meshgrid(x, x)
@@ -295,16 +295,16 @@ def plot_CTF(
     ctf_truth_2d[ctf_truth_2d.shape[0] // 2 :, :] = np.nan
     ctf_truth_2d[:, : ctf_truth_2d.shape[1] // 2] = np.nan
     ctf_truth_2d[ctf_truth_2d == 0] = np.nan
-    vmin_ctf_truth = np.nanpercentile(ctf_truth_2d, 5) * 0.5
-    vmax_ctf_truth = np.nanpercentile(ctf_truth_2d, 99.99) * 1.5
+    # vmin_ctf_truth = np.nanpercentile(ctf_truth_2d, 5) * 0.5
+    # vmax_ctf_truth = np.nanpercentile(ctf_truth_2d, 99.99) * 1.5
 
     # plot the power spectrum
     fig, ax = plt.subplots(figsize=(10, 10))
-    ax.imshow(ugraph_ft_crop, cmap="gray", vmin=vmin, vmax=vmax)
+    ax.imshow(magnitude_spectrum, cmap="gray", vmin=vmin, vmax=vmax)
     ax.imshow(ctf_estimated_2D, cmap="gray", vmin=vmin_ctf, vmax=vmax_ctf)
-    ax.imshow(
-        ctf_truth_2d, cmap="gray", vmin=vmin_ctf_truth, vmax=vmax_ctf_truth
-    )
+    # ax.imshow(
+    #     ctf_truth_2d, cmap="gray", vmin=vmin_ctf_truth, vmax=vmax_ctf_truth
+    # )
     # add text to show the estimated and truth values in units of Angstrom
     ax.text(
         0.05,
@@ -356,6 +356,7 @@ def main(args):
         args.config_dir,
         particle_diameter=0,
         verbose=args.verbose,
+        progressbar=args.tqdm,
     )
     df_picked = pd.DataFrame(analysis.results_picking)
     df_truth = pd.DataFrame(analysis.results_truth)

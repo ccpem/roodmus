@@ -213,7 +213,11 @@ def main(args):
                         args.plot_dir,
                         f"{jobtypes[metadata_filename]}_2Dclass_precision.png",
                     )
-                    fig.savefig(outfilename, dpi=300)
+                    fig.savefig(outfilename, dpi=600, bbox_inches="tight")
+                    fig.savefig(
+                        outfilename.replace(".png", ".pdf"),
+                        bbox_inches="tight",
+                    )
                     fig.clf()
 
         if plot_type == "frame_distribution":
@@ -247,7 +251,11 @@ def main(args):
                         f"{jobtypes[metadata_filename]}_ \
                         2Dclass_frame_distribution.png",
                     )
-                    fig.savefig(outfilename, dpi=300)
+                    fig.savefig(outfilename, dpi=600, bbox_inches="tight")
+                    fig.savefig(
+                        outfilename.replace(".png", ".pdf"),
+                        bbox_inches="tight",
+                    )
                     fig.clf()
 
 

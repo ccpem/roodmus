@@ -93,6 +93,9 @@ def add_arguments(parser):
     parser.add_argument(
         "--verbose", help="increase output verbosity", action="store_true"
     )
+    parser.add_argument(
+        "--tqdm", help="show tqdm progress bar", action="store_true"
+    )
     return parser
 
 
@@ -185,8 +188,8 @@ def label_micrograph_truth(
                 facecolor="none",
             )
             ax.add_patch(rect)
-        green_patch = patches.Patch(color="green", label="Truth particles")
-        ax.legend(handles=[green_patch])
+        # green_patch = patches.Patch(color="green", label="Truth particles")
+        # ax.legend(handles=[green_patch])
     return fig, ax
 
 
@@ -255,8 +258,8 @@ def label_micrograph_picked(
                 alpha=alpha,
             )
             ax.add_patch(rect)
-        red_patch = patches.Patch(color="red", label="Picked particles")
-        ax.legend(handles=[red_patch])
+        # red_patch = patches.Patch(color="red", label="Picked particles")
+        # ax.legend(handles=[red_patch])
     return fig, ax
 
 
@@ -322,7 +325,7 @@ def label_micrograph_truth_and_picked(
                 facecolor="none",
             )
             ax.add_patch(rect)
-        red_patch = patches.Patch(color="red", label="Picked particles")
+        # red_patch = patches.Patch(color="red", label="Picked particles")
 
         boxes = _twoD_image_bboxs(
             truth_particles_ugraph["position_x"],
@@ -347,8 +350,8 @@ def label_micrograph_truth_and_picked(
                 facecolor="none",
             )
             ax.add_patch(rect)
-        green_patch = patches.Patch(color="green", label="Truth particles")
-        ax.legend(handles=[red_patch, green_patch])
+        # green_patch = patches.Patch(color="green", label="Truth particles")
+        # ax.legend(handles=[red_patch, green_patch])
     return fig, ax
 
 
@@ -798,6 +801,18 @@ def main(args):
         analysis.results_truth
     )  # data frame containing the ground-truth particles
 
+    # get a dictionary of the jobtypes
+    if args.jobtypes is not None:
+        jobtypes = {
+            meta_file: jobtype
+            for meta_file, jobtype in zip(args.meta_file, args.jobtypes)
+        }
+    else:
+        jobtypes = {
+            meta_file: os.path.basename(meta_file).split(".")[0]
+            for meta_file in args.meta_file
+        }
+
     for plot_type in args.plot_types:
         if plot_type == "label_truth":  # plot the ground-truth particles
             for ugraph_index, ugraph_filename in enumerate(
@@ -816,13 +831,19 @@ def main(args):
                     box_height=args.box_height,
                     verbose=args.verbose,
                 )
+                # remove axis ticks
+                ax.set_xticks([])
+                ax.set_yticks([])
                 outfilename = os.path.join(
                     args.plot_dir,
                     "{}_truth.png".format(
                         ugraph_filename.strip(".mrc"),
                     ),
                 )
-                fig.savefig(outfilename)
+                fig.savefig(outfilename, dpi=600, bbox_inches="tight")
+                fig.savefig(
+                    outfilename.replace(".png", ".pdf"), bbox_inches="tight"
+                )
                 fig.clf()
 
         if plot_type == "label_picked":  # plot the picked particles
@@ -846,6 +867,9 @@ def main(args):
                         box_height=args.box_height,
                         verbose=args.verbose,
                     )
+                    # remove axis ticks
+                    ax.set_xticks([])
+                    ax.set_yticks([])
                     outfilename = os.path.join(
                         args.plot_dir,
                         "{}_{}_picked.png".format(
@@ -853,11 +877,19 @@ def main(args):
                             meta_basename.split(".")[0],
                         ),
                     )
-                    fig.savefig(outfilename)
+                    # remove axis ticks
+                    ax.set_xticks([])
+                    ax.set_yticks([])
+                    fig.savefig(outfilename, dpi=600, bbox_inches="tight")
+                    fig.savefig(
+                        outfilename.replace(".png", ".pdf"),
+                        bbox_inches="tight",
+                    )
                     fig.clf()
 
         if plot_type == "label_truth_and_picked":
             for meta_file in args.meta_file:
+                meta_basename = os.path.basename(meta_file)
                 for ugraph_index, ugraph_filename in enumerate(
                     np.unique(df_picked["ugraph_filename"])[: args.num_ugraphs]
                 ):
@@ -878,6 +910,9 @@ def main(args):
                         box_height=args.box_height,
                         verbose=args.verbose,
                     )
+                    # remove axis ticks
+                    ax.set_xticks([])
+                    ax.set_yticks([])
                     outfilename = os.path.join(
                         args.plot_dir,
                         "{}_{}_truth_and_picked.png".format(
@@ -885,7 +920,11 @@ def main(args):
                             meta_basename.split(".")[0],
                         ),
                     )
-                    fig.savefig(outfilename)
+                    fig.savefig(outfilename, dpi=600, bbox_inches="tight")
+                    fig.savefig(
+                        outfilename.replace(".png", ".pdf"),
+                        bbox_inches="tight",
+                    )
                     fig.clf()
 
         if plot_type == "precision":
@@ -893,29 +932,23 @@ def main(args):
             df_precision, _ = analysis.compute_precision(
                 df_picked, df_truth, verbose=args.verbose
             )
-            # then get a dictionary of the jobtypes
-            if args.jobtypes is not None:
-                jobtypes = {
-                    meta_file: jobtype
-                    for meta_file, jobtype in zip(
-                        args.meta_file, args.jobtypes
-                    )
-                }
-            else:
-                jobtypes = {
-                    meta_file: os.path.basename(meta_file).split(".")[0]
-                    for meta_file in args.meta_file
-                }
+
             print("plotting precision...")
             fig, ax = plot_precision(df_precision, jobtypes, args.meta_file)
             outfilename = os.path.join(args.plot_dir, "precision.png")
-            fig.savefig(outfilename)
+            fig.savefig(outfilename, dpi=600, bbox_inches="tight")
+            fig.savefig(
+                outfilename.replace(".png", ".pdf"), bbox_inches="tight"
+            )
             fig.clf()
 
             print("plotting recall...")
             fig, ax = plot_recall(df_precision, jobtypes, args.meta_file)
             outfilename = os.path.join(args.plot_dir, "recall.png")
-            fig.savefig(outfilename)
+            fig.savefig(outfilename, dpi=600, bbox_inches="tight")
+            fig.savefig(
+                outfilename.replace(".png", ".pdf"), bbox_inches="tight"
+            )
             fig.clf()
 
             print("plotting precsion and recall in one plot...")
@@ -925,13 +958,19 @@ def main(args):
             outfilename = os.path.join(
                 args.plot_dir, "precision_and_recall.png"
             )
-            fig.savefig(outfilename)
+            fig.savefig(outfilename, dpi=600, bbox_inches="tight")
+            fig.savefig(
+                outfilename.replace(".png", ".pdf"), bbox_inches="tight"
+            )
             fig.clf()
 
             print("plotting F1 score...")
             fig, ax = plot_f1_score(df_precision, jobtypes, args.meta_file)
             outfilename = os.path.join(args.plot_dir, "f1_score.png")
-            fig.savefig(outfilename)
+            fig.savefig(outfilename, dpi=600, bbox_inches="tight")
+            fig.savefig(
+                outfilename.replace(".png", ".pdf"), bbox_inches="tight"
+            )
             fig.clf()
 
         if plot_type == "boundary":
@@ -949,7 +988,11 @@ def main(args):
                         args.plot_dir,
                         f"{meta_basename.split('.')[0]}_boundary_{a}.png",
                     )
-                    fig.savefig(outfilename)
+                    fig.savefig(outfilename, dpi=600, bbox_inches="tight")
+                    fig.savefig(
+                        outfilename.replace(".png", ".pdf"),
+                        bbox_inches="tight",
+                    )
                     fig.clf()
 
         if plot_type == "overlap":
@@ -966,9 +1009,14 @@ def main(args):
                 fig.savefig(outfilename)
                 fig.clf()
 
-            fig, ax = plot_overlap_investigation(df_overlap, None)  # plot all
+            fig, ax = plot_overlap_investigation(
+                df_overlap, None, jobtypes
+            )  # plot all
             outfilename = os.path.join(args.plot_dir, "overlap.png")
-            fig.savefig(outfilename)
+            fig.savefig(outfilename, dpi=600, bbox_inches="tight")
+            fig.savefig(
+                outfilename.replace(".png", ".pdf"), bbox_inches="tight"
+            )
             fig.clf()
 
 
