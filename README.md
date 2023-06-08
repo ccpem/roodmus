@@ -148,9 +148,17 @@ pip install -e .
 # Updating roodmus As A pip Package
 I do this via twine:
 `python3 -m pip install --upgrade twine`
+
 If there's any updates, you need to update the version number (configured in the pyproject.toml). Make sure it is suitable according to pep conventions! Currently updating this is manual.
+
+Build the updated package via:
+
+`python3 -m pip install --upgrade build`
+
+`python3 -m build`
+
 Once you've done that, you can publish the package via:
-`python3 -m twine upload --repository testpypi dist/*<version>`
+`python3 -m twine upload --repository testpypi dist/*<version>*`
 
 To do this you'll need an account and token (instructions here: <https://packaging.python.org/en/latest/tutorials/packaging-projects/>)
 
