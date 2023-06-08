@@ -149,22 +149,26 @@ class Configuration(object):
         # self.config.sample.sputter.element =
         # self.config.sample.sputter.thickness =
 
-        # scan (not yet supported as user input)
-        self.config.scan.mode = "still"
-        self.config.scan.axis = (0.0, 1.0, 0.0)
-        self.config.scan.start_angle = 0.0
-        self.config.scan.step_angle = 0.0
-        self.config.scan.start_pos = 0.0
-        self.config.scan.step_pos = "auto"
-        self.config.scan.num_images = 1
-        # self.config.scan.num_fractions = 1
-        # self.config.scan.num_nhelix = 1
-        self.config.scan.exposure_time = 1
-        self.config.scan.angles = None
-        self.config.scan.positions = None
-        # self.config.scan.theta = None
-        # self.config.scan.phi = None
-        # self.config.scan.drift.magnitude =
+        # scan (now supported as user input)
+        self.config.scan.mode = args.scan_mode
+        assert len(args.scan_axis) == 3, "Provide 3 arguments to --scan_axis!"
+        self.config.scan.axis = tuple(args.scan_axis)
+        self.config.scan.start_angle = args.scan_start_angle
+        self.config.scan.step_angle = args.scan_step_angle
+        self.config.scan.start_pos = args.scan_start_pos
+        if args.scan_step_pos is None:
+            self.config.scan.step_pos = "auto"
+        else:
+            self.config.scan.step_pos = args.scan_step_pos
+        self.config.scan.num_images = args.scan_num_images
+        self.config.scan.num_fractions = args.scan_num_fractions
+        self.config.scan.num_nhelix = args.scan_num_nhelix
+        self.config.scan.exposure_time = args.exposure_time
+        self.config.scan.angles = args.scan_angles
+        self.config.scan.positions = args.scan_positions
+        self.config.scan.theta = args.scan_theta
+        self.config.scan.phi = args.scan_phi
+        self.config.scan.drift = args.scan_drift
         # self.config.scan.drift.kernel_size =
 
         # simulation

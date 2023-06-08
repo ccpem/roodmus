@@ -704,6 +704,175 @@ def add_arguments(
         required=False,
     )
 
+    # scan args
+    parser.add_argument(
+        "--scan_mode",
+        help="Scan mode, defaults to 'still'.",
+        default="still",
+        choices=[
+            "still",
+            "manual",
+            "tilt_series",
+            "dose_symmetric",
+            "single_particle",
+            "helical_scan",
+            "nhelix",
+            "beam_tilt",
+        ],
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_axis",
+        help=("Scan axis vector, provide x y z. Defaults to 0. 1. 0."),
+        type=float,
+        default=[0.0, 1.0, 0.0],
+        nargs=3,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_start_angle",
+        help="The start angle for the rotation (deg)",
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_step_angle",
+        help="The step angle for the rotation (deg)",
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_start_pos",
+        help="The start position for a translational scan (A)",
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_step_pos",
+        help=(
+            "The step distance for a translational scan (A)"
+            "Defaults to 'auto'"
+        ),
+        type=float,
+        default=None,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_num_images",
+        help=(
+            "The number of images to simulate. "
+            "For a tilt series this is the number of tilt steps. "
+            "If num_fractions is also set to something other than 1, "
+            "then there will be num_fractions number of 'movie frames' "
+            "per 'image'"
+        ),
+        type=int,
+        default=1,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_num_fractions",
+        help=(
+            "The number of movie frames. This refers to the frames of the "
+            "micrograph 'movies'. For a tilt series, all these images will "
+            "be at the same step and the dose for a 'single image' will "
+            "be fractionated over these image frames"
+        ),
+        type=int,
+        default=1,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_num_nhelix",
+        help="The number of scans in an n-helix",
+        type=int,
+        default=1,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--exposure_time",
+        help="The exposure time per image (s)",
+        type=float,
+        default=1.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_angles",
+        help=(
+            "The list of angles to use (deg). "
+            "This field is used when the mode "
+            "is set to 'manual' or 'beam tilt'."
+        ),
+        type=float,
+        default=None,
+        nargs="+",
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_positions",
+        help=(
+            "The list of positions to use (A). "
+            "This field is used when the mode"
+            "is set to 'manual' or 'beam tilt'."
+        ),
+        type=float,
+        default=None,
+        nargs="+",
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_theta",
+        help=(
+            "The list of theta angles to use (mrad) for the beam tilt."
+            "This must either be the same length as phi or a scalar."
+        ),
+        type=float,
+        default=None,
+        nargs="+",
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_phi",
+        help=(
+            "The list of phi angles to use (mrad) for the beam tilt."
+            "This must either be the same length as theta or a scalar"
+        ),
+        type=float,
+        default=None,
+        nargs="+",
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_drift",
+        help=(
+            "The model for the drift along each axis computed via "
+            "a + b*theta**4 (A). Provide arguments following: "
+            "x_a x_b y_a y_b z_a z_b, where x_a is the a component of "
+            "the drift along the x axis."
+        ),
+        type=float,
+        default=None,
+        nargs=6,
+        required=False,
+    )
+
     parser.add_argument(
         "--fast_ice",
         help=(
