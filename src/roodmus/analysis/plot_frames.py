@@ -14,18 +14,18 @@ from roodmus.analysis.utils import load_data
 
 def add_arguments(parser):
     parser.add_argument(
-        "--config-dir",
+        "--config_dir",
         help="Directory with .mrc files and .yaml config files",
         type=str,
     )
     parser.add_argument(
-        "--mrc-dir",
+        "--mrc_dir",
         help="Directory with .mrc files. The same as 'config-dir' by default",
         type=str,
         default=None,
     )
     parser.add_argument(
-        "--meta-file",
+        "--meta_file",
         help=(
             "Particle metadata file. Can be .star (RELION) or .cs (CryoSPARC)"
         ),
@@ -33,7 +33,7 @@ def add_arguments(parser):
         nargs="+",
     )
     parser.add_argument(
-        "--jobtypes",
+        "--job_types",
         help=(
             "Labels for each metadata file. Must be the same length as"
             " 'meta-file'"
@@ -42,7 +42,7 @@ def add_arguments(parser):
         nargs="+",
     )
     parser.add_argument(
-        "--particle-diameter",
+        "--particle_diameter",
         help=(
             "Expected maximum particle diameter. Used to limit search radius"
             " for matching picked particles to truth particles"
@@ -51,9 +51,12 @@ def add_arguments(parser):
         default=250.0,
         required=False,
     )
-    parser.add_argument("--plot-dir", help="output file name", type=str)
+    parser.add_argument("--plot_dir", help="output file name", type=str)
     parser.add_argument(
         "--verbose", help="increase output verbosity", action="store_true"
+    )
+    parser.add_argument(
+        "--tqdm", help="show tqdm progress bar", action="store_true"
     )
     return parser
 
@@ -88,8 +91,7 @@ def plot_frame_distribution(
         lambda x: int(x.split("_")[-1].split(".")[0])
     )
 
-    plt.rcParams["font.size"] = 20
-    fig, ax = plt.subplots(figsize=(10, 10))
+    fig, ax = plt.subplots(figsize=(3.5, 3.5))
     sns.histplot(
         df_picked.groupby("metadata_filename").get_group(metadata_filename)[
             "closest_pdb_index"
@@ -106,15 +108,16 @@ def plot_frame_distribution(
         color="red",
         alpha=0.2,
     )
-    ax.set_xlabel("frame index")
-    ax.set_ylabel("count")
-    ax.set_title(jobtypes[metadata_filename])
+    ax.set_xlabel("frame index", fontsize=12)
+    ax.set_ylabel("count", fontsize=12)
+    ax.set_title(jobtypes[metadata_filename], fontsize=14)
     fig.tight_layout()
     fig.legend(
         ["picked", "truth"],
         loc="lower center",
-        ncol=1,
-        bbox_to_anchor=(1.1, 0.85),
+        ncol=2,
+        bbox_to_anchor=(0.5, -0.05),
+        fontsize=12,
     )
     return fig, ax
 
@@ -123,19 +126,36 @@ def main(args):
     """plot the distribution of frames from the source MD trajectory
     in the particle set for the given job"""
 
+    if not os.path.isdir(args.plot_dir):
+        os.makedirs(args.plot_dir)
+
     if args.mrc_dir is None:
         args.mrc_dir = args.config_dir
 
-    for i, meta_file in enumerate(args.meta_file):
+    # parse the metadata files and job types
+    meta_files, job_types, order = load_data.parse_jobtypes(
+        args.meta_file, args.job_types
+    )
+    if args.verbose:
+        print("Job types: {}".format(job_types))
+        print("Metadata files: {}".format(meta_files))
+
+    for i, meta_file in enumerate(meta_files):
         if i == 0:
             analysis = load_data(
                 meta_file,
                 args.config_dir,
                 args.particle_diameter,
                 verbose=args.verbose,
+                enable_tqdm=args.tqdm,
             )
         else:
-            analysis.add_data(meta_file, args.config_dir, verbose=args.verbose)
+            analysis.add_data(
+                meta_file,
+                args.config_dir,
+                verbose=args.verbose,
+                enable_tqdm=args.tqdm,
+            )
     df_picked = pd.DataFrame(
         analysis.results_picking
     )  # data frame containing the picked particles
@@ -150,23 +170,21 @@ def main(args):
 
     # plot the distribution of frames
     print("plotting the frame distribution...")
-    if args.jobtypes:
-        jobtypes = {
-            meta_file: jobtype
-            for meta_file, jobtype in zip(args.meta_file, args.jobtypes)
-        }
-    for i, metadata_filename in enumerate(args.meta_file):
+    for i, metadata_filename in enumerate(
+        df_picked["metadata_filename"].unique()
+    ):
         print(f"plotting frames in {metadata_filename}...")
         fig, ax = plot_frame_distribution(
             df_picked,
             metadata_filename,
             df_truth,
             args.particle_diameter,
-            jobtypes,
+            job_types,
         )
+        meta_basename = os.path.basename(metadata_filename)
         outfilename = os.path.join(
             args.plot_dir,
-            f"{jobtypes[metadata_filename]}_frame_distribution.png",
+            f"{meta_basename.split('.')[0]}_frame_distribution.png",
         )
         fig.savefig(outfilename, dpi=300)
         fig.clf()

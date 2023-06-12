@@ -158,6 +158,8 @@ def plot_defocus_scatter(
     ax[0].set_ylabel("defocusU estimated [$\u212B$]")
     ax[0].set_title("defocusU")
     ax[1].set_title("defocusV")
+    ax[0].grid(False)
+    ax[1].grid(False)
     # add colorbar legend
     sm = plt.cm.ScalarMappable(
         cmap=palette,
@@ -174,6 +176,7 @@ def plot_defocus_scatter(
 
 def _relativistic_lambda(voltage):
     # returns the relativistic wavelength in Angstrom
+    # voltage should be in volts
     return 12.2643247 / np.sqrt(voltage * (1 + voltage * 0.978466e-6))
 
 
@@ -242,6 +245,7 @@ def plot_CTF(
     freq_rows = np.fft.fftfreq(rows, d=1)
     freq_cols = np.fft.fftfreq(cols, d=1)
     mesh_freq_cols, mesh_freq_rows = np.meshgrid(freq_cols, freq_rows)
+    mesh_freq = np.sqrt(mesh_freq_cols**2 + mesh_freq_rows**2)
 
     # compute the 1D CTF curve
     ctf_estimated_1D = _simulate_CTF_curve(
@@ -249,7 +253,11 @@ def plot_CTF(
     )
 
     # compute the 2D CTF curve
-    ctf_estimated_2D, freq_2d = _convert_1d_ctf_to_2d_ctf(ctf_estimated_1D)
+    ctf_estimated_2D, freq_2d = _convert_1d_ctf_to_2d_ctf(
+        ctf_estimated_1D,
+        freq_rows,
+        mesh_freq,
+    )
     ctf_estimated_2D = np.abs(ctf_estimated_2D)
 
     # x = np.linspace(0, 1, ctf_estimated_2D.shape[0])
@@ -359,7 +367,7 @@ def main(args):
         args.config_dir,
         particle_diameter=0,
         verbose=args.verbose,
-        progressbar=args.tqdm,
+        enable_tqdm=args.tqdm,
     )
     df_picked = pd.DataFrame(analysis.results_picking)
     df_truth = pd.DataFrame(analysis.results_truth)

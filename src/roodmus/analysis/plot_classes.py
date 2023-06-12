@@ -73,6 +73,9 @@ def add_arguments(parser):
     parser.add_argument(
         "--verbose", help="increase output verbosity", action="store_true"
     )
+    parser.add_argument(
+        "--tqdm", help="show tqdm progress bar", action="store_true"
+    )
     return parser
 
 
@@ -107,14 +110,13 @@ def plot_2Dclass_precision(
             .mean()
         )
     df = pd.DataFrame(results)
-
-    plt.rcParams["font.size"] = 20
-    fig, ax = plt.subplots(figsize=(25, 10))
+    fig, ax = plt.subplots(figsize=(7, 3.5))
     sns.barplot(x="class2D", y="precision", data=df, ax=ax, palette="YlGnBu")
-    ax.set_xlabel("class2D")
-    ax.set_ylabel("precision")
-    ax.set_title(job_types[metadata_filename])
-    # remove every second xtick label
+    ax.set_xlabel("class2D", fontsize=12)
+    ax.set_ylabel("precision", fontsize=12)
+    ax.set_title(job_types[metadata_filename], fontsize=14)
+    xticklabels = ax.get_xticklabels()
+    ax.set_xticklabels(xticklabels, rotation=45, fontsize=6)
     fig.tight_layout()
     return fig, ax
 
@@ -154,16 +156,30 @@ def main(args):
     if args.mrc_dir is None:
         args.mrc_dir = args.config_dir
 
-    for i, meta_file in enumerate(args.meta_file):
+    # parse the metadata files and job types
+    meta_files, job_types, order = load_data.parse_jobtypes(
+        args.meta_file, args.job_types
+    )
+    if args.verbose:
+        print("Job types: {}".format(job_types))
+        print("Metadata files: {}".format(meta_files))
+
+    for i, meta_file in enumerate(meta_files):
         if i == 0:
             analysis = load_data(
                 meta_file,
                 args.config_dir,
                 args.particle_diameter,
                 verbose=args.verbose,
+                enable_tqdm=args.tqdm,
             )
         else:
-            analysis.add_data(meta_file, args.config_dir, verbose=args.verbose)
+            analysis.add_data(
+                meta_file,
+                args.config_dir,
+                verbose=args.verbose,
+                enable_tqdm=args.tqdm,
+            )
     df_picked = pd.DataFrame(
         analysis.results_picking
     )  # data frame containing the picked particles
@@ -171,25 +187,17 @@ def main(args):
         analysis.results_truth
     )  # data frame containing the ground-truth particles
 
+    print(f"meta_files in df: {df_picked['metadata_filename'].unique()}")
+
     # compute the precision for the picked particles
     _, df_picked = analysis.compute_precision(
         df_picked, df_truth, verbose=args.verbose
     )
 
-    if args.job_types:
-        job_types = {
-            meta_file: jobtype
-            for meta_file, jobtype in zip(args.meta_file, args.job_types)
-        }
-
     # plot the precision per class
     for plot_type in args.plot_types:
         if plot_type == "precision":
-            for metadata_filename in args.meta_file:
-                # gives TypeError: ufunc 'isnan' not supported for the input
-                #  types, and the inputs could not be safely coerced to any
-                # supported types according to the casting rule ''safe''
-                """
+            for metadata_filename in df_picked["metadata_filename"].unique():
                 if np.sum(
                     np.isnan(
                         np.unique(
@@ -214,11 +222,14 @@ def main(args):
                     fig, ax = plot_2Dclass_precision(
                         df_picked,
                         metadata_filename,
-                        jobtypes,
+                        job_types,
                     )
+                    metadata_basename = os.path.basename(
+                        metadata_filename
+                    ).split(".")[0]
                     outfilename = os.path.join(
                         args.plot_dir,
-                        f"{jobtypes[metadata_filename]}_2Dclass_precision.png",
+                        f"{metadata_basename}_2Dclass_precision.png",
                     )
                     fig.savefig(outfilename, dpi=600, bbox_inches="tight")
                     fig.savefig(
@@ -229,10 +240,6 @@ def main(args):
 
         if plot_type == "frame_distribution":
             for metadata_filename in args.meta_file:
-                # gives TypeError: ufunc 'isnan' not supported for the input
-                # types, and the inputs could not be safely coerced to any
-                # supported types according to the casting rule ''safe''
-                """
                 if np.sum(
                     np.isnan(
                         np.unique(
