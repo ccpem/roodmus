@@ -26,33 +26,19 @@ class IO(object):
         return metadata
 
     @classmethod
-    def get_ugraph_cs(self, metadata_cs: np.recarray, config_dir: str):
+    def get_ugraph_cs(self, metadata_cs: np.recarray):
         if "location/micrograph_path" in metadata_cs.dtype.names:
             ugraph_paths = metadata_cs["location/micrograph_path"]
         elif "blob/path" in metadata_cs.dtype.names:
             ugraph_paths = metadata_cs["blob/path"]
+        else:
+            return None
 
-        # make a mask to retain only the lines we have data files for
-        mask = np.array(
-            [
-                1
-                if os.path.exists(
-                    os.path.join(
-                        config_dir, path.decode("utf-8").split("_")[-1]
-                    )
-                )
-                else 0
-                for path in ugraph_paths
-            ],
-            dtype=bool,
-        )
-
-        ugraph_paths = ugraph_paths[mask]
         ugraph_paths = [
             os.path.basename(path).decode("utf-8").split("_")[-1]
             for path in ugraph_paths
         ]
-        return ugraph_paths, mask
+        return ugraph_paths
 
     @classmethod
     def get_uid_cs(self, metadata_cs: np.recarray):
@@ -66,15 +52,14 @@ class IO(object):
     def get_ctf_cs(
         self,
         metadata_cs: np.recarray,
-        mask: np.ndarray,
     ):
         if "ctf/df1_A" in metadata_cs.dtype.names:
-            defocusU = metadata_cs["ctf/df1_A"][mask]
-            defocusV = metadata_cs["ctf/df2_A"][mask]
-            kV = metadata_cs["ctf/accel_kv"][mask]
-            Cs = metadata_cs["ctf/cs_mm"][mask]
-            amp = metadata_cs["ctf/amp_contrast"][mask]
-            Bfac = metadata_cs["ctf/bfactor"][mask]
+            defocusU = metadata_cs["ctf/df1_A"]
+            defocusV = metadata_cs["ctf/df2_A"]
+            kV = metadata_cs["ctf/accel_kv"]
+            Cs = metadata_cs["ctf/cs_mm"]
+            amp = metadata_cs["ctf/amp_contrast"]
+            Bfac = metadata_cs["ctf/bfactor"]
             return np.stack([defocusU, defocusV, kV, Cs, amp, Bfac], axis=1)
         else:
             return None
@@ -98,7 +83,7 @@ class IO(object):
             return None
 
     @classmethod
-    def get_orientations_cs(self, metadata_cs: np.recarray):
+    def get_orientations_cs(self, metadata_cs: np.recarray, return_pose=False):
         if "alignments3D/pose" in metadata_cs.dtype.names:
             pose = metadata_cs[
                 "alignments3D/pose"
@@ -109,7 +94,10 @@ class IO(object):
             # euler = R.from_rotvec(pose).as_euler(
             #     "zyx", degrees=False
             # )  # convert to euler angles
-            return euler
+            if return_pose:
+                return euler, pose
+            else:
+                return euler
         else:
             return None
 
@@ -129,6 +117,13 @@ class IO(object):
             class2d = None
         return class2d
 
+    @classmethod
+    def get_latents_cs(self, latent_file: str):
+        latents = np.load(latent_file)
+        print(latents.dtype.names)
+        print(f"number of latents: {len(latents)}")
+        return latents
+
     # Loading .star files and parsing the ctf parameters,
     # the particle positions and orientations
     @classmethod
@@ -136,33 +131,20 @@ class IO(object):
         return RelionStarFile(star_path)
 
     @classmethod
-    def get_ugraph_star(self, metadata_star, config_dir: str):
+    def get_ugraph_star(self, metadata_star):
         ugraph_paths = metadata_star.column_as_list(
             "particles", "_rlnMicrographName"
         )
-        mask = np.array(
-            [
-                1
-                if os.path.exists(
-                    os.path.join(config_dir, path.split("/")[-1])
-                )
-                else 0
-                for path in ugraph_paths
-            ],
-            dtype=bool,
-        )
-        ugraph_paths = np.array(ugraph_paths)[mask]
         # convert to basename and remove index
         ugraph_paths = [
             os.path.basename(path).split("/")[-1] for path in ugraph_paths
         ]
-        return ugraph_paths, mask
+        return ugraph_paths
 
     @classmethod
     def get_ctf_star(
         self,
         metadata_star,
-        mask: np.ndarray,
     ) -> np.ndarray:
         kV = [
             float(r)
@@ -189,7 +171,7 @@ class IO(object):
                 )
             ],
             dtype=float,
-        )[mask].tolist()
+        ).tolist()
         defocusV = np.array(
             [
                 float(r)
@@ -197,7 +179,7 @@ class IO(object):
                     "particles", "_rlnDefocusV"
                 )
             ]
-        )[mask].tolist()
+        ).tolist()
         Bfac = [0]  # not available in RELION star files
         return np.stack(
             [
@@ -263,6 +245,11 @@ class IO(object):
             config = yaml.load(f, Loader=yaml.FullLoader)
         return config
 
+    # loading latent space coordinates from cryoDRGN
+    @classmethod
+    def get_latents_cryodrgn(self, latent_file: str):
+        pass  # TODO
+
 
 class geom(object):
     # adapted from the pyem package by Daniel Asarnow.
@@ -320,19 +307,20 @@ class geom(object):
 class load_data(object):
     def __init__(
         self,
-        meta_file: str | List[str],
+        meta_file: str | List[str] | None,
         config_dir: str,
         particle_diameter: float,
         ugraph_shape: Tuple[int, int] = (4000, 4000),
         results_picking: dict | None = None,
         results_truth: dict | None = None,
-        verbose: bool = True,
+        ignore_missing_files: bool = False,
+        verbose: bool = False,
+        enable_tqdm: bool = False,
     ):
         self.meta_file = meta_file
         self.config_dir = config_dir
         self.particle_diameter = particle_diameter
         self.ugraph_shape = ugraph_shape
-        self.verbose = verbose
         self.results_picking: dict[str, Any] = {
             "metadata_filename": [],
             "ugraph_filename": [],
@@ -370,16 +358,28 @@ class load_data(object):
 
         # If a new metadata file is given, the values in the picking results
         # need to be extracted from the new metadata file
-        self._update_meta_file = True
+        if self.meta_file is not None:
+            self._update_meta_file = True
+        else:
+            self._update_meta_file = False
 
         # compute the results
-        self.add_data()
+        if self.meta_file is not None:
+            self.add_data(
+                verbose=verbose,
+                enable_tqdm=enable_tqdm,
+                ignore_missing_files=ignore_missing_files,
+            )
+        else:
+            self.load_all_ground_truth()
 
     def add_data(
         self,
         meta_file: str | List[str] = "",
         config_dir: str = "",
-        verbose: bool = True,
+        ignore_missing_files: bool = False,
+        verbose: bool = False,
+        enable_tqdm: bool = False,
     ):
         """Processing of the particle positions from a .cs or .star file and
         from the Parakeet config files.
@@ -402,7 +402,12 @@ class load_data(object):
 
         # updates the level of verbosity
         if verbose is not None:
+            print("debug")
             self.verbose = verbose
+        if enable_tqdm is not None:
+            self.enable_tqdm = enable_tqdm
+        if ignore_missing_files is not None:
+            self.ignore_missing_files = ignore_missing_files
 
         # If the user has specified a new metadata file,
         # the values in the picking results need to be extracted
@@ -420,7 +425,7 @@ class load_data(object):
             # Adds the values to the picking results,
             # returns the number of particles added
             num_particles = self._extract_from_metadata(
-                metadata, file_type, self.verbose
+                metadata, file_type, self.verbose, self.ignore_missing_files
             )
             if self.verbose:
                 print("\n")
@@ -454,7 +459,7 @@ class load_data(object):
             progressbar = tqdm(
                 total=len(ugraphs_to_load),
                 desc="loading micrographs",
-                disable=not self.verbose,
+                disable=not self.enable_tqdm,
             )
             for ugraph_path in ugraphs_to_load:
                 if not os.path.isfile(
@@ -462,7 +467,10 @@ class load_data(object):
                         self.config_dir, ugraph_path.replace(".mrc", ".yaml")
                     )
                 ):
-                    print(f"WARNING: no config file found for {ugraph_path}")
+                    cfg_file = os.path.join(
+                        self.config_dir, ugraph_path.replace(".mrc", ".yaml")
+                    )
+                    print(f"WARNING: no config file found for {cfg_file}")
                     continue
                 config = IO.load_config(
                     os.path.join(
@@ -506,8 +514,146 @@ class load_data(object):
                 )
         return
 
+    def load_all_ground_truth(self, return_pose: bool = False):
+        ugraphs_to_load = [
+            filename
+            for filename in os.listdir(self.config_dir)
+            if filename.endswith(".mrc")
+        ]
+        total_num_particles = 0
+        if len(ugraphs_to_load) > 0:
+            total_num_particles = 0
+            progressbar = tqdm(
+                total=len(ugraphs_to_load),
+                desc="loading micrographs",
+                disable=not self.verbose,
+            )
+            for ugraph_path in ugraphs_to_load:
+                if not os.path.isfile(
+                    os.path.join(
+                        self.config_dir, ugraph_path.replace(".mrc", ".yaml")
+                    )
+                ):
+                    print(f"WARNING: no config file found for {ugraph_path}")
+                    continue
+                config = IO.load_config(
+                    os.path.join(
+                        self.config_dir, ugraph_path.replace(".mrc", ".yaml")
+                    )
+                )
+
+                # adds the values to the truth results,
+                # returns the number of particles added
+                num_particles = self._extract_from_config(
+                    config, self.verbose, return_pose
+                )
+                total_num_particles += num_particles
+
+                # add the micrograph path and the metadata file to the
+                # truth results
+                self.results_truth["ugraph_filename"].extend(
+                    [ugraph_path] * num_particles
+                )
+
+                progressbar.update(1)
+                progressbar.set_postfix({"micrograph": ugraph_path})
+            progressbar.close()
+
+            # update the list of loaded micrographs
+            self.ugraph_paths.extend(ugraphs_to_load)
+
+            if self.verbose:
+                print(
+                    "Loaded ground-truth particle positions from config files"
+                )
+                print(
+                    "Dictionaries now contain"
+                    " {} particles and {} true particles".format(
+                        len(self.results_picking["ugraph_filename"]),
+                        len(self.results_truth["ugraph_filename"]),
+                    )
+                )
+                print(
+                    "Added {} particles from {}".format(
+                        total_num_particles, self.config_dir
+                    )
+                )
+
+        return total_num_particles
+
+    @classmethod
+    def parse_jobtypes(
+        self,
+        meta_files: str | List[str],
+        job_types: str | List[str] | None,
+    ):
+        """This function parses the job_types argument
+        and the meta_file argument to create a list where
+        metadata files that have the same job type are grouped
+        """
+
+        # if job_types and meta_file are both a string, return them
+        if isinstance(job_types, str) and isinstance(meta_files, str):
+            return meta_files, job_types, meta_files
+
+        # if no job_types parameter is give, use the basename of meta_files
+        if job_types is None:
+            job_types_dict = {}
+            for meta_file in meta_files:
+                job_types_dict[meta_file] = os.path.basename(meta_file).split(
+                    "."
+                )[0]
+            return meta_files, job_types_dict, meta_files
+
+        # else, check that job_types and meta_file have the same length
+        if len(job_types) != len(meta_files):
+            raise ValueError(
+                "job_types and meta_file have different lengths. \
+                             Please provide a job_type for each metadata file."
+            )
+
+        # merge meta_files with the same job_type
+        grouped_job_types = []
+        grouped_meta_files: List[List[str] | str] = []
+        for job_type, meta_file in zip(job_types, meta_files):
+            if job_type not in grouped_job_types:
+                grouped_job_types.append(job_type)
+                grouped_meta_files.append(meta_file)
+            else:
+                index = grouped_job_types.index(job_type)
+                m = grouped_meta_files[index]
+                if isinstance(m, str):
+                    grouped_meta_files[index] = [m, meta_file]
+                else:
+                    grouped_meta_files[index] = m + [meta_file]
+
+        order = []
+        for grouped_meta_file in grouped_meta_files:
+            if isinstance(grouped_meta_file, str):
+                order.append(grouped_meta_file)
+            else:
+                order.append(grouped_meta_file[0])
+
+        # create dict from job_types
+        job_types_dict = {}
+        for grouped_meta_file in grouped_meta_files:
+            if isinstance(grouped_meta_file, str):
+                job_types_dict[grouped_meta_file] = grouped_job_types[
+                    grouped_meta_files.index(grouped_meta_file)
+                ]
+            else:
+                # if meta_file is a list, add each file to the dict
+                for file in grouped_meta_file:
+                    job_types_dict[file] = grouped_job_types[
+                        grouped_meta_files.index(grouped_meta_file)
+                    ]
+
+        return grouped_meta_files, job_types_dict, order
+
     def _load_metadata(
-        self, meta_file: str | List[str] = "", verbose: bool = False
+        self,
+        meta_file: str | List[str] | None = "",
+        verbose: bool = False,
     ) -> Tuple[dict, str]:
         if isinstance(meta_file, str):
             if meta_file.endswith(".star"):
@@ -551,10 +697,18 @@ class load_data(object):
                     "multiple metadata files were given to combine, \
                         but they are not all the same type"
                 )
+        else:
+            return {}, ""
 
         return metadata, file_type
 
-    def _extract_from_metadata(self, metadata, file_type, verbose=False):
+    def _extract_from_metadata(
+        self,
+        metadata,
+        file_type,
+        verbose: bool = False,
+        ignore_missing_files: bool = False,
+    ):
         """
         Extract the values from the metadata file. If a value other than the
         ugraph_filename is not present in the metadata file, it will be set
@@ -565,26 +719,29 @@ class load_data(object):
         """
         if isinstance(metadata, list) and file_type == "cs":
             print(f"loading {len(metadata)} files into the results")
-            tmp_results = {"uid": [], "mask": []}
+            tmp_results: dict = {"uid": [], "mask": []}
             for key in self.results_picking.keys():
                 tmp_results[key] = []
 
             num_particles_loaded = 0
             for m in metadata:
                 ugraph_filename = IO.get_ugraph_cs(m)
-                num_particles = len(
-                    ugraph_filename
-                )  # total number of particles in the metadata file
-                tmp_results["ugraph_filename"].extend(ugraph_filename)
-                mask = self._check_if_ugraphs_exist(ugraph_filename)
+                uid = IO.get_uid_cs(m)
+                tmp_results["uid"].extend(uid)
+                if ugraph_filename is None:
+                    num_particles = len(uid)
+                    tmp_results["ugraph_filename"].extend(
+                        [np.nan] * num_particles
+                    )
+                    mask = [False] * num_particles
+                else:
+                    num_particles = len(
+                        ugraph_filename
+                    )  # total number of particles in the metadata file
+                    tmp_results["ugraph_filename"].extend(ugraph_filename)
+                    mask = self._check_if_ugraphs_exist(ugraph_filename)
                 num_particles_loaded += np.sum(mask)
                 tmp_results["mask"].extend(mask)
-
-                uid = IO.get_uid_cs(m)
-                if uid is not None:
-                    tmp_results["uid"].extend(uid)
-                else:
-                    tmp_results["uid"].extend([np.nan] * num_particles)
 
                 pos = IO.get_positions_cs(m)  # an array of all the x-
                 # and y-positions in the metadata file
@@ -643,9 +800,10 @@ class load_data(object):
                 tmp_results.pop("metadata_filename")
             df_tmp = pd.DataFrame(tmp_results, columns=tmp_results.keys())
             mask_true = df_tmp["mask"]
+            all_filenames = df_tmp["ugraph_filename"]
             df_tmp = df_tmp.groupby("uid").agg(
                 {
-                    "ugraph_filename": lambda x: x[mask_true].iloc[0],
+                    "ugraph_filename": "first",
                     "mask": "sum",
                     "position_x": "first",
                     "position_y": "first",
@@ -658,47 +816,64 @@ class load_data(object):
                     "class2D": "first",
                 }
             )
+            df_tmp_filtered = df_tmp[df_tmp["mask"] > 0]
+            all_filenames = all_filenames[mask_true == 1]
+            mask_true = mask_true[mask_true == 1]
+            df_tmp_filtered["ugraph_filename"] = all_filenames.iloc[
+                -len(df_tmp) :
+            ].values
 
             # add the temporary results to the results
             self.results_picking["position_x"].extend(
-                df_tmp["position_x"].values
+                df_tmp_filtered["position_x"].values
             )
             self.results_picking["position_y"].extend(
-                df_tmp["position_y"].values
+                df_tmp_filtered["position_y"].values
             )
             self.results_picking["euler_phi"].extend(
-                df_tmp["euler_phi"].values
+                df_tmp_filtered["euler_phi"].values
             )
             self.results_picking["euler_theta"].extend(
-                df_tmp["euler_theta"].values
+                df_tmp_filtered["euler_theta"].values
             )
             self.results_picking["euler_psi"].extend(
-                df_tmp["euler_psi"].values
+                df_tmp_filtered["euler_psi"].values
             )
             self.results_picking["ugraph_shape"].extend(
-                df_tmp["ugraph_shape"].values
+                df_tmp_filtered["ugraph_shape"].values
             )
-            self.results_picking["defocusU"].extend(df_tmp["defocusU"].values)
-            self.results_picking["defocusV"].extend(df_tmp["defocusV"].values)
-            self.results_picking["class2D"].extend(df_tmp["class2D"].values)
+            self.results_picking["defocusU"].extend(
+                df_tmp_filtered["defocusU"].values
+            )
+            self.results_picking["defocusV"].extend(
+                df_tmp_filtered["defocusV"].values
+            )
+            self.results_picking["class2D"].extend(
+                df_tmp_filtered["class2D"].values
+            )
             self.results_picking["ugraph_filename"].extend(
-                df_tmp["ugraph_filename"].values
+                df_tmp_filtered["ugraph_filename"].values
             )
 
             # remove the temporary results and update the number of particles
             tmp_results = {}
-            num_particles = num_particles_loaded
-            print(f"found {num_particles} particles")
+            num_particles = len(df_tmp_filtered)
+            print(f"found {num_particles} unique particles")
 
         elif isinstance(metadata, list) and file_type == "star":
             pass  # should not happen, but just in case we add it here
 
         elif file_type == "cs":
-            ugraph_filename, mask = IO.get_ugraph_cs(
+            ugraph_filename = IO.get_ugraph_cs(
                 metadata,
-                self.config_dir,
             )  # a list of all microraphs in the metadata file
-            print("checking if ugraphs exist...")
+
+            if ignore_missing_files:
+                mask = [True] * len(ugraph_filename)
+            else:
+                print("checking if ugraphs exist...")
+                mask = self._check_if_ugraphs_exist(ugraph_filename)
+            ugraph_filename = np.array(ugraph_filename)[mask]
             num_particles = len(ugraph_filename)
             self.results_picking["ugraph_filename"].extend(ugraph_filename)
 
@@ -751,10 +926,9 @@ class load_data(object):
 
             defocus = IO.get_ctf_cs(
                 metadata,
-                mask,
             )  # an array of all the defocus values in the metadata file
             if defocus is not None:
-                # defocus = defocus[mask]
+                defocus = defocus[mask]
                 self.results_picking["defocusU"].extend(defocus[:, 0])
                 self.results_picking["defocusV"].extend(defocus[:, 1])
             else:
@@ -776,13 +950,15 @@ class load_data(object):
                 )
 
         elif file_type == "star":
-            ugraph_filename, mask = IO.get_ugraph_star(
+            ugraph_filename = IO.get_ugraph_star(
                 metadata,
-                self.config_dir,
             )  # a list of all microraphs in the metadata file
-            print("checking if ugraphs exist...")
-            # mask = self._check_if_ugraphs_exist(ugraph_filename)
-            # ugraph_filename = np.array(ugraph_filename)[mask]
+            if ignore_missing_files:
+                mask = [True] * len(ugraph_filename)
+            else:
+                print("checking if ugraphs exist...")
+                mask = self._check_if_ugraphs_exist(ugraph_filename)
+            ugraph_filename = np.array(ugraph_filename)[mask]
             num_particles = len(ugraph_filename)
             self.results_picking["ugraph_filename"].extend(ugraph_filename)
 
@@ -833,10 +1009,9 @@ class load_data(object):
 
             defocus = IO.get_ctf_star(
                 metadata,
-                mask,
             )  # an array of all the defocus values in the metadata file
             if defocus is not None:
-                # defocus = defocus[mask]
+                defocus = defocus[mask]
                 self.results_picking["defocusU"].extend(defocus[:, 0])
                 self.results_picking["defocusV"].extend(defocus[:, 1])
             else:
@@ -881,7 +1056,10 @@ class load_data(object):
         return mask
 
     def _extract_from_config(
-        self, config: dict[str, Any], verbose: bool = False
+        self,
+        config: dict[str, Any],
+        verbose: bool = False,
+        return_pose: bool = False,
     ):
         defocus = config["microscope"]["lens"]["c_10"]
         ice_thickness = config["sample"]["box"][2]
@@ -897,7 +1075,10 @@ class load_data(object):
                 # convert to euler angles
                 euler = geom.rot2euler(geom.expmap(np.array(orientation)))
                 # euler = R.from_rotvec(orientation).as_euler("zyx")
-                orientations_list.append(euler)
+                if return_pose:
+                    orientations_list.append(orientation)
+                else:
+                    orientations_list.append(euler)
                 positions_list.append(position)
                 filenames.append(f)
         positions: np.ndarray = (

@@ -80,6 +80,20 @@ def add_arguments(
         default=False,
         action="store_true",
     )
+    run_parakeet_parser.add_argument(
+        "--orientations",
+        help="how to generate the orientations \
+            for each particle. Default is random \
+            through Parakeet",
+        type=lambda s: parse_orientation(s),
+        default="parakeet",
+    )
+    run_parakeet_parser.add_argument(
+        "--verbose",
+        help="Turn on verbose output",
+        default=False,
+        action="store_true",
+    )
 
     parser = run_parakeet_parser.add_argument_group("configuration")
     parser.add_argument(
@@ -967,6 +981,19 @@ def get_name():
     return "run_parakeet"
 
 
+def parse_orientation(s):
+    if s.lower() in ["parakeet", "inplane"]:
+        return s.lower()
+    elif "discrete_tilt" in s:
+        return s.lower()
+    else:
+        raise ValueError(
+            f"Orientation must be 'parakeet', 'inplane' \
+                or 'discrete_tilt_*'."
+            f" Got {s}"
+        )
+
+
 def sample_defocus(c_10: float, c_10_stddev: float) -> float:
     """Generate a defocus value from a Gaussian distribution
 
@@ -1031,6 +1058,8 @@ def get_instances(
         new_pdb_files = pdb_files
         new_n_instances = n_instances
 
+        return pdb_files, n_instances
+
     # if the number of structures is greater than or equal to the number of
     # molecules, randomly sample them
     else:
@@ -1042,7 +1071,7 @@ def get_instances(
         new_pdb_files = pdb_files_temp.tolist()
         new_n_instances = n_instances_temp.tolist()
 
-    return new_pdb_files, new_n_instances
+        return new_pdb_files, new_n_instances
 
 
 def main(args):
@@ -1079,9 +1108,9 @@ def main(args):
     frames = get_pdb_files(args.pdb_dir)
 
     # loop over the number of images to generate
-    progressbar = None
-    if args.tqdm:
-        progressbar = tqdm(range(args.n_images))
+    progressbar = tqdm(
+        range(args.n_images), desc="Generating images", disable=not args.tqdm
+    )
     defocus_idx = 0
     for n_image in range(
         images_in_directory, args.n_images + images_in_directory
@@ -1112,7 +1141,9 @@ def main(args):
             frames, args.n_molecules, args.no_replacement
         )
         # add the molecules to the configuration
-        config.add_molecules(chosen_frames, n_instances)
+        config.add_molecules(
+            chosen_frames, n_instances, orientation_method=args.orientations
+        )
 
         # run parakeet
         sample = parakeet.sample.new(
@@ -1184,11 +1215,9 @@ def main(args):
         # update the config from the sample and save/overwrite it
         config.update_config(sample)
 
-        if args.tqdm:
-            progressbar.update(1)
+        progressbar.update(1)
 
-    if args.tqdm:
-        progressbar.close()
+    progressbar.close()
 
 
 if __name__ == "__main__":

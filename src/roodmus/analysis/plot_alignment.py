@@ -35,19 +35,25 @@ def add_arguments(parser):
         nargs="+",
     )
     parser.add_argument(
+        "--job_types",
+        help=(
+            "Labels for each metadata file. Must be the same length as"
+            " 'meta_file'"
+        ),
+        type=str,
+        nargs="+",
+    )
+    parser.add_argument(
         "--plot_dir",
         help="Output file name",
         type=str,
         default="alignment.png",
     )
     parser.add_argument(
-        "--csparc",
-        help="if metadata file is in CryoSPARC format, \
-            combine the metadata files into one",
-        action="store_true",
+        "--verbose", help="Increase output verbosity", action="store_true"
     )
     parser.add_argument(
-        "--verbose", help="Increase output verbosity", action="store_true"
+        "--tqdm", help="show tqdm progress bar", action="store_true"
     )
     return parser
 
@@ -225,32 +231,30 @@ def main(args):
     if args.mrc_dir is None:
         args.mrc_dir = args.config_dir
 
-    # if the metadata is in cryosparc format
-    # presume the files are from the same job
-    # and combine them into one dataframe
-    if args.csparc:
-        analysis = load_data(
-            args.meta_file,
-            args.config_dir,
-            0,  # not relevant for this script
-            verbose=args.verbose,
-        )
+    # parse the metadata files and job types
+    meta_files, job_types, order = load_data.parse_jobtypes(
+        args.meta_file, args.job_types
+    )
+    if args.verbose:
+        print("Job types: {}".format(job_types))
+        print("Metadata files: {}".format(meta_files))
 
-    # otherwise, treat each file as a separate job
-    else:
-        for i, meta_file in enumerate(args.meta_file):
-            if i == 0:
-                analysis = load_data(
-                    meta_file,
-                    args.config_dir,
-                    0,  # not relevant for this script
-                    verbose=args.verbose,
-                )
-            else:
-                analysis.add_data(
-                    meta_file, args.config_dir, verbose=args.verbose
-                )
-
+    for i, meta_file in enumerate(meta_files):
+        if i == 0:
+            analysis = load_data(
+                meta_file,
+                args.config_dir,
+                0,
+                verbose=args.verbose,
+                enable_tqdm=args.tqdm,
+            )
+        else:
+            analysis.add_data(
+                meta_file,
+                args.config_dir,
+                verbose=args.verbose,
+                enable_tqdm=args.tqdm,
+            )
     df_picked = pd.DataFrame(
         analysis.results_picking
     )  # data frame containing the picked particles
@@ -258,12 +262,17 @@ def main(args):
         analysis.results_truth
     )  # data frame containing the ground-truth particles
 
+    print(f"meta_files in df: {df_picked['metadata_filename'].unique()}")
+
     # plot the picked particle pose distribution
-    if args.csparc:
-        meta_file = args.meta_file[0]
+    for i, meta_file in enumerate(df_picked["metadata_filename"].unique()):
         grid, vmin, vmax = plot_picked_pose_distribution(df_picked, meta_file)
-        vmin_total = vmin
-        vmax_total = vmax
+        if i == 0:
+            vmin_total = vmin
+            vmax_total = vmax
+        else:
+            vmin_total = min(vmin_total, vmin)
+            vmax_total = max(vmax_total, vmax)
 
         # save the plot
         outfilename = os.path.join(
@@ -272,26 +281,7 @@ def main(args):
             + "_picked_pose_distribution.png",
         )
         grid.savefig(outfilename, dpi=300, bbox_inches="tight")
-
-    else:
-        for i, meta_file in enumerate(args.meta_file):
-            grid, vmin, vmax = plot_picked_pose_distribution(
-                df_picked, meta_file
-            )
-            if i == 0:
-                vmin_total = vmin
-                vmax_total = vmax
-            else:
-                vmin_total = min(vmin_total, vmin)
-                vmax_total = max(vmax_total, vmax)
-
-            # save the plot
-            outfilename = os.path.join(
-                args.plot_dir,
-                os.path.splitext(os.path.basename(meta_file))[0]
-                + "_picked_pose_distribution.png",
-            )
-            grid.savefig(outfilename, dpi=300, bbox_inches="tight")
+        grid.savefig(outfilename.replace(".png", ".pdf"), bbox_inches="tight")
 
     # plot the true particle pose distribution
     grid, vmin, vmax = plot_true_pose_distribution(
@@ -301,6 +291,7 @@ def main(args):
     # save the plot
     outfilename = os.path.join(args.plot_dir, "true_pose_distribution.png")
     grid.savefig(outfilename, dpi=300, bbox_inches="tight")
+    grid.savefig(outfilename.replace(".png", ".pdf"), bbox_inches="tight")
 
     return 0
 
