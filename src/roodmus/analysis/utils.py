@@ -9,7 +9,7 @@ from scipy.spatial import cKDTree
 from tqdm import tqdm
 import pandas as pd
 
-from pipeliner.jobstar_reader import RelionStarFile
+from pipeliner.starfile_handler import DataStarFile
 
 
 class IO(object):
@@ -128,7 +128,7 @@ class IO(object):
     # the particle positions and orientations
     @classmethod
     def load_star(self, star_path):
-        return RelionStarFile(star_path)
+        return DataStarFile(star_path)
 
     @classmethod
     def get_ugraph_star(self, metadata_star):
