@@ -86,7 +86,7 @@ cd ../
 
 git clone https://gitlab.com/ccpem/ccpem-pipeliner.git
 cd ccpem-pipeliner
-git checkout acb30b796246141158ab1a1870bcecdd864eeb5f
+git checkout bedbedbe183ad497dbaa82a638f210d316ba9bae
 cd ../
 
 export CXX=<path>/g++
@@ -125,7 +125,7 @@ cd ../
 
 git clone https://gitlab.com/ccpem/ccpem-pipeliner.git
 cd ccpem-pipeliner
-git checkout acb30b796246141158ab1a1870bcecdd864eeb5f
+git checkout bedbedbe183ad497dbaa82a638f210d316ba9bae
 cd ../
 
 module load cuda/11.1-gcc-9.1.0
