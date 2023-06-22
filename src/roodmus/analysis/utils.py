@@ -42,11 +42,27 @@ class IO(object):
     # the particle positions and orientations
     @classmethod
     def load_cs(self, cs_path):
+        """Load cryoSPARC file from disk.
+
+        Args:
+            cs_path (str): file path.
+
+        Returns:
+            metadata (np.recarray): metadata from .cs file.
+        """
         metadata = np.load(cs_path)
         return metadata
 
     @classmethod
     def get_ugraph_cs(self, metadata_cs: np.recarray):
+        """Grab micrograph file paths from .cs data.
+
+        Args:
+            metadata_cs (np.recarray): .cs file metadata.
+
+        Returns:
+            ugraph_paths (List[str]): micrograph file paths.
+        """
         if "location/micrograph_path" in metadata_cs.dtype.names:
             ugraph_paths = metadata_cs["location/micrograph_path"]
         elif "blob/path" in metadata_cs.dtype.names:
@@ -62,6 +78,14 @@ class IO(object):
 
     @classmethod
     def get_uid_cs(self, metadata_cs: np.recarray):
+        """Grab uid from .cs metadata.
+
+        Args:
+            metadata_cs (np.recarray): CryoSPARC metadata.
+
+        Returns:
+            uid (int): identifier.
+        """
         if "uid" in metadata_cs.dtype.names:
             uid = metadata_cs["uid"]
         else:
@@ -73,6 +97,14 @@ class IO(object):
         self,
         metadata_cs: np.recarray,
     ):
+        """Grab the output of cryoSPARC ctf job.
+
+        Args:
+            metadata_cs (np.recarray): CryoSPARC metadata.
+
+        Returns:
+            np.ndarray: Reconstructed CTF metadata.
+        """
         if "ctf/df1_A" in metadata_cs.dtype.names:
             defocusU = metadata_cs["ctf/df1_A"]
             defocusV = metadata_cs["ctf/df2_A"]
@@ -86,6 +118,14 @@ class IO(object):
 
     @classmethod
     def get_positions_cs(self, metadata_cs: np.recarray):
+        """Grab particle positions output by cryoSPARC job.
+
+        Args:
+            metadata_cs (np.recarray): CryoSPARC metadata.
+
+        Returns:
+            np.ndarray: reconstructed particle positions.
+        """
         if "location/center_x_frac" in metadata_cs.dtype.names:
             ugraph_shape = metadata_cs["location/micrograph_shape"]
             # print(type(ugraph_shape), len(ugraph_shape), ugraph_shape.shape)
@@ -104,6 +144,16 @@ class IO(object):
 
     @classmethod
     def get_orientations_cs(self, metadata_cs: np.recarray, return_pose=False):
+        """Grab predicted orientations from cryoSPARC job.
+
+        Args:
+            metadata_cs (np.recarray): CryoSPARC metadata.
+            return_pose (bool, optional): Whether to return parakeet-encoded
+            pose instead of interpreted euler angles. Defaults to False.
+
+        Returns:
+            np.ndarray: Reconstructed particle rotation.
+        """
         if "alignments3D/pose" in metadata_cs.dtype.names:
             pose = metadata_cs[
                 "alignments3D/pose"
@@ -123,6 +173,14 @@ class IO(object):
 
     @classmethod
     def get_ugraph_shape_cs(self, metadata_cs: np.recarray):
+        """Grab micrograph shape from cryoSPARC job output.
+
+        Args:
+            metadata_cs (np.recarray): CryoSPARC metadata.
+
+        Returns:
+            np.ndarray: Micrograph shape.
+        """
         if "location/micrograph_shape" in metadata_cs.dtype.names:
             ugraph_shape = metadata_cs["location/micrograph_shape"]
         else:
@@ -131,6 +189,14 @@ class IO(object):
 
     @classmethod
     def get_class2D_cs(self, metadata_cs: np.recarray):
+        """Grab 2D classes from cryoSPARC job.
+
+        Args:
+            metadata_cs (np.recarray): CryoSPARC metadata.
+
+        Returns:
+            np.ndarray: 2D class.
+        """
         if "alignments2D/class" in metadata_cs.dtype.names:
             class2d = metadata_cs["alignments2D/class"]
         else:
@@ -148,10 +214,26 @@ class IO(object):
     # the particle positions and orientations
     @classmethod
     def load_star(self, star_path):
+        """Load metadata from .star file.
+
+        Args:
+            star_path (str): Relion metadata.
+
+        Returns:
+            DataStarFile: Loaded Relion metadata.
+        """
         return DataStarFile(star_path)
 
     @classmethod
     def get_ugraph_star(self, metadata_star):
+        """Grab micrograph file paths from Relion metadata.
+
+        Args:
+            metadata_star (DataStarFile): Loaded Relion metadata.
+
+        Returns:
+            ugraph_paths (List[str]): Micrograph file paths.
+        """
         ugraph_paths = metadata_star.column_as_list(
             "particles", "_rlnMicrographName"
         )
@@ -166,6 +248,14 @@ class IO(object):
         self,
         metadata_star,
     ) -> np.ndarray:
+        """Grab ctf information from Relion metadata.
+
+        Args:
+            metadata_star (DataStarFile): Loaded Relion metadata.
+
+        Returns:
+            np.ndarray: ctf data.
+        """
         kV = [
             float(r)
             for r in metadata_star.column_as_list("optics", "_rlnVoltage")
@@ -215,6 +305,14 @@ class IO(object):
 
     @classmethod
     def get_positions_star(self, metadata_star) -> np.ndarray:
+        """Grab reconstructed particle positions from Relion metadata.
+
+        Args:
+            metadata_star (DataStarFile): Loaded Relion metadata.
+
+        Returns:
+            ps (np.ndarray): particle position data.
+        """
         x = [
             float(r)
             for r in metadata_star.column_as_list(
@@ -232,6 +330,14 @@ class IO(object):
 
     @classmethod
     def get_orientations_star(self, metadata_star) -> np.ndarray:
+        """Grab reconstructed orientations from Relion metadata.
+
+        Args:
+            metadata_star (DataStarFile): Loaded Relion metadata.
+
+        Returns:
+            euler (np.ndarray): particle orientation data.
+        """
         euler_phi = metadata_star.column_as_list("particles", "_rlnAngleRot")
         euler_theta = metadata_star.column_as_list(
             "particles", "_rlnAngleTilt"
@@ -252,6 +358,14 @@ class IO(object):
 
     @classmethod
     def get_class2D_star(self, metadata_star):
+        """Grab 2D class from Relion metadata.
+
+        Args:
+            metadata_star (DataStarFile): Loaded Relion metadata.
+
+        Returns:
+            class2d (np.ndarray): 2D class data.
+        """
         class2d = metadata_star.column_as_list("particles", "_rlnClassNumber")
         if class2d:
             return np.array(class2d)
@@ -261,6 +375,14 @@ class IO(object):
     # loading the config file
     @classmethod
     def load_config(self, config_path):
+        """Load truth data from yaml file into dictionary.
+
+        Args:
+            config_path (str): yaml file path.
+
+        Returns:
+            config (dict): Simulation truth metadata.
+        """
         with open(config_path, "r") as f:
             config = yaml.load(f, Loader=yaml.FullLoader)
         return config
@@ -272,11 +394,20 @@ class IO(object):
 
 
 class geom(object):
-    # adapted from the pyem package by Daniel Asarnow.
-    # Under the GNU General Public License v3.0
+    """Adapted from the pyem package by Daniel Asarnow.
+    Under the GNU General Public License v3.0
+    """
+
     @classmethod
     def expmap(self, e):
-        """Convert axis-angle vector into 3D rotation matrix"""
+        """Convert axis-angle vector into 3D rotation matrix
+
+        Args:
+            e (_type_): _description_
+
+        Returns:
+            _type_: Rotation matrix.
+        """
         theta = np.linalg.norm(e)
         if theta < 1e-16:
             return np.identity(3, dtype=e.dtype)
@@ -294,7 +425,14 @@ class geom(object):
 
     @classmethod
     def rot2euler(self, r):
-        """Decompose rotation matrix into Euler angles"""
+        """Decompose rotation matrix into Euler angles.
+
+        Args:
+            r (_type_): Rotation matrix.
+
+        Returns:
+            Tuple[float, float, float]: euler angles
+        """
         # assert(isrotation(r))
         # Shoemake rotation matrix decomposition
         # algorithm with same conventions as Relion.
@@ -337,6 +475,35 @@ class load_data(object):
         verbose: bool = False,
         enable_tqdm: bool = False,
     ):
+        """Loads reconstruction data from one or more of the .star or .cs
+        files which were determined using a reconstruction pipeline. Also
+        loads truth information for synthetic micrographs/tomograms. Both
+        are loaded into dictionaries. These are easily manipulated once
+        externally converted into pd.DataFrame objects.
+
+        Args:
+            meta_file (str | List[str] | None): One or more results (.star
+            or .cs) files which each contain data from a reconstruction
+            pipeline job.
+            config_dir (str): The directory holding the configurations used
+            to simulate each micrograph/tomogram and the `image' files which
+            are the raw inputs to the reconstruction pipeline.
+            particle_diameter (float): Diameter used for particle
+            visualisation.
+            ugraph_shape (Tuple[int, int], optional): Shape of each `image'
+            along projection axes. Defaults to (4000, 4000).
+            results_picking (dict | None, optional): Allows data from a
+            separate load_data object to be read in. Defaults to None.
+            results_truth (dict | None, optional): Allows data from a
+            separate load_data object to be read in. Defaults to None.
+            ignore_missing_files (bool, optional): Load in results from
+            reconstruction pipeline even if the truth information cannot
+            be found in the config_dir. Defaults to False.
+            verbose (bool, optional): Print details to stdout. Defaults to
+            False.
+            enable_tqdm (bool, optional): Enables progress bar. Defaults to
+            False.
+        """
         self.meta_file = meta_file
         self.config_dir = config_dir
         self.particle_diameter = particle_diameter
@@ -402,15 +569,31 @@ class load_data(object):
         enable_tqdm: bool = False,
     ):
         """Processing of the particle positions from a .cs or .star file and
-        from the Parakeet config files.
+        from the Parakeet config files. The user can specify to use a new
+        metadata file or load config files from a new directory. If the user
+        does not specify a new metadata file or config directory, the current
+        one is used (an initial metadata file and config dir is given when the
+        class is instantiated)
+
+        Args:
+            meta_file (str | List[str], optional): One or more results (.star
+            or .cs) files which each contain data from a reconstruction
+            pipeline job. Defaults to "".
+            config_dir (str, optional): The directory holding the
+            configurations used to simulate each micrograph/tomogram and the
+            `image' files which are the raw inputs to the reconstruction
+            pipeline.
+            particle_diameter (float): Diameter used for particle
+            visualisation. Defaults to "".
+            ignore_missing_files (bool, optional): Load in results from
+            reconstruction pipeline even if the truth information cannot
+            be found in the config_dir. Defaults to False.
+            verbose (bool, optional): Print details to stdout.. Defaults to
+            False.
+            enable_tqdm (bool, optional): Enables progress bar. Defaults to
+            False.
         """
 
-        # The user can specify to use a new metadata file or load config
-        # files from a new directory
-
-        # If the user does not specify a new metadata file or config directory
-        # the current one is used (an initial metadata file and config dir is
-        # given when the class is instantiated)
         if meta_file and meta_file is not self.meta_file:
             # user has specified a new metadata file to use
             self.meta_file = meta_file
@@ -422,7 +605,6 @@ class load_data(object):
 
         # updates the level of verbosity
         if verbose is not None:
-            print("debug")
             self.verbose = verbose
         if enable_tqdm is not None:
             self.enable_tqdm = enable_tqdm
@@ -451,9 +633,8 @@ class load_data(object):
                 print("\n")
                 print(
                     "Dictionaries now contain"
-                    " {} particles and {} true particles".format(
-                        len(self.results_picking["ugraph_filename"]),
-                        len(self.results_truth["ugraph_filename"]),
+                    " {} reconstructed particles".format(
+                        len(self.results_picking["ugraph_filename"])
                     )
                 )
                 print(f"added {num_particles} particles from {self.meta_file}")
@@ -478,7 +659,7 @@ class load_data(object):
             total_num_particles = 0
             progressbar = tqdm(
                 total=len(ugraphs_to_load),
-                desc="loading micrographs",
+                desc="loading truth data",
                 disable=not self.enable_tqdm,
             )
             for ugraph_path in ugraphs_to_load:
@@ -535,6 +716,17 @@ class load_data(object):
         return
 
     def load_all_ground_truth(self, return_pose: bool = False):
+        """Load truth data from all yaml configuration files in the case
+        that no reconstruction metadata is provided.
+
+        Args:
+            return_pose (bool, optional): Whether to return parakeet-encoded
+            pose instead of interpreted euler angles. Defaults to False.
+
+        Returns:
+            total_num_particles (int): Total number of particles loaded into
+            truth dictionary.
+        """
         ugraphs_to_load = [
             filename
             for filename in os.listdir(self.config_dir)
@@ -609,7 +801,25 @@ class load_data(object):
     ):
         """This function parses the job_types argument
         and the meta_file argument to create a list where
-        metadata files that have the same job type are grouped
+        metadata files that have the same job type are grouped.
+
+        Args:
+            meta_files (str | List[str]): One or more results (.star
+            or .cs) files which each contain data from a reconstruction
+            pipeline job.
+            job_types (str | List[str] | None): Job type labels used
+            to differentiate between metadata files
+
+        Raises:
+            ValueError: Ensures each job_type can be assigned to a metadata
+            file.
+
+        Returns:
+            grouped_meta_files (List[List[str] | str]): Metadata files
+            grouped together based on job_type.
+            job_types_dict (dict): Dictionary with metadat file name as
+            thekey and the job type as the value
+            order (List): The index of the metadata files after grouping
         """
 
         # if job_types and meta_file are both a string, return them
@@ -675,6 +885,24 @@ class load_data(object):
         meta_file: str | List[str] | None = "",
         verbose: bool = False,
     ) -> Tuple[dict, str]:
+        """Load the metadata from file(s) and report the file type of file
+
+        Args:
+            meta_file (str | List[str] | None, optional): metadata files(s)
+            from reconstruction pipeline. Defaults to "".
+            verbose (bool, optional): Print details to stdout. Defaults to
+            False.
+
+        Raises:
+            ValueError: unknown metadata file type
+            ValueError: unknown metadata file type_
+            ValueError: multiple metadata files were given to combine,
+            but they are not all the same type"
+
+        Returns:
+            Tuple[List | dict, str]: Composed of metadata file(s) and
+            metadata file type (.cs or .star)
+        """
         if isinstance(meta_file, str):
             if meta_file.endswith(".star"):
                 metadata = IO.load_star(meta_file)
@@ -725,17 +953,32 @@ class load_data(object):
     def _extract_from_metadata(
         self,
         metadata,
-        file_type,
+        file_type: str,
         verbose: bool = False,
         ignore_missing_files: bool = False,
     ):
-        """
-        Extract the values from the metadata file. If a value other than the
-        ugraph_filename is not present in the metadata file, it will be set
-        to np.nan.
+        """Extract the values from the metadata file. If a value other than
+        the ugraph_filename is not present in the metadata file, it will be
+        set to np.nan.
         The length of each list in self.results_picking is equal to the number
         of picked particles in the metadata file, determined by the length of
         the ugraph_filename list.
+
+        Args:
+            metadata (dict | List): Object holding the reconstruction pipeline
+            metadata.
+            file_type (str): _description_
+            verbose (bool, optional): Print details to stdout. Defaults to
+            False.
+            ignore_missing_files (bool, optional): Whether to load truth
+            information for all micrographs in config_dir, even if the
+            .mrc file is not present. Defaults to False.
+
+        Raises:
+            ValueError: unknown metadata file type
+
+        Returns:
+            num_particles: int
         """
         if isinstance(metadata, list) and file_type == "cs":
             print(f"loading {len(metadata)} files into the results")
@@ -1059,9 +1302,15 @@ class load_data(object):
     def _check_if_ugraphs_exist(
         self, ugraph_filename: List[Any]
     ) -> np.ndarray:
-        """
-        Check if the micrograph exists in the config directory.
+        """Check if the micrograph exists in the config directory.
         If it does, return True, otherwise False.
+
+        Args:
+            ugraph_filename (List[Any]): file names of micrograph/tomogram
+
+        Returns:
+            np.ndarray: mask holding True where a .mrc file of the requested
+            file name is present in config_dir.
         """
         mask = np.array(
             [
@@ -1081,6 +1330,18 @@ class load_data(object):
         verbose: bool = False,
         return_pose: bool = False,
     ):
+        """Extract truth data from data loaded from yaml config file.
+
+        Args:
+            config (dict[str, Any]): configuration file data
+            verbose (bool, optional): Print details to stdout. Defaults to
+            False.
+            return_pose (bool, optional): Whether to return parakeet-encoded
+            pose instead of interpreted euler angles. Defaults to False.
+
+        Returns:
+            num_particles: int
+        """
         defocus = config["microscope"]["lens"]["c_10"]
         ice_thickness = config["sample"]["box"][2]
         pixel_size = config["microscope"]["detector"]["pixel_size"]
@@ -1142,8 +1403,20 @@ class load_data(object):
         return num_particles
 
     def _calc_dist_array(self, pos_picked, pos_truth, image_shape):
-        # Calculates an array of distances between each pair of truth and
-        # picked particles
+        """Calculates an array of distances between each pair of truth and
+        picked particles.
+
+        Args:
+            pos_picked (dictview): dict.values() output holding x,y positions
+            of picked particles
+            pos_truth (dictview): dict.values() output holding x,y positions
+            of truth particles
+            image_shape (Tuple[int, int]): Pixel dimensions of image
+            projection.
+
+        Returns:
+            np.ndarray: sparse distance matrix converted to non-sparse array.
+        """
         r = np.sqrt(
             np.power(float(image_shape[0]), 2)
             + np.power(float(image_shape[1]), 2)
@@ -1159,8 +1432,20 @@ class load_data(object):
         return sdm
 
     def _calc_neighbours(self, pos_picked, pos_truth, r):
-        # Calculates the number of neighbours for each particle in the
-        # truth set
+        """Calculates the number of neighbours for each particle in the
+        truth set
+
+        Args:
+            pos_picked (dictview): dict.values() output holding x,y positions
+            of picked particles
+            pos_truth (dictview): dict.values() output holding x,y positions
+            of truth particles
+            r (float): Distance to calculate # particles within.
+
+        Returns:
+            (Tuple[int, int]): Number of neighbours for this r for truth
+            particles and picked particles respectively.
+        """
         truth_centres = self._grab_xy_array(pos_truth)
         picked_centres = self._grab_xy_array(pos_picked)
 
@@ -1186,8 +1471,15 @@ class load_data(object):
         return neighbours, picked_neighbours
 
     def _grab_xy_array(self, pos):
-        # create a np array to ckdtree for number of neighbours as function
-        # of distance
+        """Create a np array to ckdtree for number of neighbours as function
+        of distance.
+
+        Args:
+            pos (dictview): dict.values() output holding x,y positions.
+
+        Returns:
+            np.ndarray: particle centre positions
+        """
         particle_centres = np.empty(
             (int(len(pos)) + int(len(pos))), dtype=float
         )
@@ -1204,23 +1496,23 @@ class load_data(object):
         results_truth: pd.DataFrame,
         verbose: bool = False,
     ):
-        """this function produces another data frame containing the number
+        """This function produces another data frame containing the number
         of true positives, false positives, false negatives
         and the precision, recall and multiplicity for each micrograph.
         The output then is a data frame with rows corresponding to each
-        micrograph instead of each particle
+        micrograph instead of each particle.
 
         Args:
             results_picking (pandas.DataFrame): the results of the picking
-            algorithm
+            algorithm.
             results_truth (pandas.DataFrame): the results of the truth
-            algorithm
+            algorithm.
             verbose (bool, optional): print out information about the
             calculation. Defaults to False.
 
         Returns:
             pandas.DataFrame: a data frame containing the precision, recall
-            and multiplicity for each micrograph
+            and multiplicity for each micrograph.
         """
 
         # define results data frame
@@ -1288,6 +1580,9 @@ class load_data(object):
             desc="computing precision",
             disable=not verbose,
         )
+
+        # get a list of ugraph_filenames present in the reconstruction
+        # metadata and check that they are present in the truth data.
         groupnames: dict_keys = df_picking_grouped.groups.keys()
         for groupname in groupnames:
             if groupname[1] not in df_truth_grouped.groups.keys():
@@ -1306,6 +1601,7 @@ class load_data(object):
             pos_truth_in_ugraph = truth_particles_in_ugraph[
                 ["position_x", "position_y"]
             ].values
+            # we now have dict_values class holding position data
 
             # Calculate the distance matrix between the picked
             # and truth particles
@@ -1409,21 +1705,21 @@ class load_data(object):
         results_truth: pd.DataFrame,
         verbose: bool = False,
     ):
-        """this function computes the number of picked particles that overlap
-        with a truth particle at a range of radii.
-        The output is a data frame with rows corresponding to each radius
+        """This function computes the number of picked particles that overlap
+        with a truth particle at a range of radii. The output is a data frame
+        with rows corresponding to each radius.
 
         Args:
             results_picking (pandas.DataFrame): the results of the picking
-            algorithm
+            algorithm.
             results_truth (pandas.DataFrame): the results of the truth
-            algorithm
+            algorithm.
             verbose (bool, optional): print out information about the
             calculation. Defaults to False.
 
         Returns:
             pandas.DataFrame: a data frame containing the number of picked
-            particles that overlap with a truth particle at a range of radii
+            particles that overlap with a truth particle at a range of radii.
         """
 
         results_overlap: dict[str, List[Any]] = {
