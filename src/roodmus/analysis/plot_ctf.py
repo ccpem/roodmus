@@ -391,14 +391,17 @@ def main(args):
 
     # only include first --num_ugraphs micrographs
     # select subset of ugraphs from truth df
+    """
     ugraph_identifiers = df_truth["ugraph_filename"].unique()[
         : args.num_ugraphs
     ]
+
     # remove all columns not corresponding to selected ugraphs
     df_picked = df_picked.loc[
         df_picked["ugraph_filename"] in ugraph_identifiers
     ]
     df_truth = df_truth.loc[df_truth["ugraph_filename"] in ugraph_identifiers]
+    """
 
     if args.verbose:
         print(

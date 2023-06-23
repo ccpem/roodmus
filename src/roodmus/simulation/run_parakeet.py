@@ -1038,6 +1038,13 @@ def get_pdb_files(pdb_dir: str) -> List[str]:
     for file in os.listdir(pdb_dir):
         if file.endswith(".pdb"):
             pdb_files.append(os.path.join(pdb_dir, file))
+        elif file.endswith(".cif"):
+            pdb_files.append(os.path.join(pdb_dir, file))
+        elif file.endswith(".mmcif"):
+            pdb_files.append(os.path.join(pdb_dir, file))
+        elif file.endswith(".cif.gz"):
+            # untested as to whether parakeet can unpack .cif.gz
+            pdb_files.append(os.path.join(pdb_dir, file))
     return pdb_files
 
 
