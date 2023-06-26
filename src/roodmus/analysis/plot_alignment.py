@@ -1,22 +1,22 @@
-"""
-    Script to compare estimated 3D alignments from RELION or CryoSPARC to the
-    ground-truth orientation values used in Parakeet data generation.
+"""Compare estimated 3D alignments from RELION or CryoSPARC to the
+ground-truth orientation values used in Parakeet data generation.
 
-    Copyright (C) 2023  Joel Greer(UKRI), Tom Burnley (UKRI),
-    Maarten Joosten (TU Delft), Arjen Jakobi (TU Delft)
+Copyright (C) 2023  Joel Greer(UKRI), Tom Burnley (UKRI),
+Maarten Joosten (TU Delft), Arjen Jakobi (TU Delft)
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 """
 
 import argparse
@@ -71,6 +71,14 @@ def add_arguments(parser):
     parser.add_argument(
         "--tqdm", help="show tqdm progress bar", action="store_true"
     )
+    parser.add_argument(
+        "--dpi",
+        help="choose dots per inch in png plots, default to 100",
+        type=int,
+        default=100,
+        required=False,
+    )
+    parser.add_argument("--pdf", help="save plot as pdf", action="store_true")
     return parser
 
 
@@ -296,8 +304,11 @@ def main(args):
             os.path.splitext(os.path.basename(meta_file))[0]
             + "_picked_pose_distribution.png",
         )
-        grid.savefig(outfilename, dpi=300, bbox_inches="tight")
-        grid.savefig(outfilename.replace(".png", ".pdf"), bbox_inches="tight")
+        grid.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
+        if args.pdf:
+            grid.savefig(
+                outfilename.replace(".png", ".pdf"), bbox_inches="tight"
+            )
 
     # plot the true particle pose distribution
     grid, vmin, vmax = plot_true_pose_distribution(
@@ -306,8 +317,9 @@ def main(args):
 
     # save the plot
     outfilename = os.path.join(args.plot_dir, "true_pose_distribution.png")
-    grid.savefig(outfilename, dpi=300, bbox_inches="tight")
-    grid.savefig(outfilename.replace(".png", ".pdf"), bbox_inches="tight")
+    grid.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
+    if args.pdf:
+        grid.savefig(outfilename.replace(".png", ".pdf"), bbox_inches="tight")
 
     return 0
 

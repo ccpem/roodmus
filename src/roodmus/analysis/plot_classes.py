@@ -1,21 +1,21 @@
-"""
-    Script to visualise 2D classification results.
+"""Visualise 2D classification results.
 
-    Copyright (C) 2023  Joel Greer(UKRI), Tom Burnley (UKRI),
-    Maarten Joosten (TU Delft), Arjen Jakobi (TU Delft)
+Copyright (C) 2023  Joel Greer(UKRI), Tom Burnley (UKRI),
+Maarten Joosten (TU Delft), Arjen Jakobi (TU Delft)
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 """
 
 import argparse
@@ -93,6 +93,14 @@ def add_arguments(parser):
     parser.add_argument(
         "--tqdm", help="show tqdm progress bar", action="store_true"
     )
+    parser.add_argument(
+        "--dpi",
+        help="choose dots per inch in png plots, default to 100",
+        type=int,
+        default=100,
+        required=False,
+    )
+    parser.add_argument("--pdf", help="save plot as pdf", action="store_true")
     return parser
 
 
@@ -216,7 +224,7 @@ def main(args):
         if plot_type == "precision":
             for metadata_filename in df_picked["metadata_filename"].unique():
                 if np.sum(
-                    np.isnan(
+                    pd.isnull(
                         np.unique(
                             df_picked.groupby("metadata_filename").get_group(
                                 metadata_filename
@@ -241,24 +249,24 @@ def main(args):
                         metadata_filename,
                         job_types,
                     )
-                    metadata_basename = os.path.basename(
-                        metadata_filename
-                    ).split(".")[0]
                     outfilename = os.path.join(
                         args.plot_dir,
-                        f"{metadata_basename}_2Dclass_precision.png",
+                        "{}_2Dclass_precision.png".format(
+                            job_types[metadata_filename]
+                        ),
                     )
-                    fig.savefig(outfilename, dpi=600, bbox_inches="tight")
-                    fig.savefig(
-                        outfilename.replace(".png", ".pdf"),
-                        bbox_inches="tight",
-                    )
+                    fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
+                    if args.pdf:
+                        fig.savefig(
+                            outfilename.replace(".png", ".pdf"),
+                            bbox_inches="tight",
+                        )
                     fig.clf()
 
         if plot_type == "frame_distribution":
             for metadata_filename in args.meta_file:
                 if np.sum(
-                    np.isnan(
+                    pd.isnull(
                         np.unique(
                             df_picked.groupby("metadata_filename").get_group(
                                 metadata_filename
@@ -279,18 +287,20 @@ def main(args):
                         for {metadata_filename}..."
                     )
                     fig, ax = plot_2Dclasses_frames(
-                        df_picked, metadata_filename, args.binfactor
+                        df_picked, metadata_filename, args.bin_factor
                     )
                     outfilename = os.path.join(
                         args.plot_dir,
-                        f"{job_types[metadata_filename]}_ \
-                        2Dclass_frame_distribution.png",
+                        "{}_2Dclass_frame_distribution.png".format(
+                            job_types[metadata_filename]
+                        ),
                     )
-                    fig.savefig(outfilename, dpi=600, bbox_inches="tight")
-                    fig.savefig(
-                        outfilename.replace(".png", ".pdf"),
-                        bbox_inches="tight",
-                    )
+                    fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
+                    if args.pdf:
+                        fig.savefig(
+                            outfilename.replace(".png", ".pdf"),
+                            bbox_inches="tight",
+                        )
                     fig.clf()
 
 

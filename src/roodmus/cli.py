@@ -1,26 +1,26 @@
-"""
-    Roodmus:
-    A software framework to allow simulation of cryo-EM micrographs and
-    tomograms by sampling conformations from MD simulations using Parakeet
-    software (https://doi.org/10.1098/rsob.210160). Utilities allow analysis
-    and evaluation of the performance of structure determination pipelines
-    and heterogeneous reconstruction algorithms.
+"""Roodmus:
+A software framework to allow simulation of cryo-EM micrographs and
+tomograms by sampling conformations from MD simulations using Parakeet
+software (https://doi.org/10.1098/rsob.210160). Utilities allow analysis
+and evaluation of the performance of structure determination pipelines
+and heterogeneous reconstruction algorithms.
 
-    Copyright (C) 2023  Joel Greer(UKRI), Tom Burnley (UKRI),
-    Maarten Joosten (TU Delft), Arjen Jakobi (TU Delft)
+Copyright (C) 2023  Joel Greer(UKRI), Tom Burnley (UKRI),
+Maarten Joosten (TU Delft), Arjen Jakobi (TU Delft)
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 """
 
 import os
@@ -45,7 +45,9 @@ def get_roodmus_parent() -> Path:
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawTextHelpFormatter
+    )
     parser.add_argument(
         "--version",
         action="version",
@@ -58,13 +60,13 @@ def main():
     subparsers = parser.add_subparsers(
         title="subcommands",
         description="valid subcommands",
-        help="additional help",
+        help="",
     )
     subparsers.required = True
 
     modules = [
-        roodmus.simulation.run_parakeet,
         roodmus.trajectory.conformations_sampling,
+        roodmus.simulation.run_parakeet,
         roodmus.analysis.plot_ctf,
         roodmus.analysis.plot_picking,
         roodmus.analysis.plot_frames,
@@ -73,10 +75,25 @@ def main():
         roodmus.analysis.extract_particles,
     ]
 
-    for module in modules:
+    module_helptext = [
+        "Sampling a molecular dynamics trajectory and saving the"
+        + " conformations to PDB files.",
+        "Simulation of micrograph/tomogram dataset using Parakeet software.",
+        "Plot a comparison between the estimated CTF parameters and the"
+        + " true values used in data generation.",
+        "Plot statistics from picking analyses and overlays of"
+        + " picked and truth particles on micrographs.",
+        "Plot the distribution of frames in a job.",
+        "Visualise 2D classification results.",
+        "Compare estimated 3D alignments from RELION or CryoSPARC to the"
+        + " ground-truth orientation values used in Parakeet data generation.",
+        "Extract a stack of particles from a set of simulated micrographs.",
+    ]
+
+    for helptext, module in zip(module_helptext, modules):
         this_parser = subparsers.add_parser(
             module.get_name(),
-            help=module.__doc__,
+            help=helptext,
         )
         module.add_arguments(this_parser)
         this_parser.set_defaults(func=module.main)

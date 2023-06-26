@@ -1,22 +1,22 @@
-"""
-    Script to plot statistics from picking analyses and example overlays of
-    picked and truth particles on micrographs.
+"""Plot statistics from picking analyses and overlays of
+picked and truth particles on micrographs.
 
-    Copyright (C) 2023  Joel Greer(UKRI), Tom Burnley (UKRI),
-    Maarten Joosten (TU Delft), Arjen Jakobi (TU Delft)
+Copyright (C) 2023  Joel Greer(UKRI), Tom Burnley (UKRI),
+Maarten Joosten (TU Delft), Arjen Jakobi (TU Delft)
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 """
 
 import os
@@ -113,6 +113,14 @@ def add_arguments(parser):
     parser.add_argument(
         "--tqdm", help="show tqdm progress bar", action="store_true"
     )
+    parser.add_argument(
+        "--dpi",
+        help="choose dots per inch in png plots, default to 100",
+        type=int,
+        default=100,
+        required=False,
+    )
+    parser.add_argument("--pdf", help="save plot as pdf", action="store_true")
     return parser
 
 
@@ -899,10 +907,12 @@ def main(args):
                         ugraph_filename.strip(".mrc"),
                     ),
                 )
-                fig.savefig(outfilename, dpi=600, bbox_inches="tight")
-                fig.savefig(
-                    outfilename.replace(".png", ".pdf"), bbox_inches="tight"
-                )
+                fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
+                if args.pdf:
+                    fig.savefig(
+                        outfilename.replace(".png", ".pdf"),
+                        bbox_inches="tight",
+                    )
                 fig.clf()
 
         if plot_type == "label_picked":  # plot the picked particles
@@ -939,11 +949,12 @@ def main(args):
                     # remove axis ticks
                     ax.set_xticks([])
                     ax.set_yticks([])
-                    fig.savefig(outfilename, dpi=600, bbox_inches="tight")
-                    fig.savefig(
-                        outfilename.replace(".png", ".pdf"),
-                        bbox_inches="tight",
-                    )
+                    fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
+                    if args.pdf:
+                        fig.savefig(
+                            outfilename.replace(".png", ".pdf"),
+                            bbox_inches="tight",
+                        )
                     fig.clf()
 
         if plot_type == "label_truth_and_picked":
@@ -979,11 +990,12 @@ def main(args):
                             meta_basename.split(".")[0],
                         ),
                     )
-                    fig.savefig(outfilename, dpi=600, bbox_inches="tight")
-                    fig.savefig(
-                        outfilename.replace(".png", ".pdf"),
-                        bbox_inches="tight",
-                    )
+                    fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
+                    if args.pdf:
+                        fig.savefig(
+                            outfilename.replace(".png", ".pdf"),
+                            bbox_inches="tight",
+                        )
                     fig.clf()
 
         if plot_type == "precision":
@@ -999,39 +1011,43 @@ def main(args):
             print("plotting precision...")
             fig, ax = plot_precision(df_precision, job_types, order)
             outfilename = os.path.join(args.plot_dir, "precision.png")
-            fig.savefig(outfilename, dpi=600, bbox_inches="tight")
-            fig.savefig(
-                outfilename.replace(".png", ".pdf"), bbox_inches="tight"
-            )
+            fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
+            if args.pdf:
+                fig.savefig(
+                    outfilename.replace(".png", ".pdf"), bbox_inches="tight"
+                )
             fig.clf()
 
             print("plotting recall...")
             fig, ax = plot_recall(df_precision, job_types, order)
             outfilename = os.path.join(args.plot_dir, "recall.png")
-            fig.savefig(outfilename, dpi=600, bbox_inches="tight")
-            fig.savefig(
-                outfilename.replace(".png", ".pdf"), bbox_inches="tight"
-            )
+            fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
+            if args.pdf:
+                fig.savefig(
+                    outfilename.replace(".png", ".pdf"), bbox_inches="tight"
+                )
             fig.clf()
 
-            print("plotting precsion and recall in one plot...")
+            print("plotting precision and recall in one plot...")
             fig, ax = plot_precision_and_recall(df_precision, job_types, order)
             outfilename = os.path.join(
                 args.plot_dir, "precision_and_recall.png"
             )
-            fig.savefig(outfilename, dpi=600, bbox_inches="tight")
-            fig.savefig(
-                outfilename.replace(".png", ".pdf"), bbox_inches="tight"
-            )
+            fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
+            if args.pdf:
+                fig.savefig(
+                    outfilename.replace(".png", ".pdf"), bbox_inches="tight"
+                )
             fig.clf()
 
             print("plotting F1 score...")
             fig, ax = plot_f1_score(df_precision, job_types, order)
             outfilename = os.path.join(args.plot_dir, "f1_score.png")
-            fig.savefig(outfilename, dpi=600, bbox_inches="tight")
-            fig.savefig(
-                outfilename.replace(".png", ".pdf"), bbox_inches="tight"
-            )
+            fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
+            if args.pdf:
+                fig.savefig(
+                    outfilename.replace(".png", ".pdf"), bbox_inches="tight"
+                )
             fig.clf()
 
         if plot_type == "boundary":
@@ -1049,11 +1065,12 @@ def main(args):
                         args.plot_dir,
                         f"{meta_basename.split('.')[0]}_boundary_{a}.png",
                     )
-                    fig.savefig(outfilename, dpi=600, bbox_inches="tight")
-                    fig.savefig(
-                        outfilename.replace(".png", ".pdf"),
-                        bbox_inches="tight",
-                    )
+                    fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
+                    if args.pdf:
+                        fig.savefig(
+                            outfilename.replace(".png", ".pdf"),
+                            bbox_inches="tight",
+                        )
                     fig.clf()
 
         if plot_type == "overlap":
@@ -1074,10 +1091,11 @@ def main(args):
                 df_overlap, None, job_types
             )  # plot all
             outfilename = os.path.join(args.plot_dir, "overlap.png")
-            fig.savefig(outfilename, dpi=600, bbox_inches="tight")
-            fig.savefig(
-                outfilename.replace(".png", ".pdf"), bbox_inches="tight"
-            )
+            fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
+            if args.pdf:
+                fig.savefig(
+                    outfilename.replace(".png", ".pdf"), bbox_inches="tight"
+                )
             fig.clf()
 
 
