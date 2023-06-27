@@ -1,10 +1,26 @@
-"""
-    Configration and main function for running parakeet from the command line
+"""Simulation of micrograph/tomogram dataset using Parakeet software
+
+Copyright (C) 2023  Joel Greer(UKRI), Tom Burnley (UKRI),
+Maarten Joosten (TU Delft), Arjen Jakobi (TU Delft)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 """
 
 import os
 import argparse
-from typing import Tuple
+from typing import Tuple, List
 
 import numpy as np
 from tqdm import tqdm
@@ -77,6 +93,20 @@ def add_arguments(
     run_parakeet_parser.add_argument(
         "--overwrite_metadata",
         help="Overwrite metdata output",
+        default=False,
+        action="store_true",
+    )
+    run_parakeet_parser.add_argument(
+        "--orientations",
+        help="how to generate the orientations \
+            for each particle. Default is random \
+            through Parakeet",
+        type=lambda s: parse_orientation(s),
+        default="parakeet",
+    )
+    run_parakeet_parser.add_argument(
+        "--verbose",
+        help="Turn on verbose output",
         default=False,
         action="store_true",
     )
@@ -704,6 +734,175 @@ def add_arguments(
         required=False,
     )
 
+    # scan args
+    parser.add_argument(
+        "--scan_mode",
+        help="Scan mode, defaults to 'still'.",
+        default="still",
+        choices=[
+            "still",
+            "manual",
+            "tilt_series",
+            "dose_symmetric",
+            "single_particle",
+            "helical_scan",
+            "nhelix",
+            "beam_tilt",
+        ],
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_axis",
+        help=("Scan axis vector, provide x y z. Defaults to 0. 1. 0."),
+        type=float,
+        default=[0.0, 1.0, 0.0],
+        nargs=3,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_start_angle",
+        help="The start angle for the rotation (deg)",
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_step_angle",
+        help="The step angle for the rotation (deg)",
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_start_pos",
+        help="The start position for a translational scan (A)",
+        type=float,
+        default=0.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_step_pos",
+        help=(
+            "The step distance for a translational scan (A)"
+            "Defaults to 'auto'"
+        ),
+        type=float,
+        default=None,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_num_images",
+        help=(
+            "The number of images to simulate. "
+            "For a tilt series this is the number of tilt steps. "
+            "If num_fractions is also set to something other than 1, "
+            "then there will be num_fractions number of 'movie frames' "
+            "per 'image'"
+        ),
+        type=int,
+        default=1,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_num_fractions",
+        help=(
+            "The number of movie frames. This refers to the frames of the "
+            "micrograph 'movies'. For a tilt series, all these images will "
+            "be at the same step and the dose for a 'single image' will "
+            "be fractionated over these image frames"
+        ),
+        type=int,
+        default=1,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_num_nhelix",
+        help="The number of scans in an n-helix",
+        type=int,
+        default=1,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--exposure_time",
+        help="The exposure time per image (s)",
+        type=float,
+        default=1.0,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_angles",
+        help=(
+            "The list of angles to use (deg). "
+            "This field is used when the mode "
+            "is set to 'manual' or 'beam tilt'."
+        ),
+        type=float,
+        default=None,
+        nargs="+",
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_positions",
+        help=(
+            "The list of positions to use (A). "
+            "This field is used when the mode"
+            "is set to 'manual' or 'beam tilt'."
+        ),
+        type=float,
+        default=None,
+        nargs="+",
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_theta",
+        help=(
+            "The list of theta angles to use (mrad) for the beam tilt."
+            "This must either be the same length as phi or a scalar."
+        ),
+        type=float,
+        default=None,
+        nargs="+",
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_phi",
+        help=(
+            "The list of phi angles to use (mrad) for the beam tilt."
+            "This must either be the same length as theta or a scalar"
+        ),
+        type=float,
+        default=None,
+        nargs="+",
+        required=False,
+    )
+
+    parser.add_argument(
+        "--scan_drift",
+        help=(
+            "The model for the drift along each axis computed via "
+            "a + b*theta**4 (A). Provide arguments following: "
+            "x_a x_b y_a y_b z_a z_b, where x_a is the a component of "
+            "the drift along the x axis."
+        ),
+        type=float,
+        default=None,
+        nargs=6,
+        required=False,
+    )
+
     parser.add_argument(
         "--fast_ice",
         help=(
@@ -798,6 +997,19 @@ def get_name():
     return "run_parakeet"
 
 
+def parse_orientation(s):
+    if s.lower() in ["parakeet", "inplane"]:
+        return s.lower()
+    elif "discrete_tilt" in s:
+        return s.lower()
+    else:
+        raise ValueError(
+            f"Orientation must be 'parakeet', 'inplane' \
+                or 'discrete_tilt_*'."
+            f" Got {s}"
+        )
+
+
 def sample_defocus(c_10: float, c_10_stddev: float) -> float:
     """Generate a defocus value from a Gaussian distribution
 
@@ -811,7 +1023,7 @@ def sample_defocus(c_10: float, c_10_stddev: float) -> float:
     return np.random.normal(c_10, c_10_stddev)
 
 
-def get_pdb_files(pdb_dir: str) -> list[str]:
+def get_pdb_files(pdb_dir: str) -> List[str]:
     """Grab a list of molecule/structure definition files (such as PDBs) to add
     to micrographs
 
@@ -826,12 +1038,19 @@ def get_pdb_files(pdb_dir: str) -> list[str]:
     for file in os.listdir(pdb_dir):
         if file.endswith(".pdb"):
             pdb_files.append(os.path.join(pdb_dir, file))
+        elif file.endswith(".cif"):
+            pdb_files.append(os.path.join(pdb_dir, file))
+        elif file.endswith(".mmcif"):
+            pdb_files.append(os.path.join(pdb_dir, file))
+        elif file.endswith(".cif.gz"):
+            # untested as to whether parakeet can unpack .cif.gz
+            pdb_files.append(os.path.join(pdb_dir, file))
     return pdb_files
 
 
 def get_instances(
-    pdb_files: list[str], n_molecules: int, replace=True
-) -> Tuple[list[str], list[int]]:
+    pdb_files: List[str], n_molecules: int, replace=True
+) -> Tuple[List[str], List[int]]:
     """Determine the molecules to simulate in a given image and the number of
     occurrences of each
      in the image
@@ -859,6 +1078,10 @@ def get_instances(
         # reach the number of molecules
         for n in range(n_molecules - sum(n_instances)):
             n_instances[np.random.randint(num_structures)] += 1
+        new_pdb_files = pdb_files
+        new_n_instances = n_instances
+
+        return pdb_files, n_instances
 
     # if the number of structures is greater than or equal to the number of
     # molecules, randomly sample them
@@ -871,7 +1094,7 @@ def get_instances(
         new_pdb_files = pdb_files_temp.tolist()
         new_n_instances = n_instances_temp.tolist()
 
-    return new_pdb_files, new_n_instances
+        return new_pdb_files, new_n_instances
 
 
 def main(args):
@@ -908,9 +1131,9 @@ def main(args):
     frames = get_pdb_files(args.pdb_dir)
 
     # loop over the number of images to generate
-    progressbar = None
-    if args.tqdm:
-        progressbar = tqdm(range(args.n_images))
+    progressbar = tqdm(
+        range(args.n_images), desc="Generating images", disable=not args.tqdm
+    )
     defocus_idx = 0
     for n_image in range(
         images_in_directory, args.n_images + images_in_directory
@@ -941,7 +1164,9 @@ def main(args):
             frames, args.n_molecules, args.no_replacement
         )
         # add the molecules to the configuration
-        config.add_molecules(chosen_frames, n_instances)
+        config.add_molecules(
+            chosen_frames, n_instances, orientation_method=args.orientations
+        )
 
         # run parakeet
         sample = parakeet.sample.new(
@@ -1013,11 +1238,9 @@ def main(args):
         # update the config from the sample and save/overwrite it
         config.update_config(sample)
 
-        if args.tqdm:
-            progressbar.update(1)
+        progressbar.update(1)
 
-    if args.tqdm:
-        progressbar.close()
+    progressbar.close()
 
 
 if __name__ == "__main__":

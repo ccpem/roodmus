@@ -12,6 +12,7 @@ repos:
     rev: v4.4.0
     hooks:
       - id: check-added-large-files
+        args: ['maxkb=500']
       - id: check-ast
       - id: check-case-conflict
       - id: check-executables-have-shebangs
@@ -29,3 +30,13 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: [pandas-stubs, types-Pillow, types-setuptools, types-PyYAML]
+  - repo: local
+    hooks:
+      - id: pytest
+        stages: [commit, push]
+        types: [python]
+        name: pytest
+        entry: pytest
+        pass_filenames: false
+        language: system
+        always_run: true

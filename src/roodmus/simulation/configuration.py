@@ -1,10 +1,32 @@
-# configutation class to setup the parameters for Parakeet
+"""Roodmus:
+Configutation class to setup the parameters for Parakeet.
+
+Copyright (C) 2023  Joel Greer(UKRI), Tom Burnley (UKRI),
+Maarten Joosten (TU Delft), Arjen Jakobi (TU Delft)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""
+
+
 import os
 from typing import Any
 
 import yaml
 
 from parakeet import config
+from roodmus.simulation.orientation_generator import orientation_generator
 
 """
 from run_parakeet.orientation_generator import orientation_generator
@@ -34,6 +56,7 @@ class Configuration(object):
             self.optics_filename = os.path.join(args.mrc_dir, "optics.h5")
             self.image_filename = os.path.join(args.mrc_dir, "image.h5")
             self.leading_zeros = args.leading_zeros
+            self.verbose = args.verbose
             self._set_config(args)
 
     def _set_config(self, args):
@@ -149,22 +172,26 @@ class Configuration(object):
         # self.config.sample.sputter.element =
         # self.config.sample.sputter.thickness =
 
-        # scan (not yet supported as user input)
-        self.config.scan.mode = "still"
-        self.config.scan.axis = (0.0, 1.0, 0.0)
-        self.config.scan.start_angle = 0.0
-        self.config.scan.step_angle = 0.0
-        self.config.scan.start_pos = 0.0
-        self.config.scan.step_pos = "auto"
-        self.config.scan.num_images = 1
-        # self.config.scan.num_fractions = 1
-        # self.config.scan.num_nhelix = 1
-        self.config.scan.exposure_time = 1
-        self.config.scan.angles = None
-        self.config.scan.positions = None
-        # self.config.scan.theta = None
-        # self.config.scan.phi = None
-        # self.config.scan.drift.magnitude =
+        # scan (now supported as user input)
+        self.config.scan.mode = args.scan_mode
+        assert len(args.scan_axis) == 3, "Provide 3 arguments to --scan_axis!"
+        self.config.scan.axis = tuple(args.scan_axis)
+        self.config.scan.start_angle = args.scan_start_angle
+        self.config.scan.step_angle = args.scan_step_angle
+        self.config.scan.start_pos = args.scan_start_pos
+        if args.scan_step_pos is None:
+            self.config.scan.step_pos = "auto"
+        else:
+            self.config.scan.step_pos = args.scan_step_pos
+        self.config.scan.num_images = args.scan_num_images
+        self.config.scan.num_fractions = args.scan_num_fractions
+        self.config.scan.num_nhelix = args.scan_num_nhelix
+        self.config.scan.exposure_time = args.exposure_time
+        self.config.scan.angles = args.scan_angles
+        self.config.scan.positions = args.scan_positions
+        self.config.scan.theta = args.scan_theta
+        self.config.scan.phi = args.scan_phi
+        self.config.scan.drift = args.scan_drift
         # self.config.scan.drift.kernel_size =
 
         # simulation
@@ -249,18 +276,51 @@ class Configuration(object):
                 config.LocalMolecule(filename=pdb_file, instances=instance)
             )
 
-    def add_molecules(self, frames: list[str], instances: list[int]):
+    def add_molecules(
+        self,
+        frames: list[str],
+        instances: list[int],
+        orientation_method: str = "parakeet",
+    ):
         """Add molecules to the configuration file.
 
         Args:
             frames (str): Filepath of molecule to add to configuration file
             instances (int): Number of instances of molecule to
             add to configuration file
+            orientation_generator (str, optional): Orientation generator
         """
         for frame, instance in zip(frames, instances):
-            # self._add_molecule(frame, n=instance,
-            # orientation=orientation_generator.generate_inplane())
-            self._add_molecule(frame, n=instance)
+            if orientation_method == "parakeet":
+                # default behaviour
+                # let's parakeet generate the orientations
+                self._add_molecule(frame, n=instance)
+
+            elif orientation_method == "inplane":
+                # pre-defines orientations
+                # only generates in-plane rotations
+                # with no tilt
+                orientation = orientation_generator.generate_inplane(
+                    n=instance
+                )
+                self._add_molecule(frame, n=None, orientation=orientation)
+
+            elif "discrete_tilt" in orientation_method:
+                # pre-defines orientations
+                # samples elevation angles from a discrete set
+                # samples azimuthal and in-plane rotations from a
+                # continuous uniform distribution
+                k = int(orientation_method.split("_")[-1])
+                orientation = orientation_generator.generate_discrete_tilt(
+                    n=instance, k=k, save_to_file=self.verbose
+                )
+                self._add_molecule(frame, n=None, orientation=orientation)
+
+            else:
+                raise ValueError(
+                    f"Orientation generator {orientation_generator} \
+                        not supported"
+                )
 
         self._save_config()
 
