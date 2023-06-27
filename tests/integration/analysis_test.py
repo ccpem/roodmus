@@ -5,6 +5,9 @@ import tempfile
 import filecmp
 import hashlib
 
+import mrcfile
+import numpy as np
+
 from tests.integration import fixtures
 
 
@@ -47,6 +50,111 @@ class IntegrationTestAnalysis(unittest.TestCase):
             shutil.rmtree(self.test_dir)
         os.environ["PATH"] = self.oldpath
         return super().tearDown()
+
+    def test_plot_frames_star(self):
+        config_dir = os.path.join(
+            self.test_data, "analysis_test_inputs/relion_subset_ugraphs"
+        )
+        meta_file = os.path.join(
+            self.test_data,
+            "analysis_test_inputs/relion_subset/Select/job009/particles.star",
+        )
+        plot_dir = os.path.join(self.test_dir, "frames_star")
+        job_types = "2D_class_selection"
+
+        system_cmd = (
+            "roodmus plot_frames"
+            + " --config_dir {}".format(config_dir)
+            + " --meta_file {}".format(meta_file)
+            + " --plot_dir {}".format(plot_dir)
+            + " --job_types {}".format(job_types)
+        )
+        print("system cmd: {}".format(system_cmd))
+        os.system(system_cmd)
+
+        # find the outputs
+        output_files: list = os.listdir(plot_dir)
+        output_files = sorted(output_files)
+        output_files = [
+            os.path.join(plot_dir, output_file) for output_file in output_files
+        ]
+        self.assertIsNotNone(output_files)
+        assert isinstance(output_files, list)
+        print("Output files: {}".format(output_files))
+
+        # find the reference files
+        ref_files: list = [
+            os.path.join(
+                self.test_data,
+                "analysis_test_outputs/frames_star/particles_frame_"
+                + "distribution.png",
+            ),
+        ]
+        ref_files = sorted(ref_files)
+
+        for output, ref in zip(output_files, ref_files):
+            assert filecmp.cmp(ref, output)
+
+    def test_extract_particles(self):
+        config_dir = os.path.join(
+            self.test_data, "analysis_test_inputs/relion_subset_ugraphs"
+        )
+
+        particle_dir = os.path.join(self.test_dir, "extract_star")
+
+        system_cmd = (
+            "roodmus extract_particles"
+            + " --config_dir {}".format(config_dir)
+            + " --particle_dir {}".format(particle_dir)
+        )
+        print("system cmd: {}".format(system_cmd))
+        os.system(system_cmd)
+
+        # find the outputs
+        output_files: list = os.listdir(particle_dir)
+        output_files = sorted(output_files)
+        output_files = [
+            os.path.join(particle_dir, output_file)
+            for output_file in output_files
+        ]
+        self.assertIsNotNone(output_files)
+        assert isinstance(output_files, list)
+        print("Output files: {}".format(output_files))
+
+        # find the reference files
+        ref_files: list = [
+            os.path.join(
+                self.test_data,
+                "analysis_test_outputs/extract_star/particle_stack.tif",
+            ),
+            os.path.join(
+                self.test_data,
+                "analysis_test_outputs/extract_star/particle_stack.mrc",
+            ),
+        ]
+        ref_files = sorted(ref_files)
+
+        for output, ref in zip(output_files, ref_files):
+            # stop mrc files having a filecmp (is there a timestamp prob?)
+            if ref.endswith(".mrc"):
+                continue
+            assert filecmp.cmp(ref, output)
+
+        # load the mrcfiles and check that the stack data is the same
+        for mrc_ref, mrc_out in zip(
+            [mrc_ref for mrc_ref in output_files if mrc_ref.endswith(".mrc")],
+            [mrc_out for mrc_out in ref_files if mrc_out.endswith(".mrc")],
+        ):
+            with mrcfile.open(mrc_ref) as ref_mrc, mrcfile.open(
+                mrc_out
+            ) as out_mrc:
+                print(
+                    "Image shapes are:\nref: {}\nout: {}".format(
+                        ref_mrc.data.shape,
+                        out_mrc.data.shape,
+                    )
+                )
+                assert np.array_equal(ref_mrc.data, out_mrc.data)
 
     """
     def test_plot_ctf_star(self):

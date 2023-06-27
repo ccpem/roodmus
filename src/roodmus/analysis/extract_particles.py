@@ -31,25 +31,25 @@ import tifffile
 
 def add_arguments(parser):
     parser.add_argument(
-        "--config-dir",
+        "--config_dir",
         help="Directory with .mrc files and .yaml config files",
         type=str,
     )
     parser.add_argument(
-        "--mrc-dir",
-        help="Directory with .mrc files. The same as 'config-dir' by default",
+        "--mrc_dir",
+        help="Directory with .mrc files. The same as 'config_dir' by default",
         type=str,
         default=None,
     )
     parser.add_argument(
         "-N",
-        "--num-ugraphs",
+        "--num_ugraphs",
         help="Number of micrographs to consider in analyses. Default 'all'",
         type=int,
         default=None,
     )
     parser.add_argument(
-        "--box-size",
+        "--box_size",
         help="Box size in pixels. Default 128",
         type=int,
         default=128,
@@ -63,6 +63,11 @@ def add_arguments(parser):
     parser.add_argument(
         "--tqdm",
         help="Use tqdm progress bar. Default False",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--verbose",
+        help="Print details to stdout",
         action="store_true",
     )
     return parser
@@ -106,11 +111,14 @@ def main(args):
     # then extract the particles in a box of size 'box_size'
     # if the particles are too close to the edge of the micrograph, skip it
 
-    for i, filename in os.listdir(args.mrc_dir):
+    for filename in os.listdir(args.mrc_dir)[: args.num_ugraphs]:
         if filename.endswith(".mrc"):
             micrograph = mrcfile.open(
                 os.path.join(args.mrc_dir, filename), mode="r"
             ).data
+
+            if args.verbose:
+                print("Adding {} to particle stack".format(filename))
 
             config_filename = filename.replace(".mrc", ".yaml")
             config_path = os.path.join(args.config_dir, config_filename)
@@ -140,16 +148,20 @@ def main(args):
 
             progressbar.close()
             particle_stack = np.array(particle_list)
-            print(f"particle stack shape: {particle_stack.shape}")
+            if args.verbose:
+                print(f"particle stack shape: {particle_stack.shape}")
 
             # save the particle stack
             particle_file = os.path.join(
                 args.particle_dir,
-                os.path.basename(filename.replace(".mrc", "_particles.mrc")),
+                "particle_stack.mrc",
             )
+
             with mrcfile.new(particle_file, overwrite=True) as mrc:
                 mrc.set_data(np.float32(particle_stack))
-            tifffile.imsave(
+                mrc.set_image_stack()
+                mrc.update_header_from_data()
+            tifffile.imwrite(
                 particle_file.replace(".mrc", ".tif"), particle_stack
             )
 

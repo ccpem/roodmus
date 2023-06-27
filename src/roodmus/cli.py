@@ -87,7 +87,8 @@ def main():
         "Visualise 2D classification results.",
         "Compare estimated 3D alignments from RELION or CryoSPARC to the"
         + " ground-truth orientation values used in Parakeet data generation.",
-        "Extract a stack of particles from a set of simulated micrographs.",
+        "Extract a stack of particles from a set of simulated micrographs"
+        + " using the ground-truth positions.",
     ]
 
     for helptext, module in zip(module_helptext, modules):
