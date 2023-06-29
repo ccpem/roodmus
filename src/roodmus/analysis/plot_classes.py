@@ -112,6 +112,7 @@ def plot_2Dclass_precision(
     df_picked: pd.DataFrame,
     metadata_filename: str,
     job_types: dict,
+    palette: str = "YlGnBu",
 ):
     df_grouped = df_picked.groupby("metadata_filename").get_group(
         metadata_filename
@@ -136,7 +137,7 @@ def plot_2Dclass_precision(
         )
     df = pd.DataFrame(results)
     fig, ax = plt.subplots(figsize=(7, 3.5))
-    sns.barplot(x="class2D", y="precision", data=df, ax=ax, palette="YlGnBu")
+    sns.barplot(x="class2D", y="precision", data=df, ax=ax, palette=palette)
     ax.set_xlabel("class2D", fontsize=12)
     ax.set_ylabel("precision", fontsize=12)
     ax.set_title(job_types[metadata_filename], fontsize=14)
@@ -147,7 +148,10 @@ def plot_2Dclass_precision(
 
 
 def plot_2Dclasses_frames(
-    df_picked: pd.DataFrame, metadata_filename: str, bin_factor: int = 100
+    df_picked: pd.DataFrame,
+    metadata_filename: str,
+    bin_factor: int = 100,
+    palette="YlGnBu",
 ):
     df_filtered = df_picked.groupby("metadata_filename").get_group(
         metadata_filename
@@ -160,7 +164,7 @@ def plot_2Dclasses_frames(
         )
     )
     for class_id, pdb_id in df_grouped.groups.keys():
-        if int(class_id) > 0 and int(pdb_id) > 0:
+        if class_id > 0 and pdb_id > 0:
             num = df_grouped.get_group((class_id, pdb_id)).size
             if num != np.nan:
                 heatmap[int(class_id), int(pdb_id)] += num
@@ -170,7 +174,7 @@ def plot_2Dclasses_frames(
     heatmap[heatmap == 0] = np.nan
 
     fig, ax = plt.subplots(figsize=(15, 5))
-    sns.heatmap(heatmap, ax=ax, cmap="RdYlBu")
+    sns.heatmap(heatmap, ax=ax, cmap=palette)
     return fig, ax
 
 

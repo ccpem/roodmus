@@ -115,13 +115,13 @@ def plot_frame_distribution(
             "closest_pdb_index"
         ],
         ax=ax,
-        bins=100,
+        bins=25,
         kde=True,
     )
     sns.histplot(
         df_truth["pdb_index"],
         ax=ax,
-        bins=100,
+        bins=25,
         kde=True,
         color="red",
         alpha=0.2,
@@ -134,7 +134,7 @@ def plot_frame_distribution(
         ["picked", "truth"],
         loc="lower center",
         ncol=2,
-        bbox_to_anchor=(0.5, -0.05),
+        bbox_to_anchor=(0.5, -0.1),
         fontsize=12,
     )
     return fig, ax
