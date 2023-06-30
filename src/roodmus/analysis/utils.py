@@ -206,9 +206,12 @@ class IO(object):
     @classmethod
     def get_latents_cs(self, latent_file: str):
         latents = np.load(latent_file)
-        print(latents.dtype.names)
-        print(f"number of latents: {len(latents)}")
-        return latents
+        ndim = len([r for r in latents.dtype.names if "value" in r])
+        latent = []
+        for i in range(ndim):
+            latent.append(latents[f"components_mode_{i}/value"])
+        latents = np.stack(latent, axis=1)
+        return latents, ndim
 
     # Loading .star files and parsing the ctf parameters,
     # the particle positions and orientations
@@ -558,7 +561,7 @@ class load_data(object):
                 ignore_missing_files=ignore_missing_files,
             )
         else:
-            self.load_all_ground_truth(verbose=verbose)
+            self.load_all_ground_truth()
 
     def add_data(
         self,
@@ -1791,3 +1794,30 @@ class load_data(object):
         progressbar.close()
 
         return pd.DataFrame(data=results_overlap)
+
+    def add_latent_space_coordinates(
+        self,
+        latent_file: str,
+        results_picking: pd.DataFrame,
+        verbose: bool = False,
+    ):
+        """Add latent space coordinates obtained through
+        heterogeneous reconstruction to the
+        picked particle data frame.
+        """
+
+        # check by the file extension which method
+        # was used to obtain the latent space coordinates
+        if latent_file.endswith(".cs"):
+            # cryoSPARC
+            latent_space, ndim = IO.get_latents_cs(latent_file)
+
+        elif latent_file.endswith(".pkl"):
+            # cryoDRGN
+            latent_space, ndim = IO.get_latents_cryodrgn(latent_file)
+
+        else:
+            raise ValueError(f"unknown latent space file type: {latent_file}")
+
+        # add the latent space coordinates to the picked particle data frame
+        return ndim
