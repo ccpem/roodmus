@@ -3,9 +3,8 @@
 EXECUTABLE=$"roodmus"
 SUBROUTINE=$" conformations_sampling"
 
-TRAJFILES_DIR_PATH=$"/mnt/parakeet_storage4/trajectories/DESRES-Trajectory_sarscov2-11021566-all-glueCA/sarscov2-11021566-all-glueCA/glyco_no_solvent"
-TOPFILE_PATH=$"/mnt/parakeet_storage4/trajectories/DESRES-Trajectory_sarscov2-11021566-all-glueCA/pdbfile_11021566_glyco.pdb"
-#DEBUG is toggled on by use of --debug
+TRAJFILES_DIR_PATH="/path/to/trajfiles/dir"
+TOPFILE_PATH="/path/to/topfile"
 SAMPLING_METHOD=$"even_sampling"
 N_CONFORMATIONS=5
 #LIMIT_N_TRAJ_SUBFILES=1
