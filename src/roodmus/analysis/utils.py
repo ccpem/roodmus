@@ -1431,6 +1431,197 @@ class load_data(object):
         sdm[sdm < np.finfo(float).eps] = np.nan
         return sdm
 
+    def _match_particles(
+        self,
+        metadata_filename: str,
+        results_picking: pd.DataFrame,
+        results_truth: pd.DataFrame,
+        verbose: bool = False,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame,]:
+        """When picked and truth dfs are loaded, this can be used to create
+        dataframes of matched picked particles, matched truth particles,
+        picked particles not matched to truth particles and finally, truth
+        particle not matched to picked particles
+
+        Return 4 pd dfs which each correspond to all ugraphs for a given
+        metadata file.
+        Matching particles is calculated for a given ugraph at a time and
+        then the results are concatenated together into a df for the whole
+        metadata file:
+        Picked particles are matched to nearest truth particle in ugraph.
+        If they happen to be within particle diameter, they are matched.
+        -If match is found:
+            +add matched index of picked particle df to `p_match' list, add
+            matched index of truth particle df to `t_match' list
+        -Else (no match is found):
+            +add unmatched index of picked_particle df to `p_no_match' list
+        -Grab all indexes from truth particles df which are not present
+        in the `t_match' list and use them to create `t_no_match' list
+        -Select matched picked particles via `p_match' index selection to get
+        `p_match' df
+        -Select matched truth particles via `t_match' index selection to get
+        `t_match' df
+        `match' df, which is OUTPUT 1
+        -Create `p_match' list of dfs
+        -Create `t_match' list of dfs
+        -Create `p_unmatched' lsit of dfs
+        -Create `t_unmatched' list of dfs
+        -Combine/concat each list of to get a set of
+        4 dfs which correspond to the metadata file (as matching depends on
+        the picked particles rather than the truth particles).
+        -Reindex all 4 dfs and output them
+        -OUTPUT1 is p_match for metadata
+        -OUTPUT2 is t_match for metadata
+        -OUTPUT3 is p_unmatched for metadata
+        -OUTPUT4 is p_unmatched for metadata
+
+        Note that a single truth particle may be matched with more than 1
+        picked particle. Heed the warning related to this!
+
+        Returns:
+            Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+            matched_particles, unmatched_picked_particles,
+            unmatched_truth_particles
+        """
+        # to hold list of dfs (1 entry per ugraph) before concat
+        matched_picked_dfs = []
+        matched_truth_dfs = []
+        unmatched_picked_dfs = []
+        unmatched_truth_dfs = []
+
+        # grab particles for this metadata file only
+        metafile_picked = results_picking.loc[
+            results_picking["metadata_filename"] == metadata_filename
+        ]
+        metafile_truth = results_truth
+
+        # now find unique ugraphs, loop over whilst computing matches
+        # and unmatched particles
+        ugraph_ids = metafile_picked["ugraph_filename"].unique()
+        progressbar = tqdm(
+            total=len(ugraph_ids),
+            desc="computing closest matches",
+            disable=not verbose,
+        )
+        for ugraph in ugraph_ids:
+            # grab the positions from picked+truth to match
+            ugraph_picked = metafile_picked.loc[
+                metafile_picked["ugraph_filename" == ugraph]
+            ]
+            ugraph_truth = metafile_truth.loc[
+                metafile_truth["ugraph_filename" == ugraph]
+            ]
+
+            picked_pos_x = ugraph_picked["position_x"]
+            picked_pos_y = ugraph_picked["position_y"]
+            truth_pos_x = ugraph_truth["position_x"]
+            truth_pos_y = ugraph_truth["position_y"]
+
+            # now that we have the particles centres, get the sdm and indices
+            # of the particles which are matched
+            picked_centres = np.array([picked_pos_x, picked_pos_y]).T
+            truth_centres = np.array([truth_pos_x, truth_pos_y]).T
+            sdm = (
+                cKDTree(picked_centres)
+                .sparse_distance_matrix(
+                    cKDTree(truth_centres), self.particle_diameter / 2.0
+                )
+                .toarray()
+            )
+            sdm[sdm < np.finfo(float).eps] = np.nan
+            if verbose:
+                print("Shape of {}\n\tsdm: {}".format(ugraph, sdm.shape))
+
+            # find the minimum value along axis 0 (1 per picked particle)
+            # and keep track of the index of the truth particle
+            closest_truth_index: List[int] = []
+            p_match: List[int] = []
+            t_match: List[int] = []
+            for j, picked_particle in enumerate(sdm):
+                truth_particle_index = int(np.nanargmin(picked_particle))
+                # check if closest truth particle is within particle diameter
+                # of picked particle
+                if (
+                    picked_particle[truth_particle_index]
+                    > self.particle_diameter
+                ):
+                    continue
+                # if it is, consider picking successful and allow the picked
+                # and truth particle to be associated with each other
+                else:
+                    # add the indices of matched particles to respective list
+                    p_match.append(j)
+                    t_match.append(truth_particle_index)
+
+            # check whether any truth particles had multiple picked particles
+            # mapped to them
+            non_unique_count = len(
+                np.unique(
+                    np.array(closest_truth_index, dtype=float)[
+                        ~np.isnan(closest_truth_index)
+                    ]
+                )[
+                    np.unique(
+                        np.array(closest_truth_index, dtype=float)[
+                            ~np.isnan(closest_truth_index)
+                        ],
+                        return_counts=True,
+                    )[1]
+                    != 1
+                ]
+            )
+            print(
+                "There are {} non-unique picked particles!".format(
+                    non_unique_count
+                )
+            )
+            if non_unique_count > 0:
+                print(
+                    "This may cause problems with overwritten assns"
+                    " in truth particles dict!"
+                )
+
+            # Next extract the matched particles by df row
+            # for this ugraph. df indices should be propagated.
+            # Use iloc as indices of df that position data was
+            # extracted (to do matching) from is not necessarily ordered
+            # Extract matched picked particles
+            matched_picked_dfs.append(ugraph_picked.iloc[p_match])
+            # Extract matched truth particles
+            matched_truth_dfs.append(ugraph_truth.iloc[t_match])
+            # Extract the unmatched picked particles
+            p_list = np.arange(len(picked_pos_x), dtype=int).tolist()
+            p_unmatched = list(set(p_list).difference(p_match))
+            unmatched_picked_dfs.append(ugraph_picked.iloc[p_unmatched])
+            # Extract the unmatched truth particles
+            t_list = np.arange(len(picked_pos_x), dtype=int).tolist()
+            t_unmatched = list(set(t_list).difference(t_match))
+            unmatched_truth_dfs.append(ugraph_truth.iloc[t_unmatched])
+
+            progressbar.update(1)
+        progressbar.close()
+
+        # now that we have 4 lists of picked and truth matched/unmatched dfs
+        # need to combine them into a df each and reindex
+        matched_picked_df = pd.concat(matched_picked_dfs, axis=0).reset_index(
+            drop=True
+        )
+        matched_truth_df = pd.concat(matched_truth_dfs, axis=0).reset_index(
+            drop=True
+        )
+        unmatched_picked_df = pd.concat(
+            unmatched_picked_dfs, axis=0
+        ).reset_index(drop=True)
+        unmatched_truth_df = pd.concat(
+            unmatched_truth_dfs, axis=0
+        ).reset_index(drop=True)
+        return (
+            matched_picked_df,
+            matched_truth_df,
+            unmatched_picked_df,
+            unmatched_truth_df,
+        )
+
     def _calc_neighbours(self, pos_picked, pos_truth, r):
         """Calculates the number of neighbours for each particle in the
         truth set
