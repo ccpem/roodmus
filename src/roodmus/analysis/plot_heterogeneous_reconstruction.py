@@ -21,11 +21,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import argparse
 import os
 
-# import matplotlib.pyplot as plt
-# import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
-
-# import seaborn as sns
+import seaborn as sns
 
 from roodmus.analysis.utils import load_data
 
@@ -84,13 +82,13 @@ def get_name():
     return "plot_heterogeneous_reconstruction"
 
 
-def plot_latent_space(
+def plot_latent_space_scatter(
     df_picked,
-    dim_1: int | None,
-    dim_2: int | None,
+    dim_1: int = 0,
+    dim_2: int = 1,
     pca: bool = False,
-    umap: bool = False,
-    color_by_frame: bool = False,
+    tsne: bool = False,
+    color_by: str | None = None,
     palette: str = "warmcool",
 ):
     """
@@ -106,7 +104,83 @@ def plot_latent_space(
     if color_by is provided,
         color the points by the relevant variable
     """
-    return 0
+
+    if pca:
+        varname = "PCA"
+    elif tsne:
+        varname = "tSNE"
+    else:
+        varname = "latent"
+
+    if color_by is None:
+        grid = sns.jointplot(
+            x=f"{varname}_{dim_1}",
+            y=f"{varname}_{dim_2}",
+            data=df_picked,
+            kind="scatter",
+            color=(107 / 255, 174 / 255, 214 / 255),
+            marginal_kws=dict(bins=100, fill=False),
+            s=5,
+            height=3.5,
+        )
+        grid.set_axis_labels(f"{varname}_{dim_1}", f"{varname}_{dim_2}")
+        return grid
+    else:
+        fig, ax = plt.subplots(figsize=(3.5, 3.5))
+        sns.scatterplot(
+            x=f"{varname}_{dim_1}",
+            y=f"{varname}_{dim_2}",
+            data=df_picked,
+            hue=color_by,
+            palette=palette,
+            ax=ax,
+            s=5,
+        )
+        ax.set_xlabel(f"{varname}_{dim_1}")
+        ax.set_ylabel(f"{varname}_{dim_2}")
+        ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.0)
+        return fig, ax
+
+
+def plot_latent_space_hexbin(
+    df_picked,
+    dim_1: int = 0,
+    dim_2: int = 1,
+    pca: bool = False,
+    tsne: bool = False,
+    palette: str = "warmcool",
+):
+    """
+    plotting the latent space of the picked particles
+    if dim_1 and dim_2 are specified,
+        plot the latent space in those dimensions
+    if dim_1 or dim_2 is specified,
+        plot a histogram of the latent space in that dimension
+    if pca is True,
+        use PCA to reduce the dimensionality of the latent space
+    if umap is True,
+        use UMAP to reduce the dimensionality of the latent space
+    """
+
+    if pca:
+        varname = "PCA"
+    elif tsne:
+        varname = "tSNE"
+    else:
+        varname = "latent"
+
+    grid = sns.jointplot(
+        x=f"{varname}_{dim_1}",
+        y=f"{varname}_{dim_2}",
+        data=df_picked,
+        kind="hex",
+        color=(107 / 255, 174 / 255, 214 / 255),
+        palette=palette,
+        marginal_kws=dict(bins=100, fill=False),
+        height=3.5,
+    )
+    grid.set_axis_labels(f"{varname}_{dim_1}", f"{varname}_{dim_2}")
+    return grid
 
 
 def main(args):
