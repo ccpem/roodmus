@@ -164,7 +164,7 @@ def plot_2Dclasses_frames(
         )
     )
     for class_id, pdb_id in df_grouped.groups.keys():
-        if class_id > 0 and pdb_id > 0:
+        if int(class_id) > 0 and int(pdb_id) > 0:
             num = df_grouped.get_group((class_id, pdb_id)).size
             if num != np.nan:
                 heatmap[int(class_id), int(pdb_id)] += num

@@ -558,7 +558,7 @@ class load_data(object):
                 ignore_missing_files=ignore_missing_files,
             )
         else:
-            self.load_all_ground_truth(verbose=verbose)
+            self.load_all_ground_truth()
 
     def add_data(
         self,
