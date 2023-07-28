@@ -94,8 +94,8 @@ def get_particle(
 ):
     particle = micrograph[
         0,
-        position[1] - box_size // 2 : position[1] + box_size // 2,
         position[0] - box_size // 2 : position[0] + box_size // 2,
+        position[1] - box_size // 2 : position[1] + box_size // 2,
     ]
     return particle
 
@@ -129,7 +129,7 @@ def main(args):
                 total=get_num_molecules(config), disable=not args.tqdm
             )
             for molecule in config["sample"]["molecules"]["local"]:
-                filename = molecule["filename"]
+                # filename = molecule["filename"]
                 for instance in molecule["instances"]:
                     position = instance["position"]
                     position = [int(float(r)) for r in position]

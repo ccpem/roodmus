@@ -65,8 +65,8 @@ class IO(object):
         """
         if "location/micrograph_path" in metadata_cs.dtype.names:
             ugraph_paths = metadata_cs["location/micrograph_path"]
-        elif "blob/path" in metadata_cs.dtype.names:
-            ugraph_paths = metadata_cs["blob/path"]
+        # elif "blob/path" in metadata_cs.dtype.names:
+        #     ugraph_paths = metadata_cs["blob/path"]
         else:
             return None
 
@@ -738,7 +738,7 @@ class load_data(object):
             progressbar = tqdm(
                 total=len(ugraphs_to_load),
                 desc="loading micrographs",
-                disable=not self.verbose,
+                disable=not self.enable_tqdm,
             )
             for ugraph_path in ugraphs_to_load:
                 if not os.path.isfile(
@@ -1062,9 +1062,9 @@ class load_data(object):
             if "metadata_filename" in tmp_results.keys():
                 tmp_results.pop("metadata_filename")
             df_tmp = pd.DataFrame(tmp_results, columns=tmp_results.keys())
-            mask_true = df_tmp["mask"]
-            all_filenames = df_tmp["ugraph_filename"]
-            df_tmp = df_tmp.groupby("uid").agg(
+            # mask_true = df_tmp["mask"]
+            # all_filenames = df_tmp["ugraph_filename"]
+            df_tmp = df_tmp.groupby("uid", as_index=False).agg(
                 {
                     "ugraph_filename": "first",
                     "mask": "sum",
@@ -1079,12 +1079,26 @@ class load_data(object):
                     "class2D": "first",
                 }
             )
+            mapping = {
+                key: value
+                for key, value, mask in zip(
+                    tmp_results["uid"],
+                    tmp_results["ugraph_filename"],
+                    tmp_results["mask"],
+                )
+                if mask
+            }
             df_tmp_filtered = df_tmp[df_tmp["mask"] > 0]
-            all_filenames = all_filenames[mask_true == 1]
-            mask_true = mask_true[mask_true == 1]
-            df_tmp_filtered["ugraph_filename"] = all_filenames.iloc[
-                -len(df_tmp) :
-            ].values
+            # correct the ugraph_filename
+            df_tmp_filtered["ugraph_filename"] = df_tmp_filtered["uid"].map(
+                mapping
+            )
+
+            # all_filenames = all_filenames[mask_true == 1]
+            # mask_true = mask_true[mask_true == 1]
+            # df_tmp_filtered["ugraph_filename"] = all_filenames.iloc[
+            #     -len(df_tmp) :
+            # ].values
 
             # add the temporary results to the results
             self.results_picking["position_x"].extend(
