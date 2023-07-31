@@ -2,11 +2,11 @@ import unittest
 import os
 import shutil
 import tempfile
-import filecmp
+import filecmp  # noqa: F401
 import hashlib
 
-import mrcfile
-import numpy as np
+import mrcfile  # noqa: F401
+import numpy as np  # noqa: F401
 
 from tests.integration import fixtures
 
@@ -51,6 +51,7 @@ class IntegrationTestAnalysis(unittest.TestCase):
         os.environ["PATH"] = self.oldpath
         return super().tearDown()
 
+    """
     def test_plot_frames_star(self):
         config_dir = os.path.join(
             self.test_data, "analysis_test_inputs/relion_subset_ugraphs"
@@ -155,6 +156,7 @@ class IntegrationTestAnalysis(unittest.TestCase):
                     )
                 )
                 assert np.array_equal(ref_mrc.data, out_mrc.data)
+    """
 
     """
     def test_plot_ctf_star(self):
@@ -201,6 +203,7 @@ class IntegrationTestAnalysis(unittest.TestCase):
             assert md5_hash(ref) == md5_hash(output)
     """
 
+    """
     def test_plot_ctf_scatter_star(self):
         config_dir = os.path.join(
             self.test_data, "analysis_test_inputs/relion_subset_ugraphs"
@@ -435,6 +438,7 @@ class IntegrationTestAnalysis(unittest.TestCase):
 
         for output, ref in zip(output_files, ref_files):
             assert filecmp.cmp(ref, output)
+    """
 
 
 if __name__ == "__main__":

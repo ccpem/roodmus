@@ -54,7 +54,7 @@ class IO(object):
         return metadata
 
     @classmethod
-    def get_ugraph_cs(self, metadata_cs: np.recarray):
+    def get_ugraph_cs(self, metadata_cs: np.recarray) -> List[str]:
         """Grab micrograph file paths from .cs data.
 
         Args:
@@ -63,12 +63,13 @@ class IO(object):
         Returns:
             ugraph_paths (List[str]): micrograph file paths.
         """
-        if "location/micrograph_path" in metadata_cs.dtype.names:
-            ugraph_paths = metadata_cs["location/micrograph_path"]
+        ugraph_paths = metadata_cs["location/micrograph_path"].tolist()
+
         # elif "blob/path" in metadata_cs.dtype.names:
         #     ugraph_paths = metadata_cs["blob/path"]
-        else:
-            return None
+        # removed None from within the function to stop mypy errors
+        # else:
+        #     return None
 
         ugraph_paths = [
             os.path.basename(path).decode("utf-8").split("_")[-1]
@@ -159,8 +160,10 @@ class IO(object):
                 "alignments3D/pose"
             ]  # orientations as rodriques vectors
             # convert to euler angles
-            euler = [geom.rot2euler(geom.expmap(p)) for p in pose]
-            euler = np.array(euler)
+            euler = np.array(
+                [geom.rot2euler(geom.expmap(p)) for p in pose],
+                dtype=float,
+            )
             # euler = R.from_rotvec(pose).as_euler(
             #     "zyx", degrees=False
             # )  # convert to euler angles
@@ -508,7 +511,7 @@ class load_data(object):
         self.config_dir = config_dir
         self.particle_diameter = particle_diameter
         self.ugraph_shape = ugraph_shape
-        self.results_picking: dict[str, Any] = {
+        self.results_picking: dict[str, List[Any]] = {
             "metadata_filename": [],
             "ugraph_filename": [],
             "position_x": [],
@@ -982,7 +985,7 @@ class load_data(object):
         """
         if isinstance(metadata, list) and file_type == "cs":
             print(f"loading {len(metadata)} files into the results")
-            tmp_results: dict = {"uid": [], "mask": []}
+            tmp_results: dict[str, List[Any]] = {"uid": [], "mask": []}
             for key in self.results_picking.keys():
                 tmp_results[key] = []
 
@@ -996,7 +999,7 @@ class load_data(object):
                     tmp_results["ugraph_filename"].extend(
                         [np.nan] * num_particles
                     )
-                    mask = [False] * num_particles
+                    mask = np.array([False] * num_particles, dtype=bool)
                 else:
                     num_particles = len(
                         ugraph_filename
@@ -1061,7 +1064,9 @@ class load_data(object):
 
             if "metadata_filename" in tmp_results.keys():
                 tmp_results.pop("metadata_filename")
-            df_tmp = pd.DataFrame(tmp_results, columns=tmp_results.keys())
+            df_tmp = pd.DataFrame(
+                tmp_results, columns=list(tmp_results.keys())
+            )
             # mask_true = df_tmp["mask"]
             # all_filenames = df_tmp["ugraph_filename"]
             df_tmp = df_tmp.groupby("uid", as_index=False).agg(
@@ -1141,12 +1146,18 @@ class load_data(object):
             pass  # should not happen, but just in case we add it here
 
         elif file_type == "cs":
-            ugraph_filename = IO.get_ugraph_cs(
-                metadata,
-            )  # a list of all microraphs in the metadata file
+            if "location/micrograph_path" in metadata.dtype.names:
+                ugraph_filename = IO.get_ugraph_cs(
+                    metadata,
+                )  # a list of all micrographs in the metadata file
+            else:
+                raise ValueError(
+                    "ugraph_filename is None due to location/micrograph_path"
+                    " not found in cryosparc metadata file {}".format(metadata)
+                )
 
             if ignore_missing_files:
-                mask = [True] * len(ugraph_filename)
+                mask = np.array([True] * len(ugraph_filename), dtype=bool)
             else:
                 print("checking if ugraphs exist...")
                 mask = self._check_if_ugraphs_exist(ugraph_filename)
@@ -1231,7 +1242,7 @@ class load_data(object):
                 metadata,
             )  # a list of all microraphs in the metadata file
             if ignore_missing_files:
-                mask = [True] * len(ugraph_filename)
+                mask = np.array([True] * len(ugraph_filename), dtype=bool)
             else:
                 print("checking if ugraphs exist...")
                 mask = self._check_if_ugraphs_exist(ugraph_filename)
@@ -1383,36 +1394,68 @@ class load_data(object):
 
         # add to results
         self.results_truth["pdb_filename"] = np.append(
-            self.results_truth["pdb_filename"], filenames
-        )
+            np.array(
+                self.results_truth["pdb_filename"],
+                dtype=str,
+            ),
+            filenames,
+        ).tolist()
         self.results_truth["position_x"] = np.append(
-            self.results_truth["position_x"], positions[:, 0]
-        )
+            np.array(
+                self.results_truth["position_x"],
+                dtype=float,
+            ),
+            positions[:, 0],
+        ).tolist()
         self.results_truth["position_y"] = np.append(
-            self.results_truth["position_y"], positions[:, 1]
-        )
+            np.array(
+                self.results_truth["position_y"],
+                dtype=float,
+            ),
+            positions[:, 1],
+        ).tolist()
         self.results_truth["position_z"] = np.append(
-            self.results_truth["position_z"], positions[:, 2]
-        )
+            np.array(
+                self.results_truth["position_z"],
+                dtype=float,
+            ),
+            positions[:, 2],
+        ).tolist()
         self.results_truth["euler_phi"] = np.append(
-            self.results_truth["euler_phi"],
+            np.array(
+                self.results_truth["euler_phi"],
+                dtype=float,
+            ),
             orientations[:, 0],
-        )
+        ).tolist()
         self.results_truth["euler_theta"] = np.append(
-            self.results_truth["euler_theta"],
+            np.array(
+                self.results_truth["euler_theta"],
+                dtype=float,
+            ),
             orientations[:, 1],
-        )
+        ).tolist()
         self.results_truth["euler_psi"] = np.append(
-            self.results_truth["euler_psi"],
+            np.array(
+                self.results_truth["euler_psi"],
+                dtype=float,
+            ),
             orientations[:, 2],
-        )
+        ).tolist()
         self.results_truth["defocus"] = np.append(
-            self.results_truth["defocus"], [defocus] * len(positions)
-        )
+            np.array(
+                self.results_truth["defocus"],
+                dtype=float,
+            ),
+            [defocus] * len(positions),
+        ).tolist()
         self.results_truth["ice_thickness"] = np.append(
-            self.results_truth["ice_thickness"],
+            np.array(
+                self.results_truth["ice_thickness"],
+                dtype=float,
+            ),
             [ice_thickness] * len(positions),
-        )
+        ).tolist()
         num_particles = len(positions)
         return num_particles
 
@@ -1548,7 +1591,8 @@ class load_data(object):
 
             # find the minimum value along axis 0 (1 per picked particle)
             # and keep track of the index of the truth particle
-            closest_truth_index: List[int] = []
+            # Using List[Any] to include np.nan which are floats
+            closest_truth_index: List[Any] = []
             p_match: List[int] = []
             t_match: List[int] = []
             for j, picked_particle in enumerate(sdm):
@@ -1559,10 +1603,12 @@ class load_data(object):
                     picked_particle[truth_particle_index]
                     > self.particle_diameter
                 ):
+                    closest_truth_index.append(np.nan)
                     continue
                 # if it is, consider picking successful and allow the picked
                 # and truth particle to be associated with each other
                 else:
+                    closest_truth_index.append(truth_particle_index)
                     # add the indices of matched particles to respective list
                     p_match.append(j)
                     t_match.append(truth_particle_index)
@@ -1818,11 +1864,15 @@ class load_data(object):
             # than 1 particle radius to any of the true particles
             # A picked particle is considered a false positive if it is not
             # closer than 1 particle radius to any of the true particles
-            TP = 0  # the number of true positives in the current micrograph
-            FP = 0  # the number of false positives in the current micrograph
+            TP: float = (
+                0  # the number of true positives in the current micrograph
+            )
+            FP: float = (
+                0  # the number of false positives in the current micrograph
+            )
             for particle in range(len(pos_picked_in_ugraph)):
-                TP += np.any(sdm[particle] < self.particle_diameter / 2)
-                FP += np.all(sdm[particle] > self.particle_diameter / 2)
+                TP += float(np.any(sdm[particle] < self.particle_diameter / 2))
+                FP += float(np.all(sdm[particle] > self.particle_diameter / 2))
 
                 TP_all.append(
                     np.any(sdm[particle] < self.particle_diameter / 2)
@@ -1839,18 +1889,22 @@ class load_data(object):
             # not closer than 1 particle radius to any of the picked particles
             # The multiplicity is defined as the average number of times
             # a truth particle is picked
-            FN = 0  # the number of false negatives in the current micrograph
+            FN: float = (
+                0.0  # the number of false negatives in the current micrograph
+            )
             multiplicity = []  # the number of times a truth particle is picked
             for particle in range(len(pos_truth_in_ugraph)):
-                FN += np.all(sdm[:, particle] > self.particle_diameter / 2)
+                FN += float(
+                    np.all(sdm[:, particle] > self.particle_diameter / 2)
+                )
                 multiplicity.append(
                     np.sum(sdm[:, particle] < self.particle_diameter / 2)
                 )
             multiplicity = np.mean(multiplicity)
 
             # calculate the precision, recall and multiplicity
-            precision = TP / (TP + FP)
-            recall = TP / (TP + FN)
+            precision = float(TP) / (float(TP) + float(FP))
+            recall = float(TP) / (float(TP) + float(FN))
 
             # append the results to the results data frame
             results_precision["metadata_filename"].append(groupname[0])
