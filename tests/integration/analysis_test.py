@@ -440,6 +440,10 @@ class IntegrationTestAnalysis(unittest.TestCase):
             assert filecmp.cmp(ref, output)
     """
 
+    # TODO add plot_picking->label_matched_and_unmatched
+
+    # TODO add plot_ctf->plot_defocus_scatter for perparticledefoci
+
 
 if __name__ == "__main__":
     unittest.main()
