@@ -153,6 +153,8 @@ def plot_per_particle_defocus_scatter(
     results["defocus_truth"].extend(
         (mt_df["defocus"] + mt_df["position_z"]).abs().tolist()
     )
+    """
+    could add a functionality to save or print matched particles
     for i in range(len(results["ugraph_filename"])):
         print(
             "{}\t{}\t{}\t{}".format(
@@ -162,6 +164,7 @@ def plot_per_particle_defocus_scatter(
                 results["defocus_truth"][i],
             )
         )
+    """
 
     df = pd.DataFrame(results)
 
@@ -592,7 +595,7 @@ def main(args):
                 analysis,
                 args.meta_file,
                 palette="BuGn",
-                num_ugraphs=None,
+                num_ugraphs=args.num_ugraphs,
             )
             fig.savefig(filename, dpi=args.dpi, bbox_inches="tight")
             if args.pdf:
