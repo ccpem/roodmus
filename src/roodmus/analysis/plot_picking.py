@@ -171,6 +171,7 @@ def label_micrograph_truth(
     mrc_dir: str = "",
     box_width: int = 50,
     box_height: int = 50,
+    edgecolor: list = [0, 1, 0],
     verbose: bool = False,
 ) -> Tuple[plt.Figure, plt.Axes]:
     # get the micrograph name
@@ -210,7 +211,7 @@ def label_micrograph_truth(
                 width,
                 height,
                 linewidth=1,
-                edgecolor=[0, 1, 0],
+                edgecolor=edgecolor,
                 facecolor="none",
             )
             ax.add_patch(rect)
@@ -379,6 +380,193 @@ def label_micrograph_truth_and_picked(
                 height,
                 linewidth=1,
                 edgecolor=truth_color,
+                facecolor="none",
+            )
+            ax.add_patch(rect)
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+    return fig, ax
+
+
+def label_micrograph_truth_and_truth(
+    truth_particles1: pd.DataFrame,
+    truth_particles2: pd.DataFrame,
+    ugraph_index: int = 0,
+    mrc_dir: str = "",
+    box_width: int = 50,
+    box_height: int = 50,
+    truth_color1: list = [1, 0, 0],
+    truth_color2: list = [0, 1, 0],
+    verbose: bool = False,
+) -> Tuple[plt.Figure, plt.Axes]:
+    # get the micrograph name
+    ugraph_filename = np.unique(
+        np.append(
+            truth_particles1["ugraph_filename"].to_numpy(dtype=str),
+            truth_particles2["ugraph_filename"].to_numpy(dtype=str),
+            axis=0,
+        )
+    )[ugraph_index]
+    print(f"plotted index {ugraph_index}; micrograph: {ugraph_filename}")
+    ugraph_path = os.path.join(mrc_dir, ugraph_filename)
+    truth_particles1_ugraph = truth_particles1.groupby(
+        "ugraph_filename"
+    ).get_group(ugraph_filename)
+    truth_particles2_ugraph = truth_particles2.groupby(
+        "ugraph_filename"
+    ).get_group(ugraph_filename)
+
+    # Open up a mrc file to overlay the boxes with
+    with mrcfile.open(ugraph_path) as mrc:
+        data = mrc.data
+
+        fig, ax = plt.subplots(figsize=[14, 14])
+        ax.imshow(data[0], cmap="gray")
+        fig.tight_layout()
+
+        # Now that you've plotted the true central points of each particle,
+        # also plot the boxes
+        boxes = _twoD_image_bboxs(
+            truth_particles1_ugraph["position_x"],
+            truth_particles1_ugraph["position_y"],
+            box_width,
+            box_height,
+            verbose,
+        )
+        if verbose:
+            print(f"number of boxes: {len(boxes)}")
+
+        for bbox in boxes:
+            corner = [bbox[0], bbox[1]]
+            height = bbox[3] - bbox[1]
+            width = bbox[2] - bbox[0]
+            rect = patches.Rectangle(
+                corner,
+                width,
+                height,
+                linewidth=1,
+                edgecolor=truth_color1,
+                facecolor="none",
+            )
+            ax.add_patch(rect)
+
+        boxes = _twoD_image_bboxs(
+            truth_particles2_ugraph["position_x"],
+            truth_particles2_ugraph["position_y"],
+            box_width,
+            box_height,
+            verbose,
+        )
+        if verbose:
+            print(f"number of boxes: {len(boxes)}")
+
+        for bbox in boxes:
+            corner = [bbox[0], bbox[1]]
+            height = bbox[3] - bbox[1]
+            width = bbox[2] - bbox[0]
+            rect = patches.Rectangle(
+                corner,
+                width,
+                height,
+                linewidth=1,
+                edgecolor=truth_color2,
+                facecolor="none",
+            )
+            ax.add_patch(rect)
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+    return fig, ax
+
+
+def label_micrograph_picked_and_picked(
+    picked_particles1: pd.DataFrame,
+    picked_particles2: pd.DataFrame,
+    metadata_filename: str | list[str],
+    truth_particles: pd.DataFrame,
+    ugraph_index: int = 0,
+    mrc_dir: str = "",
+    box_width: int = 50,
+    box_height: int = 50,
+    picked1_color: list = [1, 0, 0],
+    picked2_color: list = [0, 1, 0],
+    verbose: bool = False,
+) -> Tuple[plt.Figure, plt.Axes]:
+    # group the picked particles by metadata file
+    if isinstance(metadata_filename, list):
+        metadata_filename = metadata_filename[0]
+    picked_particles1 = picked_particles1.groupby(
+        "metadata_filename"
+    ).get_group(metadata_filename)
+    picked_particles2 = picked_particles2.groupby(
+        "metadata_filename"
+    ).get_group(metadata_filename)
+    # get the micrograph name
+    ugraph_filename = np.unique(truth_particles["ugraph_filename"])[
+        ugraph_index
+    ]
+    print(f"plotted index {ugraph_index}; micrograph: {ugraph_filename}")
+    ugraph_path = os.path.join(mrc_dir, ugraph_filename)
+    picked_particles1_ugraph = picked_particles1.groupby(
+        "ugraph_filename"
+    ).get_group(ugraph_filename)
+    picked_particles2_ugraph = picked_particles2.groupby(
+        "ugraph_filename"
+    ).get_group(ugraph_filename)
+
+    # Open up a mrc file to overlay the boxes with
+    with mrcfile.open(ugraph_path) as mrc:
+        data = mrc.data
+
+        fig, ax = plt.subplots(figsize=[14, 14])
+        ax.imshow(data[0], cmap="gray")
+        fig.tight_layout()
+
+        # Now that you've plotted the true central points of each particle,
+        # also plot the boxes
+        boxes = _twoD_image_bboxs(
+            picked_particles1_ugraph["position_x"],
+            picked_particles1_ugraph["position_y"],
+            box_width,
+            box_height,
+            verbose,
+        )
+        if verbose:
+            print(f"number of boxes: {len(boxes)}")
+
+        for bbox in boxes:
+            corner = [bbox[0], bbox[1]]
+            height = bbox[3] - bbox[1]
+            width = bbox[2] - bbox[0]
+            rect = patches.Rectangle(
+                corner,
+                width,
+                height,
+                linewidth=1,
+                edgecolor=picked1_color,
+                facecolor="none",
+            )
+            ax.add_patch(rect)
+
+        boxes = _twoD_image_bboxs(
+            picked_particles2_ugraph["position_x"],
+            picked_particles2_ugraph["position_y"],
+            box_width,
+            box_height,
+            verbose,
+        )
+        if verbose:
+            print(f"number of boxes: {len(boxes)}")
+
+        for bbox in boxes:
+            corner = [bbox[0], bbox[1]]
+            height = bbox[3] - bbox[1]
+            width = bbox[2] - bbox[0]
+            rect = patches.Rectangle(
+                corner,
+                width,
+                height,
+                linewidth=1,
+                edgecolor=picked2_color,
                 facecolor="none",
             )
             ax.add_patch(rect)
@@ -1038,329 +1226,422 @@ def main(args):
                     df_truth,
                     verbose=False,
                 )
+                if args.verbose:
+                    if len(mp_df) == len(up_df):
+                        print("picked dfs match!!! BAD!")
+                    if len(mt_df) == len(ut_df):
+                        print("truth dfs match!!! BAD!")
+                    print(
+                        "mp_df:{}\nup_df:{}\nmt_df:{}\nut_df:{}".format(
+                            mp_df,
+                            up_df,
+                            mt_df,
+                            ut_df,
+                        )
+                    )
 
                 # now for each micrograph, make the plots
                 for ugraph_index, ugraph_filename in enumerate(
                     np.unique(df_picked["ugraph_filename"])[: args.num_ugraphs]
                 ):
                     # matched_picked_particles
-                    print(
-                        "Plotting matched picked particles in"
-                        " micrograph {}, \
-                        from metadata file {}".format(
-                            ugraph_filename, meta_basename
+                    if len(mp_df) > 0:
+                        print(
+                            "Plotting matched picked particles in"
+                            " micrograph {}, \
+                            from metadata file {}".format(
+                                ugraph_filename, meta_basename
+                            )
                         )
-                    )
-                    fig, ax = label_micrograph_picked(
-                        df_picked,
-                        meta_file,
-                        ugraph_index,
-                        args.mrc_dir,
-                        box_width=args.box_width,
-                        box_height=args.box_height,
-                        edgecolor=[0, 0, 1],
-                        verbose=args.verbose,
-                    )
-                    # remove axis ticks
-                    ax.set_xticks([])
-                    ax.set_yticks([])
-                    outfilename = os.path.join(
-                        args.plot_dir,
-                        "{}_{}_matched_picked.png".format(
-                            ugraph_filename.strip(".mrc"),
-                            meta_basename.split(".")[0],
-                        ),
-                    )
-                    # remove axis ticks
-                    ax.set_xticks([])
-                    ax.set_yticks([])
-                    fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
-                    if args.pdf:
+                        fig, ax = label_micrograph_picked(
+                            mp_df,
+                            meta_file,
+                            ugraph_index,
+                            args.mrc_dir,
+                            box_width=args.box_width,
+                            box_height=args.box_height,
+                            edgecolor=[0, 0, 1],
+                            verbose=args.verbose,
+                        )
+                        # remove axis ticks
+                        ax.set_xticks([])
+                        ax.set_yticks([])
+                        outfilename = os.path.join(
+                            args.plot_dir,
+                            "{}_{}_matched_picked.png".format(
+                                ugraph_filename.strip(".mrc"),
+                                meta_basename.split(".")[0],
+                            ),
+                        )
+                        # remove axis ticks
+                        ax.set_xticks([])
+                        ax.set_yticks([])
                         fig.savefig(
-                            outfilename.replace(".png", ".pdf"),
-                            bbox_inches="tight",
+                            outfilename, dpi=args.dpi, bbox_inches="tight"
                         )
-                    fig.clf()
+                        if args.pdf:
+                            fig.savefig(
+                                outfilename.replace(".png", ".pdf"),
+                                bbox_inches="tight",
+                            )
+                        fig.clf()
+                    else:
+                        print("There are no matched picked particles!")
 
                     # matched_truth_particles
-                    print(
-                        "Plotting matched truth particles in"
-                        " micrograph {}, \
-                        from metadata file {}".format(
-                            ugraph_filename, meta_basename
+                    if len(mt_df) > 0:
+                        print(
+                            "Plotting matched truth particles in"
+                            " micrograph {}, \
+                            from metadata file {}".format(
+                                ugraph_filename, meta_basename
+                            )
                         )
-                    )
-                    fig, ax = label_micrograph_picked(
-                        df_picked,
-                        meta_file,
-                        ugraph_index,
-                        args.mrc_dir,
-                        box_width=args.box_width,
-                        box_height=args.box_height,
-                        edgecolor=[0, 0, 0.5],
-                        verbose=args.verbose,
-                    )
-                    # remove axis ticks
-                    ax.set_xticks([])
-                    ax.set_yticks([])
-                    outfilename = os.path.join(
-                        args.plot_dir,
-                        "{}_{}_matched_truth.png".format(
-                            ugraph_filename.strip(".mrc"),
-                            meta_basename.split(".")[0],
-                        ),
-                    )
-                    # remove axis ticks
-                    ax.set_xticks([])
-                    ax.set_yticks([])
-                    fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
-                    if args.pdf:
+                        fig, ax = label_micrograph_truth(
+                            mt_df,
+                            ugraph_index,
+                            args.mrc_dir,
+                            box_width=args.box_width,
+                            box_height=args.box_height,
+                            edgecolor=[0, 0, 0.5],
+                            verbose=args.verbose,
+                        )
+                        # remove axis ticks
+                        ax.set_xticks([])
+                        ax.set_yticks([])
+                        outfilename = os.path.join(
+                            args.plot_dir,
+                            "{}_{}_matched_truth.png".format(
+                                ugraph_filename.strip(".mrc"),
+                                meta_basename.split(".")[0],
+                            ),
+                        )
+                        # remove axis ticks
+                        ax.set_xticks([])
+                        ax.set_yticks([])
                         fig.savefig(
-                            outfilename.replace(".png", ".pdf"),
-                            bbox_inches="tight",
+                            outfilename, dpi=args.dpi, bbox_inches="tight"
                         )
-                    fig.clf()
+                        if args.pdf:
+                            fig.savefig(
+                                outfilename.replace(".png", ".pdf"),
+                                bbox_inches="tight",
+                            )
+                        fig.clf()
+                    else:
+                        print("There are no matched truth particles!")
 
                     # umatched_picked_particles
-                    print(
-                        "Plotting unmatched picked particles in"
-                        " micrograph {}, \
-                        from metadata file {}".format(
-                            ugraph_filename, meta_basename
+                    if len(up_df) > 0:
+                        print(
+                            "Plotting unmatched picked particles in"
+                            " micrograph {}, \
+                            from metadata file {}".format(
+                                ugraph_filename, meta_basename
+                            )
                         )
-                    )
-                    fig, ax = label_micrograph_picked(
-                        df_picked,
-                        meta_file,
-                        ugraph_index,
-                        args.mrc_dir,
-                        box_width=args.box_width,
-                        box_height=args.box_height,
-                        edgecolor=[1, 1, 0],
-                        verbose=args.verbose,
-                    )
-                    # remove axis ticks
-                    ax.set_xticks([])
-                    ax.set_yticks([])
-                    outfilename = os.path.join(
-                        args.plot_dir,
-                        "{}_{}_unmatched_picked.png".format(
-                            ugraph_filename.strip(".mrc"),
-                            meta_basename.split(".")[0],
-                        ),
-                    )
-                    # remove axis ticks
-                    ax.set_xticks([])
-                    ax.set_yticks([])
-                    fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
-                    if args.pdf:
+                        fig, ax = label_micrograph_picked(
+                            up_df,
+                            meta_file,
+                            ugraph_index,
+                            args.mrc_dir,
+                            box_width=args.box_width,
+                            box_height=args.box_height,
+                            edgecolor=[1, 1, 0],
+                            verbose=args.verbose,
+                        )
+                        # remove axis ticks
+                        ax.set_xticks([])
+                        ax.set_yticks([])
+                        outfilename = os.path.join(
+                            args.plot_dir,
+                            "{}_{}_unmatched_picked.png".format(
+                                ugraph_filename.strip(".mrc"),
+                                meta_basename.split(".")[0],
+                            ),
+                        )
+                        # remove axis ticks
+                        ax.set_xticks([])
+                        ax.set_yticks([])
                         fig.savefig(
-                            outfilename.replace(".png", ".pdf"),
-                            bbox_inches="tight",
+                            outfilename, dpi=args.dpi, bbox_inches="tight"
                         )
-                    fig.clf()
+                        if args.pdf:
+                            fig.savefig(
+                                outfilename.replace(".png", ".pdf"),
+                                bbox_inches="tight",
+                            )
+                        fig.clf()
+                    else:
+                        print("There are no matched truth particles!")
 
                     # unmatched_truth_particles
-                    print(
-                        "Plotting unmatched truth particles in"
-                        " micrograph {}, \
-                        from metadata file {}".format(
-                            ugraph_filename, meta_basename
+                    if len(ut_df) > 0:
+                        print(
+                            "Plotting unmatched truth particles in"
+                            " micrograph {}, \
+                            from metadata file {}".format(
+                                ugraph_filename, meta_basename
+                            )
                         )
-                    )
-                    fig, ax = label_micrograph_picked(
-                        df_picked,
-                        meta_file,
-                        ugraph_index,
-                        args.mrc_dir,
-                        box_width=args.box_width,
-                        box_height=args.box_height,
-                        edgecolor=[1, 1, 0.5],
-                        verbose=args.verbose,
-                    )
-                    # remove axis ticks
-                    ax.set_xticks([])
-                    ax.set_yticks([])
-                    outfilename = os.path.join(
-                        args.plot_dir,
-                        "{}_{}_unmatched_truth.png".format(
-                            ugraph_filename.strip(".mrc"),
-                            meta_basename.split(".")[0],
-                        ),
-                    )
-                    # remove axis ticks
-                    ax.set_xticks([])
-                    ax.set_yticks([])
-                    fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
-                    if args.pdf:
+                        fig, ax = label_micrograph_truth(
+                            ut_df,
+                            ugraph_index,
+                            args.mrc_dir,
+                            box_width=args.box_width,
+                            box_height=args.box_height,
+                            edgecolor=[1, 1, 0.5],
+                            verbose=args.verbose,
+                        )
+                        # remove axis ticks
+                        ax.set_xticks([])
+                        ax.set_yticks([])
+                        outfilename = os.path.join(
+                            args.plot_dir,
+                            "{}_{}_unmatched_truth.png".format(
+                                ugraph_filename.strip(".mrc"),
+                                meta_basename.split(".")[0],
+                            ),
+                        )
+                        # remove axis ticks
+                        ax.set_xticks([])
+                        ax.set_yticks([])
                         fig.savefig(
-                            outfilename.replace(".png", ".pdf"),
-                            bbox_inches="tight",
+                            outfilename, dpi=args.dpi, bbox_inches="tight"
                         )
-                    fig.clf()
+                        if args.pdf:
+                            fig.savefig(
+                                outfilename.replace(".png", ".pdf"),
+                                bbox_inches="tight",
+                            )
+                        fig.clf()
+                    else:
+                        print("There are no unmatched truth particles!")
 
                     # matched_picked_particles and unmatched_picked_particles
-                    print(
-                        "Plotting matched picked particles and"
-                        " unmatched picked particles"
-                        " in micrograph"
-                        " {}, from metadata file {}".format(
-                            ugraph_filename,
-                            meta_basename,
+                    if len(mp_df) > 0 and len(up_df) > 0:
+                        print(
+                            "Plotting matched picked particles and"
+                            " unmatched picked particles"
+                            " in micrograph"
+                            " {}, from metadata file {}".format(
+                                ugraph_filename,
+                                meta_basename,
+                            )
                         )
-                    )
-                    fig, ax = label_micrograph_truth_and_picked(
-                        mp_df,
-                        meta_file,
-                        up_df,
-                        ugraph_index,
-                        args.mrc_dir,
-                        box_width=args.box_width,
-                        box_height=args.box_height,
-                        picked_color=[0, 0, 1],
-                        truth_color=[1, 1, 0],
-                        verbose=args.verbose,
-                    )
-                    # remove axis ticks
-                    ax.set_xticks([])
-                    ax.set_yticks([])
-                    outfilename = os.path.join(
-                        args.plot_dir,
-                        "{}_{}_matched_picked_and_unmatched_picked.png".format(
-                            ugraph_filename.strip(".mrc"),
-                            meta_basename.split(".")[0],
-                        ),
-                    )
-                    fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
-                    if args.pdf:
+                        fig, ax = label_micrograph_picked_and_picked(
+                            mp_df,
+                            up_df,
+                            meta_file,
+                            df_truth,
+                            ugraph_index,
+                            args.mrc_dir,
+                            box_width=args.box_width,
+                            box_height=args.box_height,
+                            picked1_color=[0, 0, 1],
+                            picked2_color=[1, 1, 0],
+                            verbose=args.verbose,
+                        )
+                        # remove axis ticks
+                        ax.set_xticks([])
+                        ax.set_yticks([])
+                        outfilename = os.path.join(
+                            args.plot_dir,
+                            "{}_{}_matched_picked_and_"
+                            "unmatched_picked.png".format(
+                                ugraph_filename.strip(".mrc"),
+                                meta_basename.split(".")[0],
+                            ),
+                        )
                         fig.savefig(
-                            outfilename.replace(".png", ".pdf"),
-                            bbox_inches="tight",
+                            outfilename, dpi=args.dpi, bbox_inches="tight"
                         )
-                    fig.clf()
+                        if args.pdf:
+                            fig.savefig(
+                                outfilename.replace(".png", ".pdf"),
+                                bbox_inches="tight",
+                            )
+                        fig.clf()
+                    else:
+                        if len(mp_df) == 0:
+                            print(
+                                "There are no matched picked particles!"
+                                " Not plotting comparison to unmatched"
+                                " picked particles!"
+                            )
+                        if len(up_df) == 0:
+                            print(
+                                "There are no unmatched picked particles!"
+                                " Not plotting comparison to matched"
+                                " picked particles!"
+                            )
 
                     # matched_truth_particles and unmatched_truth_particles
-                    print(
-                        "Plotting matched truth particles and"
-                        " unmatched truth particles"
-                        " in micrograph"
-                        " {}, from metadata file {}".format(
-                            ugraph_filename,
-                            meta_basename,
+                    if len(mt_df) > 0 and len(ut_df) > 0:
+                        print(
+                            "Plotting matched truth particles and"
+                            " unmatched truth particles"
+                            " in micrograph"
+                            " {}, from metadata file {}".format(
+                                ugraph_filename,
+                                meta_basename,
+                            )
                         )
-                    )
-                    fig, ax = label_micrograph_truth_and_picked(
-                        mt_df,
-                        meta_file,
-                        ut_df,
-                        ugraph_index,
-                        args.mrc_dir,
-                        box_width=args.box_width,
-                        box_height=args.box_height,
-                        picked_color=[
-                            0,
-                            0,
-                            0.5,
-                        ],
-                        truth_color=[1, 1, 0.5],
-                        verbose=args.verbose,
-                    )
-                    # remove axis ticks
-                    ax.set_xticks([])
-                    ax.set_yticks([])
-                    outfilename = os.path.join(
-                        args.plot_dir,
-                        "{}_{}_matched_truth_and_unmatched_truth.png".format(
-                            ugraph_filename.strip(".mrc"),
-                            meta_basename.split(".")[0],
-                        ),
-                    )
-                    fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
-                    if args.pdf:
+                        fig, ax = label_micrograph_truth_and_truth(
+                            mt_df,
+                            ut_df,
+                            ugraph_index,
+                            args.mrc_dir,
+                            box_width=args.box_width,
+                            box_height=args.box_height,
+                            truth_color1=[0, 0, 0.5],
+                            truth_color2=[1, 1, 0.5],
+                            verbose=args.verbose,
+                        )
+                        # remove axis ticks
+                        ax.set_xticks([])
+                        ax.set_yticks([])
+                        outfilename = os.path.join(
+                            args.plot_dir,
+                            "{}_{}_matched_truth_and"
+                            "_unmatched_truth.png".format(
+                                ugraph_filename.strip(".mrc"),
+                                meta_basename.split(".")[0],
+                            ),
+                        )
                         fig.savefig(
-                            outfilename.replace(".png", ".pdf"),
-                            bbox_inches="tight",
+                            outfilename, dpi=args.dpi, bbox_inches="tight"
                         )
-                    fig.clf()
+                        if args.pdf:
+                            fig.savefig(
+                                outfilename.replace(".png", ".pdf"),
+                                bbox_inches="tight",
+                            )
+                        fig.clf()
+                    else:
+                        if len(mt_df) == 0:
+                            print(
+                                "There are no matched truth particles!"
+                                " Not plotting comparison to unmatched"
+                                " truth particles!"
+                            )
+                        if len(ut_df) == 0:
+                            print(
+                                "There are no unmatched truth particles!"
+                                " Not plotting comparison to matched"
+                                " truth particles!"
+                            )
 
                     # unmatched_picked particles and truth_particles
-                    print(
-                        "Plotting unmatched particles and truth particles"
-                        " in micrograph"
-                        " {}, from metadata file {}".format(
-                            ugraph_filename,
-                            meta_basename,
+                    if len(up_df) > 0 and len(df_truth) > 0:
+                        print(
+                            "Plotting unmatched particles and truth particles"
+                            " in micrograph"
+                            " {}, from metadata file {}".format(
+                                ugraph_filename,
+                                meta_basename,
+                            )
                         )
-                    )
-                    fig, ax = label_micrograph_truth_and_picked(
-                        up_df,
-                        meta_file,
-                        df_truth,
-                        ugraph_index,
-                        args.mrc_dir,
-                        box_width=args.box_width,
-                        box_height=args.box_height,
-                        picked_color=[1, 1, 0],
-                        truth_color=[0, 1, 0],
-                        verbose=args.verbose,
-                    )
-                    # remove axis ticks
-                    ax.set_xticks([])
-                    ax.set_yticks([])
-                    outfilename = os.path.join(
-                        args.plot_dir,
-                        "{}_{}_unmatched_picked_and_truth.png".format(
-                            ugraph_filename.strip(".mrc"),
-                            meta_basename.split(".")[0],
-                        ),
-                    )
-                    fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
-                    if args.pdf:
+                        fig, ax = label_micrograph_truth_and_picked(
+                            up_df,
+                            meta_file,
+                            df_truth,
+                            ugraph_index,
+                            args.mrc_dir,
+                            box_width=args.box_width,
+                            box_height=args.box_height,
+                            picked_color=[1, 1, 0],
+                            truth_color=[0, 1, 0],
+                            verbose=args.verbose,
+                        )
+                        # remove axis ticks
+                        ax.set_xticks([])
+                        ax.set_yticks([])
+                        outfilename = os.path.join(
+                            args.plot_dir,
+                            "{}_{}_unmatched_picked_and_truth.png".format(
+                                ugraph_filename.strip(".mrc"),
+                                meta_basename.split(".")[0],
+                            ),
+                        )
                         fig.savefig(
-                            outfilename.replace(".png", ".pdf"),
-                            bbox_inches="tight",
+                            outfilename, dpi=args.dpi, bbox_inches="tight"
                         )
-                    fig.clf()
+                        if args.pdf:
+                            fig.savefig(
+                                outfilename.replace(".png", ".pdf"),
+                                bbox_inches="tight",
+                            )
+                        fig.clf()
+                    else:
+                        if len(up_df) == 0:
+                            print(
+                                "There are no unmatched picked particles!"
+                                " Not plotting comparison to truth"
+                                " particles!"
+                            )
+                        if len(df_truth) == 0:
+                            print(
+                                "There are no truth particles!"
+                                " Not plotting comparison to unmatched"
+                                " picked particles!"
+                            )
 
                     # picked_particles and unmatched_truth_particles
-                    print(
-                        "Plotting picked particles and"
-                        " unmatched truth particles"
-                        " in micrograph"
-                        " {}, from metadata file {}".format(
-                            ugraph_filename,
-                            meta_basename,
+                    if len(df_picked) > 0 and len(ut_df) > 0:
+                        print(
+                            "Plotting picked particles and"
+                            " unmatched truth particles"
+                            " in micrograph"
+                            " {}, from metadata file {}".format(
+                                ugraph_filename,
+                                meta_basename,
+                            )
                         )
-                    )
-                    fig, ax = label_micrograph_truth_and_picked(
-                        df_picked,
-                        meta_file,
-                        up_df,
-                        ugraph_index,
-                        args.mrc_dir,
-                        box_width=args.box_width,
-                        box_height=args.box_height,
-                        picked_color=[1, 0, 0],
-                        truth_color=[1, 1, 0.5],
-                        verbose=args.verbose,
-                    )
-                    # remove axis ticks
-                    ax.set_xticks([])
-                    ax.set_yticks([])
-                    outfilename = os.path.join(
-                        args.plot_dir,
-                        "{}_{}_picked_and_unmatched_truth.png".format(
-                            ugraph_filename.strip(".mrc"),
-                            meta_basename.split(".")[0],
-                        ),
-                    )
-                    fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
-                    if args.pdf:
+                        fig, ax = label_micrograph_truth_and_picked(
+                            df_picked,
+                            meta_file,
+                            ut_df,
+                            ugraph_index,
+                            args.mrc_dir,
+                            box_width=args.box_width,
+                            box_height=args.box_height,
+                            picked_color=[1, 0, 0],
+                            truth_color=[1, 1, 0.5],
+                            verbose=args.verbose,
+                        )
+                        # remove axis ticks
+                        ax.set_xticks([])
+                        ax.set_yticks([])
+                        outfilename = os.path.join(
+                            args.plot_dir,
+                            "{}_{}_picked_and_unmatched_truth.png".format(
+                                ugraph_filename.strip(".mrc"),
+                                meta_basename.split(".")[0],
+                            ),
+                        )
                         fig.savefig(
-                            outfilename.replace(".png", ".pdf"),
-                            bbox_inches="tight",
+                            outfilename, dpi=args.dpi, bbox_inches="tight"
                         )
-                    fig.clf()
+                        if args.pdf:
+                            fig.savefig(
+                                outfilename.replace(".png", ".pdf"),
+                                bbox_inches="tight",
+                            )
+                        fig.clf()
+                    else:
+                        if len(df_picked) == 0:
+                            print(
+                                "There are no picked particles!"
+                                " Not plotting comparison to unmatched"
+                                " truth particles!"
+                            )
+                        if len(ut_df) == 0:
+                            print(
+                                "There are no unmatched truth particles!"
+                                " Not plotting comparison to"
+                                " picked particles!"
+                            )
 
         if plot_type == "precision":
             # first need to compute the precision statistics

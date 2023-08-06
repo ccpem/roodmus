@@ -1563,10 +1563,10 @@ class load_data(object):
         for ugraph in ugraph_ids:
             # grab the positions from picked+truth to match
             ugraph_picked = metafile_picked.loc[
-                metafile_picked["ugraph_filename" == ugraph]
+                metafile_picked["ugraph_filename"] == ugraph
             ]
             ugraph_truth = metafile_truth.loc[
-                metafile_truth["ugraph_filename" == ugraph]
+                metafile_truth["ugraph_filename"] == ugraph
             ]
 
             picked_pos_x = ugraph_picked["position_x"]
@@ -1595,8 +1595,21 @@ class load_data(object):
             closest_truth_index: List[Any] = []
             p_match: List[int] = []
             t_match: List[int] = []
+
             for j, picked_particle in enumerate(sdm):
-                truth_particle_index = int(np.nanargmin(picked_particle))
+                # make sure there is at least one match to a truth particle
+                if ~np.isnan(picked_particle).all():
+                    truth_particle_index = int(np.nanargmin(picked_particle))
+                else:
+                    print(
+                        "all nan slice in ugraph {} with picked particle"
+                        " index {} with entries: {}".format(
+                            ugraph, j, picked_particle
+                        )
+                    )
+                    # no particle is matched to picked particle
+                    # and we move on to next particle
+                    continue
                 # check if closest truth particle is within particle diameter
                 # of picked particle
                 if (
@@ -1627,12 +1640,14 @@ class load_data(object):
                         ],
                         return_counts=True,
                     )[1]
-                    != 1
+                    > 1
                 ]
             )
             print(
-                "There are {} non-unique picked particles!".format(
-                    non_unique_count
+                "There are {} non-unique picked"
+                " particles in ugraph {}!".format(
+                    non_unique_count,
+                    ugraph,
                 )
             )
             if non_unique_count > 0:
@@ -1640,19 +1655,50 @@ class load_data(object):
                     "This may cause problems with overwritten assns"
                     " in truth particles dict!"
                 )
+            # check if there were no matches to truth for a picked particle
+            no_truth_match = len(
+                np.unique(
+                    np.array(closest_truth_index, dtype=float)[
+                        ~np.isnan(closest_truth_index)
+                    ]
+                )[
+                    np.unique(
+                        np.array(closest_truth_index, dtype=float)[
+                            ~np.isnan(closest_truth_index)
+                        ],
+                        return_counts=True,
+                    )[1]
+                    == 0
+                ]
+            )
+            if no_truth_match > 0:
+                print(
+                    "There are {} no-truth-match picked particles!".format(
+                        no_truth_match
+                    )
+                )
+                if non_unique_count > 0:
+                    print(
+                        "This may cause problems with overwritten assns"
+                        " in truth particles dict!"
+                    )
 
             # Next extract the matched particles by df row
             # for this ugraph. df indices should be propagated.
             # Use iloc as indices of df that position data was
             # extracted (to do matching) from is not necessarily ordered
+
             # Extract matched picked particles
             matched_picked_dfs.append(ugraph_picked.iloc[p_match])
+
             # Extract matched truth particles
             matched_truth_dfs.append(ugraph_truth.iloc[t_match])
+
             # Extract the unmatched picked particles
             p_list = np.arange(len(picked_pos_x), dtype=int).tolist()
             p_unmatched = list(set(p_list).difference(p_match))
             unmatched_picked_dfs.append(ugraph_picked.iloc[p_unmatched])
+
             # Extract the unmatched truth particles
             t_list = np.arange(len(picked_pos_x), dtype=int).tolist()
             t_unmatched = list(set(t_list).difference(t_match))
@@ -1675,6 +1721,7 @@ class load_data(object):
         unmatched_truth_df = pd.concat(
             unmatched_truth_dfs, axis=0
         ).reset_index(drop=True)
+
         return (
             matched_picked_df,
             matched_truth_df,

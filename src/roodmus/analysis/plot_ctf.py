@@ -102,7 +102,6 @@ def plot_per_particle_defocus_scatter(
     analysis,
     metadata_filename,
     palette="BuGn",
-    per_particle=False,
     num_ugraphs=None,
 ):
     df_picked = pd.DataFrame(analysis.results_picking)
@@ -138,20 +137,31 @@ def plot_per_particle_defocus_scatter(
         "defocus_truth": [],
     }
 
-    if per_particle:
-        # match the picked particles to closest truth particle
-        mp_df, mt_df, up_df, ut_df = analysis._match_particles(
-            metadata_filename,
-            df_picked,
-            df_truth,
-            verbose=False,
-        )
+    # match the picked particles to closest truth particle
+    mp_df, mt_df, _, _ = analysis._match_particles(
+        metadata_filename,
+        df_picked,
+        df_truth,
+        verbose=False,
+    )
 
-        # only use the successfully matched particles
-        results["ugraph_filename"].append(mp_df["ugraph_filename"].tolist())
-        results["defocusU"].append(mp_df["defocusU"].tolist())
-        results["defocusV"].append(mp_df["defocusV"].tolist())
-        results["defocus_truth"].append(mt_df["defocus_truth"].tolist())
+    # only use the successfully matched particles
+    results["ugraph_filename"].extend(mp_df["ugraph_filename"].tolist())
+    results["defocusU"].extend(mp_df["defocusU"].tolist())
+    results["defocusV"].extend(mp_df["defocusV"].tolist())
+    # combine the particle position with the ugraph defocus value!
+    results["defocus_truth"].extend(
+        (mt_df["defocus"] + mt_df["position_z"]).abs().tolist()
+    )
+    for i in range(len(results["ugraph_filename"])):
+        print(
+            "{}\t{}\t{}\t{}".format(
+                results["ugraph_filename"][i],
+                results["defocusU"][i],
+                results["defocusV"][i],
+                results["defocus_truth"][i],
+            )
+        )
 
     df = pd.DataFrame(results)
 
@@ -516,7 +526,7 @@ def main(args):
     analysis = load_data(
         args.meta_file,
         args.config_dir,
-        particle_diameter=0,
+        particle_diameter=100,
         verbose=args.verbose,
         enable_tqdm=args.tqdm,
     )
@@ -580,9 +590,8 @@ def main(args):
             )
             fig, ax = plot_per_particle_defocus_scatter(
                 analysis,
-                metadata_filename=args.meta_file,
+                args.meta_file,
                 palette="BuGn",
-                per_particle=False,
                 num_ugraphs=None,
             )
             fig.savefig(filename, dpi=args.dpi, bbox_inches="tight")
