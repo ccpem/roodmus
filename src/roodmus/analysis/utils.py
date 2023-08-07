@@ -2083,3 +2083,87 @@ class load_data(object):
         progressbar.close()
 
         return pd.DataFrame(data=results_overlap)
+
+
+class plotDataFrame(object):
+    """Parent class to hold methods for standard saving and loading of data
+    to be plotted.
+    Input is a dict which holds information for one or more plots.
+    This is designed to hold all the information for a given cmd line plotting
+    functionality
+
+    Each (outer) dict key is expected to be a plot name
+    Which holds an inner dict
+    The inner dict holds one or more pandas DataFrames which are used to make
+    the given plot and are labelled according to the particular variable
+    holding the df at that point in the code.
+
+    When saving dataframes, a subdir is created from plot name (no file
+    extension) \nd the dataframes are saved within as csv files (index
+    is column 0)
+
+    When loading dataframes, existence of the subdir is checked for each
+    plot (using the outer dict key(s) and the dataframes are searched for
+    via the inner dict key(s) and then loaded as pd.DdataFrames using index
+    col=0
+
+    Methods are to save and load files.
+    This is intended to be a parent class with a child class specific to each
+    plot
+    The child class will include a function for making the plot and a function
+    for saving the plot
+
+    Args:
+        object (_type_): _description_
+    """
+
+    def __init__(
+        self,
+        plot_data: dict[str, dict[str, pd.DataFrame | None]] | None = None,
+    ) -> None:
+        if plot_data:
+            self.plot_data = plot_data
+
+    def save_dataframes(self, plot_dir: str, overwrite: bool = False):
+        # loop over plots and create subdir for data if not already exists
+        if self.plot_data:
+            for plot, data_frames in self.plot_data.items():
+                subdir_path = os.path.join(plot_dir, plot)
+                if not os.path.isdir(subdir_path):
+                    os.makedirs(subdir_path)
+
+                # loop over dataframes and save data in csv file(s)
+                for df_label, df in data_frames.items():
+                    df_filename = os.path.join(subdir_path, df_label)
+                    df_filename += ".csv"
+                    if isinstance(df, pd.DataFrame):
+                        if os.path.isfile(df_filename):
+                            if overwrite:
+                                df.to_csv(df_filename)
+                        else:
+                            df.to_csv(df_filename)
+                    else:
+                        raise TypeError("df is not a pd.DataFrame!")
+        else:
+            raise ValueError(
+                "plotDataFrame.plot_data is None."
+                " Set it up with <ChildClass>.setup_plot_data()"
+            )
+
+    def load_dataframes(self, plot_dir: str) -> None:
+        # loop over plots and check if subdir for data exists
+        if self.plot_data:
+            for plot, data_frames in self.plot_data.items():
+                subdir_path = os.path.join(plot_dir, plot)
+                # locate the file and load the csv(s) to the dataframe(s)
+                for df_label in data_frames.keys():
+                    df_filename = os.path.join(subdir_path, df_label)
+                    df_filename += ".csv"
+                    self.plot_data[plot][df_label] = pd.read_csv(
+                        df_filename, index_col=0
+                    )
+        else:
+            raise ValueError(
+                "plotDataFrame.plot_data is None."
+                " Set it up with <ChildClass>.setup_plot_data()"
+            )
