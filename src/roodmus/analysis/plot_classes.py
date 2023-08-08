@@ -27,7 +27,7 @@ import pandas as pd
 import seaborn as sns
 from scipy.ndimage import zoom
 
-from roodmus.analysis.utils import load_data
+from roodmus.analysis.utils import load_data, plotDataFrame
 
 
 def add_arguments(parser):
@@ -108,74 +108,211 @@ def get_name():
     return "plot_classes"
 
 
-def plot_2Dclass_precision(
-    df_picked: pd.DataFrame,
-    metadata_filename: str,
-    job_types: dict,
-    palette: str = "YlGnBu",
-):
-    df_grouped = df_picked.groupby("metadata_filename").get_group(
-        metadata_filename
-    )
-    results: dict = {
-        "class2D": [],
-        "precision": [],
-        "average defocus": [],
-    }
-    for groupname in df_grouped.groupby("class2D").groups.keys():
-        precision = df_grouped.groupby("class2D").get_group(groupname)[
-            "TP"
-        ].sum() / (
-            df_grouped.groupby("class2D").get_group(groupname)["TP"].size
+class plot2DClasses(plotDataFrame):
+    def __init__(
+        self,
+        args,
+        job_types: dict[str, str],
+        plot_data: dict[str, dict[str, pd.DataFrame | None]] | None = None,
+    ) -> None:
+        super().__init__(plot_data)
+
+        self.setup_plot_data()
+        if plot_data:
+            self.plot_data = plot_data
+
+        self.args = args
+        self.job_types = job_types
+
+    def setup_plot_data(self, df_picked: pd.DataFrame | None = None):
+        self.plot_data = {"plot_classes": {"df_picked": df_picked}}
+
+    def make_and_save_plots(
+        self,
+        overwrite_data: bool = False,
+    ):
+        # save/overwrite data file
+        self.save_dataframes(self.args.plot_dir, overwrite_data)
+
+        # now use the data to make and save the plots
+        if isinstance(
+            self.plot_data["plot_classes"]["df_picked"],
+            pd.DataFrame,
+        ):
+            for metadata_filename in self.plot_data["plot_classes"][
+                "df_picked"
+            ]["metadata_filename"].unique():
+                # check there are 2d classes
+                if self.check_for_2d_class_labels(
+                    self.plot_data["plot_classes"]["df_picked"],
+                    metadata_filename,
+                ):
+                    if "precision" in self.args.plot_types:
+                        print(
+                            f"plotting 2D class precision for \
+                            {metadata_filename}..."
+                        )
+                        (
+                            self.precision_fig,
+                            self.precision_ax,
+                        ) = self.plot_2Dclass_precision(
+                            self.plot_data["plot_classes"]["df_picked"],
+                            metadata_filename,
+                            self.job_types,
+                        )
+                        self._save_precision_plot(metadata_filename)
+
+                    if "frame_distribution" in self.args.plot_types:
+                        print(
+                            f"plotting 2D class frame distribution \
+                            for {metadata_filename}..."
+                        )
+                        (
+                            self.frame_dist_fig,
+                            self.frame_dist_ax,
+                        ) = self.plot_2Dclasses_frames(
+                            self.plot_data["plot_classes"]["df_picked"],
+                            metadata_filename,
+                            self.args.bin_factor,
+                        )
+                        self._save_frame_distribution_plot(metadata_filename)
+        else:
+            raise TypeError(
+                'self.plot_data["plot_classes"]["df_picked"]'
+                "is not a pd.DataFrame"
+            )
+
+    @classmethod
+    def plot_2Dclass_precision(
+        self,
+        df_picked: pd.DataFrame,
+        metadata_filename: str,
+        job_types: dict,
+        palette: str = "YlGnBu",
+    ):
+        df_grouped = df_picked.groupby("metadata_filename").get_group(
+            metadata_filename
         )
-        results["class2D"].append(int(groupname))
-        results["precision"].append(precision)
-        results["average defocus"].append(
-            df_grouped.groupby("class2D")
-            .get_group(groupname)["defocusU"]
-            .mean()
+        results: dict = {
+            "class2D": [],
+            "precision": [],
+            "average defocus": [],
+        }
+        for groupname in df_grouped.groupby("class2D").groups.keys():
+            precision = df_grouped.groupby("class2D").get_group(groupname)[
+                "TP"
+            ].sum() / (
+                df_grouped.groupby("class2D").get_group(groupname)["TP"].size
+            )
+            results["class2D"].append(int(groupname))
+            results["precision"].append(precision)
+            results["average defocus"].append(
+                df_grouped.groupby("class2D")
+                .get_group(groupname)["defocusU"]
+                .mean()
+            )
+        df = pd.DataFrame(results)
+        fig, ax = plt.subplots(figsize=(7, 3.5))
+        sns.barplot(
+            x="class2D", y="precision", data=df, ax=ax, palette=palette
         )
-    df = pd.DataFrame(results)
-    fig, ax = plt.subplots(figsize=(7, 3.5))
-    sns.barplot(x="class2D", y="precision", data=df, ax=ax, palette=palette)
-    ax.set_xlabel("class2D", fontsize=12)
-    ax.set_ylabel("precision", fontsize=12)
-    ax.set_title(job_types[metadata_filename], fontsize=14)
-    xticklabels = ax.get_xticklabels()
-    ax.set_xticklabels(xticklabels, rotation=45, fontsize=6)
-    fig.tight_layout()
-    return fig, ax
+        ax.set_xlabel("class2D", fontsize=12)
+        ax.set_ylabel("precision", fontsize=12)
+        ax.set_title(job_types[metadata_filename], fontsize=14)
+        xticklabels = ax.get_xticklabels()
+        ax.set_xticklabels(xticklabels, rotation=45, fontsize=6)
+        fig.tight_layout()
+        return fig, ax
 
-
-def plot_2Dclasses_frames(
-    df_picked: pd.DataFrame,
-    metadata_filename: str,
-    bin_factor: int = 100,
-    palette="YlGnBu",
-):
-    df_filtered = df_picked.groupby("metadata_filename").get_group(
-        metadata_filename
-    )
-    df_grouped = df_filtered.groupby(["class2D", "closest_pdb_index"])
-    heatmap = np.zeros(
-        (
-            int(np.max(df_filtered["class2D"])) + 1,
-            int(np.max(df_filtered["closest_pdb_index"])) + 1,
+    @classmethod
+    def plot_2Dclasses_frames(
+        self,
+        df_picked: pd.DataFrame,
+        metadata_filename: str,
+        bin_factor: int = 100,
+        palette="YlGnBu",
+    ):
+        df_filtered = df_picked.groupby("metadata_filename").get_group(
+            metadata_filename
         )
-    )
-    for class_id, pdb_id in df_grouped.groups.keys():
-        if int(class_id) > 0 and int(pdb_id) > 0:
-            num = df_grouped.get_group((class_id, pdb_id)).size
-            if num != np.nan:
-                heatmap[int(class_id), int(pdb_id)] += num
+        df_grouped = df_filtered.groupby(["class2D", "closest_pdb_index"])
+        heatmap = np.zeros(
+            (
+                int(np.max(df_filtered["class2D"])) + 1,
+                int(np.max(df_filtered["closest_pdb_index"])) + 1,
+            )
+        )
+        for class_id, pdb_id in df_grouped.groups.keys():
+            if int(class_id) > 0 and int(pdb_id) > 0:
+                num = df_grouped.get_group((class_id, pdb_id)).size
+                if num != np.nan:
+                    heatmap[int(class_id), int(pdb_id)] += num
 
-    # apply binning to the heatmap
-    heatmap = zoom(heatmap, [1, 1 / bin_factor], order=0)
-    heatmap[heatmap == 0] = np.nan
+        # apply binning to the heatmap
+        heatmap = zoom(heatmap, [1, 1 / bin_factor], order=0)
+        heatmap[heatmap == 0] = np.nan
 
-    fig, ax = plt.subplots(figsize=(15, 5))
-    sns.heatmap(heatmap, ax=ax, cmap=palette)
-    return fig, ax
+        fig, ax = plt.subplots(figsize=(15, 5))
+        sns.heatmap(heatmap, ax=ax, cmap=palette)
+        return fig, ax
+
+    @classmethod
+    def check_for_2d_class_labels(
+        self, df_picked: pd.DataFrame, metadata_filename: str
+    ) -> bool:
+        if np.sum(
+            pd.isnull(
+                np.unique(
+                    df_picked.groupby("metadata_filename").get_group(
+                        metadata_filename
+                    )["class2D"]
+                )
+            )
+        ) == len(
+            np.unique(
+                df_picked.groupby("metadata_filename").get_group(
+                    metadata_filename
+                )["class2D"]
+            )
+        ):
+            print(
+                "{} metadata contains no 2D class labels, skipping...".format(
+                    metadata_filename
+                )
+            )
+            return False
+        else:
+            return True
+
+    def _save_precision_plot(self, meta_file: str):
+        outfilename = os.path.join(
+            self.args.plot_dir,
+            "{}_2Dclass_precision.png".format(self.job_types[meta_file]),
+        )
+        self.precision_fig.savefig(
+            outfilename, dpi=self.args.dpi, bbox_inches="tight"
+        )
+        if self.args.pdf:
+            self.precision_fig.savefig(
+                outfilename.replace(".png", ".pdf"),
+                bbox_inches="tight",
+            )
+
+    def _save_frame_distribution_plot(self, meta_file: str):
+        outfilename = os.path.join(
+            self.args.plot_dir,
+            "{}_2Dclass_frame_distribution.png".format(
+                self.job_types[meta_file]
+            ),
+        )
+        self.frame_dist_fig.savefig(
+            outfilename, dpi=self.args.dpi, bbox_inches="tight"
+        )
+        if self.args.pdf:
+            self.frame_dist_fig.savefig(
+                outfilename.replace(".png", ".pdf"),
+                bbox_inches="tight",
+            )
 
 
 def main(args):
@@ -223,89 +360,9 @@ def main(args):
         df_picked, df_truth, verbose=args.verbose
     )
 
-    # plot the precision per class
-    for plot_type in args.plot_types:
-        if plot_type == "precision":
-            for metadata_filename in df_picked["metadata_filename"].unique():
-                if np.sum(
-                    pd.isnull(
-                        np.unique(
-                            df_picked.groupby("metadata_filename").get_group(
-                                metadata_filename
-                            )["class2D"]
-                        )
-                    )
-                ) == len(
-                    np.unique(
-                        df_picked.groupby("metadata_filename").get_group(
-                            metadata_filename
-                        )["class2D"]
-                    )
-                ):
-                    print("metadata contains no 2D class labels, skipping...")
-                else:
-                    print(
-                        f"plotting 2D class precision for \
-                        {metadata_filename}..."
-                    )
-                    fig, ax = plot_2Dclass_precision(
-                        df_picked,
-                        metadata_filename,
-                        job_types,
-                    )
-                    outfilename = os.path.join(
-                        args.plot_dir,
-                        "{}_2Dclass_precision.png".format(
-                            job_types[metadata_filename]
-                        ),
-                    )
-                    fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
-                    if args.pdf:
-                        fig.savefig(
-                            outfilename.replace(".png", ".pdf"),
-                            bbox_inches="tight",
-                        )
-                    fig.clf()
-
-        if plot_type == "frame_distribution":
-            for metadata_filename in args.meta_file:
-                if np.sum(
-                    pd.isnull(
-                        np.unique(
-                            df_picked.groupby("metadata_filename").get_group(
-                                metadata_filename
-                            )["class2D"]
-                        )
-                    )
-                ) == len(
-                    np.unique(
-                        df_picked.groupby("metadata_filename").get_group(
-                            metadata_filename
-                        )["class2D"]
-                    )
-                ):
-                    print("metadata contains no 2D class labels, skipping...")
-                else:
-                    print(
-                        f"plotting 2D class frame distribution \
-                        for {metadata_filename}..."
-                    )
-                    fig, ax = plot_2Dclasses_frames(
-                        df_picked, metadata_filename, args.bin_factor
-                    )
-                    outfilename = os.path.join(
-                        args.plot_dir,
-                        "{}_2Dclass_frame_distribution.png".format(
-                            job_types[metadata_filename]
-                        ),
-                    )
-                    fig.savefig(outfilename, dpi=args.dpi, bbox_inches="tight")
-                    if args.pdf:
-                        fig.savefig(
-                            outfilename.replace(".png", ".pdf"),
-                            bbox_inches="tight",
-                        )
-                    fig.clf()
+    plot_2d_classes = plot2DClasses(args, job_types)
+    plot_2d_classes.setup_plot_data(df_picked)
+    plot_2d_classes.make_and_save_plots(overwrite_data=True)
 
 
 if __name__ == "__main__":
