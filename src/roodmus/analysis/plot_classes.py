@@ -113,18 +113,17 @@ class plot2DClasses(plotDataFrame):
         self,
         args,
         job_types: dict[str, str],
-        plot_data: dict[str, dict[str, pd.DataFrame | None]] | None = None,
+        plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
     ) -> None:
         super().__init__(plot_data)
 
-        self.setup_plot_data()
         if plot_data:
             self.plot_data = plot_data
 
         self.args = args
         self.job_types = job_types
 
-    def setup_plot_data(self, df_picked: pd.DataFrame | None = None):
+    def setup_plot_data(self, df_picked: pd.DataFrame):
         self.plot_data = {"plot_classes": {"df_picked": df_picked}}
 
     def make_and_save_plots(

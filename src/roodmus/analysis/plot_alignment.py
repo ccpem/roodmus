@@ -90,18 +90,17 @@ class plotTruePoseDistribution(plotDataFrame):
     def __init__(
         self,
         args,
-        plot_data: dict[str, dict[str, pd.DataFrame | None]] | None = None,
+        plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
     ) -> None:
         super().__init__(plot_data)
 
         # set up the dataframe
-        self.setup_plot_data()
         if plot_data:
             self.plot_data = plot_data
 
         self.args = args
 
-    def setup_plot_data(self, df_truth: pd.DataFrame | None = None):
+    def setup_plot_data(self, df_truth: pd.DataFrame):
         # set up the dict[str: dict[str: pd.DataFrame | None]] object
         # this can be
         self.plot_data = {
@@ -230,18 +229,17 @@ class plotPickedPoseDistribution(plotDataFrame):
     def __init__(
         self,
         args,
-        plot_data: dict[str, dict[str, pd.DataFrame | None]] | None = None,
+        plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
     ) -> None:
         super().__init__(plot_data)
 
         # set up the dataframe
-        self.setup_plot_data()
         if plot_data:
             self.plot_data = plot_data
 
         self.args = args
 
-    def setup_plot_data(self, df_picked: pd.DataFrame | None = None):
+    def setup_plot_data(self, df_picked: pd.DataFrame):
         # set up the dict[str: dict[str: pd.DataFrame | None]] object
         # this can be
         self.plot_data = {

@@ -2119,7 +2119,7 @@ class plotDataFrame(object):
 
     def __init__(
         self,
-        plot_data: dict[str, dict[str, pd.DataFrame | None]] | None = None,
+        plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
     ) -> None:
         if plot_data:
             self.plot_data = plot_data
