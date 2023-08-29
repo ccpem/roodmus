@@ -142,7 +142,7 @@ class plot2DClasses(plotDataFrame):
                 "df_picked"
             ]["metadata_filename"].unique():
                 # check there are 2d classes
-                if self.check_for_2d_class_labels(
+                if check_for_2d_class_labels(
                     self.plot_data["plot_classes"]["df_picked"],
                     metadata_filename,
                 ):
@@ -154,7 +154,7 @@ class plot2DClasses(plotDataFrame):
                         (
                             self.precision_fig,
                             self.precision_ax,
-                        ) = self.plot_2Dclass_precision(
+                        ) = plot_2Dclass_precision(
                             self.plot_data["plot_classes"]["df_picked"],
                             metadata_filename,
                             self.job_types,
@@ -169,7 +169,7 @@ class plot2DClasses(plotDataFrame):
                         (
                             self.frame_dist_fig,
                             self.frame_dist_ax,
-                        ) = self.plot_2Dclasses_frames(
+                        ) = plot_2Dclasses_frames(
                             self.plot_data["plot_classes"]["df_picked"],
                             metadata_filename,
                             self.args.bin_factor,
@@ -180,108 +180,6 @@ class plot2DClasses(plotDataFrame):
                 'self.plot_data["plot_classes"]["df_picked"]'
                 "is not a pd.DataFrame"
             )
-
-    @classmethod
-    def plot_2Dclass_precision(
-        self,
-        df_picked: pd.DataFrame,
-        metadata_filename: str,
-        job_types: dict,
-        palette: str = "YlGnBu",
-    ):
-        df_grouped = df_picked.groupby("metadata_filename").get_group(
-            metadata_filename
-        )
-        results: dict = {
-            "class2D": [],
-            "precision": [],
-            "average defocus": [],
-        }
-        for groupname in df_grouped.groupby("class2D").groups.keys():
-            precision = df_grouped.groupby("class2D").get_group(groupname)[
-                "TP"
-            ].sum() / (
-                df_grouped.groupby("class2D").get_group(groupname)["TP"].size
-            )
-            results["class2D"].append(int(groupname))
-            results["precision"].append(precision)
-            results["average defocus"].append(
-                df_grouped.groupby("class2D")
-                .get_group(groupname)["defocusU"]
-                .mean()
-            )
-        df = pd.DataFrame(results)
-        fig, ax = plt.subplots(figsize=(7, 3.5))
-        sns.barplot(
-            x="class2D", y="precision", data=df, ax=ax, palette=palette
-        )
-        ax.set_xlabel("class2D", fontsize=12)
-        ax.set_ylabel("precision", fontsize=12)
-        ax.set_title(job_types[metadata_filename], fontsize=14)
-        xticklabels = ax.get_xticklabels()
-        ax.set_xticklabels(xticklabels, rotation=45, fontsize=6)
-        fig.tight_layout()
-        return fig, ax
-
-    @classmethod
-    def plot_2Dclasses_frames(
-        self,
-        df_picked: pd.DataFrame,
-        metadata_filename: str,
-        bin_factor: int = 100,
-        palette="YlGnBu",
-    ):
-        df_filtered = df_picked.groupby("metadata_filename").get_group(
-            metadata_filename
-        )
-        df_grouped = df_filtered.groupby(["class2D", "closest_pdb_index"])
-        heatmap = np.zeros(
-            (
-                int(np.max(df_filtered["class2D"])) + 1,
-                int(np.max(df_filtered["closest_pdb_index"])) + 1,
-            )
-        )
-        for class_id, pdb_id in df_grouped.groups.keys():
-            if int(class_id) > 0 and int(pdb_id) > 0:
-                num = df_grouped.get_group((class_id, pdb_id)).size
-                if num != np.nan:
-                    heatmap[int(class_id), int(pdb_id)] += num
-
-        # apply binning to the heatmap
-        heatmap = zoom(heatmap, [1, 1 / bin_factor], order=0)
-        heatmap[heatmap == 0] = np.nan
-
-        fig, ax = plt.subplots(figsize=(15, 5))
-        sns.heatmap(heatmap, ax=ax, cmap=palette)
-        return fig, ax
-
-    @classmethod
-    def check_for_2d_class_labels(
-        self, df_picked: pd.DataFrame, metadata_filename: str
-    ) -> bool:
-        if np.sum(
-            pd.isnull(
-                np.unique(
-                    df_picked.groupby("metadata_filename").get_group(
-                        metadata_filename
-                    )["class2D"]
-                )
-            )
-        ) == len(
-            np.unique(
-                df_picked.groupby("metadata_filename").get_group(
-                    metadata_filename
-                )["class2D"]
-            )
-        ):
-            print(
-                "{} metadata contains no 2D class labels, skipping...".format(
-                    metadata_filename
-                )
-            )
-            return False
-        else:
-            return True
 
     def _save_precision_plot(self, meta_file: str):
         outfilename = os.path.join(
@@ -312,6 +210,104 @@ class plot2DClasses(plotDataFrame):
                 outfilename.replace(".png", ".pdf"),
                 bbox_inches="tight",
             )
+
+
+def plot_2Dclass_precision(
+    df_picked: pd.DataFrame,
+    metadata_filename: str,
+    job_types: dict,
+    palette: str = "YlGnBu",
+):
+    df_grouped = df_picked.groupby("metadata_filename").get_group(
+        metadata_filename
+    )
+    results: dict = {
+        "class2D": [],
+        "precision": [],
+        "average defocus": [],
+    }
+    for groupname in df_grouped.groupby("class2D").groups.keys():
+        precision = df_grouped.groupby("class2D").get_group(groupname)[
+            "TP"
+        ].sum() / (
+            df_grouped.groupby("class2D").get_group(groupname)["TP"].size
+        )
+        results["class2D"].append(int(groupname))
+        results["precision"].append(precision)
+        results["average defocus"].append(
+            df_grouped.groupby("class2D")
+            .get_group(groupname)["defocusU"]
+            .mean()
+        )
+    df = pd.DataFrame(results)
+    fig, ax = plt.subplots(figsize=(7, 3.5))
+    sns.barplot(x="class2D", y="precision", data=df, ax=ax, palette=palette)
+    ax.set_xlabel("class2D", fontsize=12)
+    ax.set_ylabel("precision", fontsize=12)
+    ax.set_title(job_types[metadata_filename], fontsize=14)
+    xticklabels = ax.get_xticklabels()
+    ax.set_xticklabels(xticklabels, rotation=45, fontsize=6)
+    fig.tight_layout()
+    return fig, ax
+
+
+def plot_2Dclasses_frames(
+    df_picked: pd.DataFrame,
+    metadata_filename: str,
+    bin_factor: int = 100,
+    palette="YlGnBu",
+):
+    df_filtered = df_picked.groupby("metadata_filename").get_group(
+        metadata_filename
+    )
+    df_grouped = df_filtered.groupby(["class2D", "closest_pdb_index"])
+    heatmap = np.zeros(
+        (
+            int(np.max(df_filtered["class2D"])) + 1,
+            int(np.max(df_filtered["closest_pdb_index"])) + 1,
+        )
+    )
+    for class_id, pdb_id in df_grouped.groups.keys():
+        if int(class_id) > 0 and int(pdb_id) > 0:
+            num = df_grouped.get_group((class_id, pdb_id)).size
+            if num != np.nan:
+                heatmap[int(class_id), int(pdb_id)] += num
+
+    # apply binning to the heatmap
+    heatmap = zoom(heatmap, [1, 1 / bin_factor], order=0)
+    heatmap[heatmap == 0] = np.nan
+
+    fig, ax = plt.subplots(figsize=(15, 5))
+    sns.heatmap(heatmap, ax=ax, cmap=palette)
+    return fig, ax
+
+
+def check_for_2d_class_labels(
+    df_picked: pd.DataFrame, metadata_filename: str
+) -> bool:
+    if np.sum(
+        pd.isnull(
+            np.unique(
+                df_picked.groupby("metadata_filename").get_group(
+                    metadata_filename
+                )["class2D"]
+            )
+        )
+    ) == len(
+        np.unique(
+            df_picked.groupby("metadata_filename").get_group(
+                metadata_filename
+            )["class2D"]
+        )
+    ):
+        print(
+            "{} metadata contains no 2D class labels, skipping...".format(
+                metadata_filename
+            )
+        )
+        return False
+    else:
+        return True
 
 
 def main(args):

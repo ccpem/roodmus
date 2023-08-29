@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from roodmus.analysis.utils import load_data
+from roodmus.analysis.utils import load_data, plotDataFrame
 
 
 def add_arguments(parser):
@@ -81,6 +81,81 @@ def add_arguments(parser):
 
 def get_name():
     return "plot_frames"
+
+
+class plotFrameDistribution(plotDataFrame):
+    def __init__(
+        self,
+        args,
+        job_types: dict[str, str],
+        plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+    ) -> None:
+        super().__init__(plot_data)
+
+        if plot_data:
+            self.plot_data = plot_data
+
+        self.args = args
+        self.job_types = job_types
+
+    def setup_plot_data(
+        self,
+        df_truth: pd.DataFrame,
+        df_picked: pd.DataFrame,
+    ):
+        self.plot_data = {"frame_distribution": {}}
+        self.plot_data["frame_distribution"]["df_truth"] = df_truth
+        self.plot_data["frame_distribution"]["df_picked"] = df_picked
+
+    def make_and_save_plots(
+        self,
+        overwrite_data: bool = False,
+    ):
+        self.save_dataframes(self.args.plot_dir, overwrite_data)
+
+        if isinstance(
+            self.plot_data["frame_distribution"]["df_truth"],
+            pd.DataFrame,
+        ) and isinstance(
+            self.plot_data["frame_distribution"]["df_picked"],
+            pd.DataFrame,
+        ):
+            # plot the distribution of frames
+            print("plotting the frame distribution...")
+            for i, metadata_filename in enumerate(
+                self.plot_data["frame_distribution"]["df_picked"][
+                    "metadata_filename"
+                ].unique()
+            ):
+                print(f"plotting frames in {metadata_filename}...")
+                fig, ax = plot_frame_distribution(
+                    self.plot_data["frame_distribution"]["df_picked"],
+                    metadata_filename,
+                    self.plot_data["frame_distribution"]["df_truth"],
+                    self.args.particle_diameter,
+                    self.job_types,
+                )
+                meta_basename = os.path.basename(metadata_filename)
+                outfilename = os.path.join(
+                    self.args.plot_dir,
+                    f"{meta_basename.split('.')[0]}_frame_distribution.png",
+                )
+
+                self._save_plot(fig, ax, outfilename)
+
+        else:
+            raise TypeError("df_truth or df_picked is not a pd.DataFrame!")
+
+    def _save_plot(self, fig, ax, outfilename: str):
+        # save the plot
+        outfilename = os.path.join(self.args.plot_dir, outfilename)
+        fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
+        if self.args.pdf:
+            fig.savefig(
+                outfilename.replace(".png", ".pdf"),
+                bbox_inches="tight",
+            )
+        fig.clf()
 
 
 def plot_frame_distribution(
@@ -151,7 +226,7 @@ def main(args):
         args.mrc_dir = args.config_dir
 
     # parse the metadata files and job types
-    meta_files, job_types, order = load_data.parse_jobtypes(
+    meta_files, job_types, _ = load_data.parse_jobtypes(
         args.meta_file, args.job_types
     )
     if args.verbose:
@@ -186,26 +261,12 @@ def main(args):
         df_picked, df_truth, verbose=args.verbose
     )
 
-    # plot the distribution of frames
-    print("plotting the frame distribution...")
-    for i, metadata_filename in enumerate(
-        df_picked["metadata_filename"].unique()
-    ):
-        print(f"plotting frames in {metadata_filename}...")
-        fig, ax = plot_frame_distribution(
-            df_picked,
-            metadata_filename,
-            df_truth,
-            args.particle_diameter,
-            job_types,
-        )
-        meta_basename = os.path.basename(metadata_filename)
-        outfilename = os.path.join(
-            args.plot_dir,
-            f"{meta_basename.split('.')[0]}_frame_distribution.png",
-        )
-        fig.savefig(outfilename, dpi=300)
-        fig.clf()
+    frame_distribution = plotFrameDistribution(
+        args,
+        job_types,
+    )
+    frame_distribution.setup_plot_data(df_truth, df_picked)
+    frame_distribution.make_and_save_plots(overwrite_data=True)
 
 
 if __name__ == "__main__":

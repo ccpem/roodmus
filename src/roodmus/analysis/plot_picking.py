@@ -165,7 +165,7 @@ class plotLabelTruth(plotDataFrame):
                     ]
                 )[: self.args.num_ugraphs]
             ):
-                fig, ax, outfilename = self.make_plot(
+                fig, ax, outfilename = plot_label_truth(
                     self.plot_data["label_truth"]["df_truth"],
                     ugraph_index,
                     ugraph_filename,
@@ -183,42 +183,6 @@ class plotLabelTruth(plotDataFrame):
                 " a pd.DataFrame"
             )
 
-    @classmethod
-    def make_plot(
-        self,
-        df_truth: pd.DataFrame,
-        ugraph_index: int,
-        ugraph_filename: str,
-        box_width: int,
-        box_height: int,
-        mrc_dir: str,
-        verbose: bool,
-        plot_dir: str = "",
-    ):
-        print(
-            "Plotting truth particles in micrograph {}".format(
-                ugraph_filename,
-            )
-        )
-        fig, ax = labelMicrograph.label_micrograph_truth(
-            df_truth,
-            ugraph_index,
-            mrc_dir,
-            box_width=box_width,
-            box_height=box_height,
-            verbose=verbose,
-        )
-        # remove axis ticks
-        ax.set_xticks([])
-        ax.set_yticks([])
-        outfilename = os.path.join(
-            plot_dir,
-            "{}_truth.png".format(
-                ugraph_filename.strip(".mrc"),
-            ),
-        )
-        return fig, ax, outfilename
-
     def _save_plot(self, fig, ax, outfilename: str):
         # save the plot
         outfilename = os.path.join(self.args.plot_dir, outfilename)
@@ -229,6 +193,41 @@ class plotLabelTruth(plotDataFrame):
                 bbox_inches="tight",
             )
         fig.clf()
+
+
+def plot_label_truth(
+    df_truth: pd.DataFrame,
+    ugraph_index: int,
+    ugraph_filename: str,
+    box_width: int,
+    box_height: int,
+    mrc_dir: str,
+    verbose: bool,
+    plot_dir: str = "",
+):
+    print(
+        "Plotting truth particles in micrograph {}".format(
+            ugraph_filename,
+        )
+    )
+    fig, ax = labelMicrograph.label_micrograph_truth(
+        df_truth,
+        ugraph_index,
+        mrc_dir,
+        box_width=box_width,
+        box_height=box_height,
+        verbose=verbose,
+    )
+    # remove axis ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    outfilename = os.path.join(
+        plot_dir,
+        "{}_truth.png".format(
+            ugraph_filename.strip(".mrc"),
+        ),
+    )
+    return fig, ax, outfilename
 
 
 class plotLabelPicked(plotDataFrame):
@@ -270,7 +269,7 @@ class plotLabelPicked(plotDataFrame):
                         ]
                     )[: self.args.num_ugraphs]
                 ):
-                    fig, ax, outfilename = self.make_plot(
+                    fig, ax, outfilename = plot_label_picked(
                         self.plot_data["label_picked"]["df_picked"],
                         meta_file,
                         ugraph_filename,
@@ -289,48 +288,6 @@ class plotLabelPicked(plotDataFrame):
                 " a pd.DataFrame"
             )
 
-    @classmethod
-    def make_plot(
-        self,
-        df_picked: pd.DataFrame,
-        meta_file: str,
-        ugraph_filename: str,
-        ugraph_index: int,
-        box_width: int,
-        box_height: int,
-        mrc_dir: str,
-        verbose: bool,
-        plot_dir: str = "",
-    ):
-        meta_basename = os.path.basename(meta_file)
-        print(
-            "Plotting picked particles in micrograph {}, \
-            from metadata file {}".format(
-                ugraph_filename, meta_basename
-            )
-        )
-        fig, ax = labelMicrograph.label_micrograph_picked(
-            df_picked,
-            meta_file,
-            ugraph_index,
-            mrc_dir,
-            box_width=box_width,
-            box_height=box_height,
-            verbose=verbose,
-        )
-
-        # remove axis ticks
-        ax.set_xticks([])
-        ax.set_yticks([])
-        outfilename = os.path.join(
-            plot_dir,
-            "{}_{}_picked.png".format(
-                ugraph_filename.strip(".mrc"),
-                meta_basename.split(".")[0],
-            ),
-        )
-        return fig, ax, outfilename
-
     def _save_plot(self, fig, ax, outfilename: str):
         # save the plot
         fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
@@ -340,6 +297,47 @@ class plotLabelPicked(plotDataFrame):
                 bbox_inches="tight",
             )
         fig.clf()
+
+
+def plot_label_picked(
+    df_picked: pd.DataFrame,
+    meta_file: str,
+    ugraph_filename: str,
+    ugraph_index: int,
+    box_width: int,
+    box_height: int,
+    mrc_dir: str,
+    verbose: bool,
+    plot_dir: str = "",
+):
+    meta_basename = os.path.basename(meta_file)
+    print(
+        "Plotting picked particles in micrograph {}, \
+        from metadata file {}".format(
+            ugraph_filename, meta_basename
+        )
+    )
+    fig, ax = labelMicrograph.label_micrograph_picked(
+        df_picked,
+        meta_file,
+        ugraph_index,
+        mrc_dir,
+        box_width=box_width,
+        box_height=box_height,
+        verbose=verbose,
+    )
+
+    # remove axis ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    outfilename = os.path.join(
+        plot_dir,
+        "{}_{}_picked.png".format(
+            ugraph_filename.strip(".mrc"),
+            meta_basename.split(".")[0],
+        ),
+    )
+    return fig, ax, outfilename
 
 
 class plotLabelTruthAndPicked(plotDataFrame):
@@ -387,7 +385,7 @@ class plotLabelTruthAndPicked(plotDataFrame):
                         ]
                     )[: self.args.num_ugraphs]
                 ):
-                    fig, ax, outfilename = self.make_plot(
+                    fig, ax, outfilename = plot_label_picked_and_truth(
                         self.plot_data["label_truth_and_picked"]["df_truth"],
                         self.plot_data["label_truth_and_picked"]["df_picked"],
                         meta_file,
@@ -411,50 +409,6 @@ class plotLabelTruthAndPicked(plotDataFrame):
                 " a pd.DataFrame"
             )
 
-    @classmethod
-    def make_plot(
-        self,
-        df_truth: pd.DataFrame,
-        df_picked: pd.DataFrame,
-        meta_file: str,
-        ugraph_filename: str,
-        ugraph_index: int,
-        box_width: int,
-        box_height: int,
-        mrc_dir: str,
-        verbose: bool,
-        plot_dir: str = "",
-    ):
-        meta_basename = os.path.basename(meta_file)
-        print(
-            "Plotting picked and truth particles in micrograph"
-            " {}, from metadata file {}".format(
-                ugraph_filename,
-                meta_basename,
-            )
-        )
-        fig, ax = labelMicrograph.label_micrograph_truth_and_picked(
-            df_picked,
-            meta_file,
-            df_truth,
-            ugraph_index,
-            mrc_dir,
-            box_width=box_width,
-            box_height=box_height,
-            verbose=verbose,
-        )
-        # remove axis ticks
-        ax.set_xticks([])
-        ax.set_yticks([])
-        outfilename = os.path.join(
-            args.plot_dir,
-            "{}_{}_truth_and_picked.png".format(
-                ugraph_filename.strip(".mrc"),
-                meta_basename.split(".")[0],
-            ),
-        )
-        return fig, ax, outfilename
-
     def _save_plot(self, fig, ax, outfilename: str):
         # save the plot
         fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
@@ -464,6 +418,49 @@ class plotLabelTruthAndPicked(plotDataFrame):
                 bbox_inches="tight",
             )
         fig.clf()
+
+
+def plot_label_picked_and_truth(
+    df_truth: pd.DataFrame,
+    df_picked: pd.DataFrame,
+    meta_file: str,
+    ugraph_filename: str,
+    ugraph_index: int,
+    box_width: int,
+    box_height: int,
+    mrc_dir: str,
+    verbose: bool,
+    plot_dir: str = "",
+):
+    meta_basename = os.path.basename(meta_file)
+    print(
+        "Plotting picked and truth particles in micrograph"
+        " {}, from metadata file {}".format(
+            ugraph_filename,
+            meta_basename,
+        )
+    )
+    fig, ax = labelMicrograph.label_micrograph_truth_and_picked(
+        df_picked,
+        meta_file,
+        df_truth,
+        ugraph_index,
+        mrc_dir,
+        box_width=box_width,
+        box_height=box_height,
+        verbose=verbose,
+    )
+    # remove axis ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    outfilename = os.path.join(
+        args.plot_dir,
+        "{}_{}_truth_and_picked.png".format(
+            ugraph_filename.strip(".mrc"),
+            meta_basename.split(".")[0],
+        ),
+    )
+    return fig, ax, outfilename
 
 
 class plotMatchedAndUnmatched(plotDataFrame):
@@ -675,7 +672,7 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                 fig,
                                 ax,
                                 outfilename,
-                            ) = self.make_matched_picked_plot(
+                            ) = make_matched_picked_plot(
                                 self.plot_data[
                                     "label_matched_and_unmatched_{}".format(
                                         meta_basename.split(".")[0]
@@ -717,7 +714,7 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                 fig,
                                 ax,
                                 outfilename,
-                            ) = self.make_matched_truth_plot(
+                            ) = make_matched_truth_plot(
                                 self.plot_data[
                                     "label_matched_and_unmatched_{}".format(
                                         meta_basename.split(".")[0]
@@ -757,7 +754,7 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                 fig,
                                 ax,
                                 outfilename,
-                            ) = self.make_unmatched_picked_plot(
+                            ) = make_unmatched_picked_plot(
                                 self.plot_data[
                                     "label_matched_and_unmatched_{}".format(
                                         meta_basename.split(".")[0]
@@ -798,7 +795,7 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                 fig,
                                 ax,
                                 outfilename,
-                            ) = self.make_unmatched_truth_plot(
+                            ) = make_unmatched_truth_plot(
                                 self.plot_data[
                                     "label_matched_and_unmatched_{}".format(
                                         meta_basename.split(".")[0]
@@ -850,7 +847,7 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                 fig,
                                 ax,
                                 outfilename,
-                            ) = self.make_matched_unmatched_picked_plot(
+                            ) = make_matched_unmatched_picked_plot(
                                 self.plot_data[
                                     "label_matched_and_unmatched_{}".format(
                                         meta_basename.split(".")[0]
@@ -941,7 +938,7 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                 fig,
                                 ax,
                                 outfilename,
-                            ) = self.make_matched_unmatched_truth_plot(
+                            ) = make_matched_unmatched_truth_plot(
                                 self.plot_data[
                                     "label_matched_and_unmatched_{}".format(
                                         meta_basename.split(".")[0]
@@ -1025,7 +1022,7 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                 fig,
                                 ax,
                                 outfilename,
-                            ) = self.make_unmatched_picked_and_truth_plot(
+                            ) = make_unmatched_picked_and_truth_plot(
                                 self.plot_data[
                                     "label_matched_and_unmatched_{}".format(
                                         meta_basename.split(".")[0]
@@ -1106,7 +1103,7 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                 fig,
                                 ax,
                                 outfilename,
-                            ) = self.make_unmatched_truth_and_picked_plot(
+                            ) = make_unmatched_truth_and_picked_plot(
                                 self.plot_data["label_matched_and_unmatched"][
                                     "df_picked"
                                 ],
@@ -1189,307 +1186,6 @@ class plotMatchedAndUnmatched(plotDataFrame):
                 '"df_picked"] is not a pd.DataFrame!'
             )
 
-    @classmethod
-    def make_matched_picked_plot(
-        self,
-        df_mp: pd.DataFrame,
-        meta_file: str,
-        ugraph_filename: str,
-        ugraph_index: int,
-        box_width: int,
-        box_height: int,
-        mrc_dir: str,
-        verbose: bool,
-        plot_dir: str = "",
-    ):
-        meta_basename = os.path.basename(meta_file)
-        fig, ax = labelMicrograph.label_micrograph_picked(
-            df_mp,
-            meta_file,
-            ugraph_index,
-            mrc_dir,
-            box_width=box_width,
-            box_height=box_height,
-            edgecolor=[0, 0, 1],
-            verbose=verbose,
-        )
-        # remove axis ticks
-        ax.set_xticks([])
-        ax.set_yticks([])
-        outfilename = os.path.join(
-            plot_dir,
-            "{}_{}_matched_picked.png".format(
-                ugraph_filename.strip(".mrc"),
-                meta_basename.split(".")[0],
-            ),
-        )
-        return fig, ax, outfilename
-
-    @classmethod
-    def make_matched_truth_plot(
-        self,
-        df_mt: pd.DataFrame,
-        meta_file: str,
-        ugraph_filename: str,
-        ugraph_index: int,
-        box_width: int,
-        box_height: int,
-        mrc_dir: str,
-        verbose: bool,
-        plot_dir: str = "",
-    ):
-        meta_basename = os.path.basename(meta_file)
-        fig, ax = labelMicrograph.label_micrograph_truth(
-            df_mt,
-            ugraph_index,
-            mrc_dir,
-            box_width=box_width,
-            box_height=box_height,
-            edgecolor=[0, 0, 0.5],
-            verbose=verbose,
-        )
-        # remove axis ticks
-        ax.set_xticks([])
-        ax.set_yticks([])
-        outfilename = os.path.join(
-            plot_dir,
-            "{}_{}_matched_truth.png".format(
-                ugraph_filename.strip(".mrc"),
-                meta_basename.split(".")[0],
-            ),
-        )
-        return fig, ax, outfilename
-
-    @classmethod
-    def make_unmatched_picked_plot(
-        self,
-        df_up: pd.DataFrame,
-        meta_file: str,
-        ugraph_filename: str,
-        ugraph_index: int,
-        box_width: int,
-        box_height: int,
-        mrc_dir: str,
-        verbose: bool,
-        plot_dir: str = "",
-    ):
-        meta_basename = os.path.basename(meta_file)
-        fig, ax = labelMicrograph.label_micrograph_picked(
-            df_up,
-            meta_file,
-            ugraph_index,
-            mrc_dir,
-            box_width=box_width,
-            box_height=box_height,
-            edgecolor=[1, 1, 0],
-            verbose=verbose,
-        )
-        # remove axis ticks
-        ax.set_xticks([])
-        ax.set_yticks([])
-        outfilename = os.path.join(
-            plot_dir,
-            "{}_{}_unmatched_picked.png".format(
-                ugraph_filename.strip(".mrc"),
-                meta_basename.split(".")[0],
-            ),
-        )
-        return fig, ax, outfilename
-
-    @classmethod
-    def make_unmatched_truth_plot(
-        self,
-        df_ut: pd.DataFrame,
-        meta_file: str,
-        ugraph_filename: str,
-        ugraph_index: int,
-        box_width: int,
-        box_height: int,
-        mrc_dir: str,
-        verbose: bool,
-        plot_dir: str = "",
-    ):
-        meta_basename = os.path.basename(meta_file)
-        fig, ax = labelMicrograph.label_micrograph_truth(
-            df_ut,
-            ugraph_index,
-            mrc_dir,
-            box_width=box_width,
-            box_height=box_height,
-            edgecolor=[1, 1, 0.5],
-            verbose=verbose,
-        )
-        # remove axis ticks
-        ax.set_xticks([])
-        ax.set_yticks([])
-        outfilename = os.path.join(
-            plot_dir,
-            "{}_{}_unmatched_truth.png".format(
-                ugraph_filename.strip(".mrc"),
-                meta_basename.split(".")[0],
-            ),
-        )
-        return fig, ax, outfilename
-
-    @classmethod
-    def make_matched_unmatched_picked_plot(
-        self,
-        df_mp: pd.DataFrame,
-        df_up: pd.DataFrame,
-        meta_file: str,
-        df_truth: pd.DataFrame,
-        ugraph_filename: str,
-        ugraph_index: int,
-        box_width: int,
-        box_height: int,
-        mrc_dir: str,
-        verbose: bool,
-        plot_dir: str = "",
-    ):
-        meta_basename = os.path.basename(meta_file)
-        fig, ax = labelMicrograph.label_micrograph_picked_and_picked(
-            df_mp,
-            df_up,
-            meta_file,
-            df_truth,
-            ugraph_index,
-            mrc_dir,
-            box_width=box_width,
-            box_height=box_height,
-            picked1_color=[0, 0, 1],
-            picked2_color=[1, 1, 0],
-            verbose=verbose,
-        )
-        # remove axis ticks
-        ax.set_xticks([])
-        ax.set_yticks([])
-        outfilename = os.path.join(
-            plot_dir,
-            "{}_{}_matched_picked_and_"
-            "unmatched_picked.png".format(
-                ugraph_filename.strip(".mrc"),
-                meta_basename.split(".")[0],
-            ),
-        )
-        return fig, ax, outfilename
-
-    @classmethod
-    def make_matched_unmatched_truth_plot(
-        self,
-        df_mt: pd.DataFrame,
-        df_ut: pd.DataFrame,
-        meta_file: str,
-        ugraph_filename: str,
-        ugraph_index: int,
-        box_width: int,
-        box_height: int,
-        mrc_dir: str,
-        verbose: bool,
-        plot_dir: str = "",
-    ):
-        meta_basename = os.path.basename(meta_file)
-        fig, ax = labelMicrograph.label_micrograph_truth_and_truth(
-            df_mt,
-            df_ut,
-            ugraph_index,
-            mrc_dir,
-            box_width=box_width,
-            box_height=box_height,
-            truth_color1=[0, 0, 0.5],
-            truth_color2=[1, 1, 0.5],
-            verbose=verbose,
-        )
-        # remove axis ticks
-        ax.set_xticks([])
-        ax.set_yticks([])
-        outfilename = os.path.join(
-            plot_dir,
-            "{}_{}_matched_truth_and"
-            "_unmatched_truth.png".format(
-                ugraph_filename.strip(".mrc"),
-                meta_basename.split(".")[0],
-            ),
-        )
-        return fig, ax, outfilename
-
-    @classmethod
-    def make_unmatched_picked_and_truth_plot(
-        self,
-        df_up: pd.DataFrame,
-        meta_file: str,
-        df_truth: pd.DataFrame,
-        ugraph_filename: str,
-        ugraph_index: int,
-        box_width: int,
-        box_height: int,
-        mrc_dir: str,
-        verbose: bool,
-        plot_dir: str = "",
-    ):
-        meta_basename = os.path.basename(meta_file)
-        fig, ax = labelMicrograph.label_micrograph_truth_and_picked(
-            df_up,
-            meta_file,
-            df_truth,
-            ugraph_index,
-            mrc_dir,
-            box_width=box_width,
-            box_height=box_height,
-            picked_color=[1, 1, 0],
-            truth_color=[0, 1, 0],
-            verbose=verbose,
-        )
-        # remove axis ticks
-        ax.set_xticks([])
-        ax.set_yticks([])
-        outfilename = os.path.join(
-            plot_dir,
-            "{}_{}_unmatched_picked_and_truth.png".format(
-                ugraph_filename.strip(".mrc"),
-                meta_basename.split(".")[0],
-            ),
-        )
-        return fig, ax, outfilename
-
-    @classmethod
-    def make_unmatched_truth_and_picked_plot(
-        self,
-        df_picked: pd.DataFrame,
-        meta_file: str,
-        df_ut: pd.DataFrame,
-        ugraph_filename: str,
-        ugraph_index: int,
-        box_width: int,
-        box_height: int,
-        mrc_dir: str,
-        verbose: bool,
-        plot_dir: str = "",
-    ):
-        meta_basename = os.path.basename(meta_file)
-        fig, ax = labelMicrograph.label_micrograph_truth_and_picked(
-            df_picked,
-            meta_file,
-            df_ut,
-            ugraph_index,
-            mrc_dir,
-            box_width=box_width,
-            box_height=box_height,
-            picked_color=[1, 0, 0],
-            truth_color=[1, 1, 0.5],
-            verbose=verbose,
-        )
-        # remove axis ticks
-        ax.set_xticks([])
-        ax.set_yticks([])
-        outfilename = os.path.join(
-            plot_dir,
-            "{}_{}_picked_and_unmatched_truth.png".format(
-                ugraph_filename.strip(".mrc"),
-                meta_basename.split(".")[0],
-            ),
-        )
-        return fig, ax, outfilename
-
     def _save_plot(self, fig, ax, outfilename: str):
         # save the plot
         fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
@@ -1499,6 +1195,299 @@ class plotMatchedAndUnmatched(plotDataFrame):
                 bbox_inches="tight",
             )
         fig.clf()
+
+
+def make_matched_picked_plot(
+    df_mp: pd.DataFrame,
+    meta_file: str,
+    ugraph_filename: str,
+    ugraph_index: int,
+    box_width: int,
+    box_height: int,
+    mrc_dir: str,
+    verbose: bool,
+    plot_dir: str = "",
+):
+    meta_basename = os.path.basename(meta_file)
+    fig, ax = labelMicrograph.label_micrograph_picked(
+        df_mp,
+        meta_file,
+        ugraph_index,
+        mrc_dir,
+        box_width=box_width,
+        box_height=box_height,
+        edgecolor=[0, 0, 1],
+        verbose=verbose,
+    )
+    # remove axis ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    outfilename = os.path.join(
+        plot_dir,
+        "{}_{}_matched_picked.png".format(
+            ugraph_filename.strip(".mrc"),
+            meta_basename.split(".")[0],
+        ),
+    )
+    return fig, ax, outfilename
+
+
+def make_matched_truth_plot(
+    df_mt: pd.DataFrame,
+    meta_file: str,
+    ugraph_filename: str,
+    ugraph_index: int,
+    box_width: int,
+    box_height: int,
+    mrc_dir: str,
+    verbose: bool,
+    plot_dir: str = "",
+):
+    meta_basename = os.path.basename(meta_file)
+    fig, ax = labelMicrograph.label_micrograph_truth(
+        df_mt,
+        ugraph_index,
+        mrc_dir,
+        box_width=box_width,
+        box_height=box_height,
+        edgecolor=[0, 0, 0.5],
+        verbose=verbose,
+    )
+    # remove axis ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    outfilename = os.path.join(
+        plot_dir,
+        "{}_{}_matched_truth.png".format(
+            ugraph_filename.strip(".mrc"),
+            meta_basename.split(".")[0],
+        ),
+    )
+    return fig, ax, outfilename
+
+
+def make_unmatched_picked_plot(
+    df_up: pd.DataFrame,
+    meta_file: str,
+    ugraph_filename: str,
+    ugraph_index: int,
+    box_width: int,
+    box_height: int,
+    mrc_dir: str,
+    verbose: bool,
+    plot_dir: str = "",
+):
+    meta_basename = os.path.basename(meta_file)
+    fig, ax = labelMicrograph.label_micrograph_picked(
+        df_up,
+        meta_file,
+        ugraph_index,
+        mrc_dir,
+        box_width=box_width,
+        box_height=box_height,
+        edgecolor=[1, 1, 0],
+        verbose=verbose,
+    )
+    # remove axis ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    outfilename = os.path.join(
+        plot_dir,
+        "{}_{}_unmatched_picked.png".format(
+            ugraph_filename.strip(".mrc"),
+            meta_basename.split(".")[0],
+        ),
+    )
+    return fig, ax, outfilename
+
+
+def make_unmatched_truth_plot(
+    df_ut: pd.DataFrame,
+    meta_file: str,
+    ugraph_filename: str,
+    ugraph_index: int,
+    box_width: int,
+    box_height: int,
+    mrc_dir: str,
+    verbose: bool,
+    plot_dir: str = "",
+):
+    meta_basename = os.path.basename(meta_file)
+    fig, ax = labelMicrograph.label_micrograph_truth(
+        df_ut,
+        ugraph_index,
+        mrc_dir,
+        box_width=box_width,
+        box_height=box_height,
+        edgecolor=[1, 1, 0.5],
+        verbose=verbose,
+    )
+    # remove axis ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    outfilename = os.path.join(
+        plot_dir,
+        "{}_{}_unmatched_truth.png".format(
+            ugraph_filename.strip(".mrc"),
+            meta_basename.split(".")[0],
+        ),
+    )
+    return fig, ax, outfilename
+
+
+def make_matched_unmatched_picked_plot(
+    df_mp: pd.DataFrame,
+    df_up: pd.DataFrame,
+    meta_file: str,
+    df_truth: pd.DataFrame,
+    ugraph_filename: str,
+    ugraph_index: int,
+    box_width: int,
+    box_height: int,
+    mrc_dir: str,
+    verbose: bool,
+    plot_dir: str = "",
+):
+    meta_basename = os.path.basename(meta_file)
+    fig, ax = labelMicrograph.label_micrograph_picked_and_picked(
+        df_mp,
+        df_up,
+        meta_file,
+        df_truth,
+        ugraph_index,
+        mrc_dir,
+        box_width=box_width,
+        box_height=box_height,
+        picked1_color=[0, 0, 1],
+        picked2_color=[1, 1, 0],
+        verbose=verbose,
+    )
+    # remove axis ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    outfilename = os.path.join(
+        plot_dir,
+        "{}_{}_matched_picked_and_"
+        "unmatched_picked.png".format(
+            ugraph_filename.strip(".mrc"),
+            meta_basename.split(".")[0],
+        ),
+    )
+    return fig, ax, outfilename
+
+
+def make_matched_unmatched_truth_plot(
+    df_mt: pd.DataFrame,
+    df_ut: pd.DataFrame,
+    meta_file: str,
+    ugraph_filename: str,
+    ugraph_index: int,
+    box_width: int,
+    box_height: int,
+    mrc_dir: str,
+    verbose: bool,
+    plot_dir: str = "",
+):
+    meta_basename = os.path.basename(meta_file)
+    fig, ax = labelMicrograph.label_micrograph_truth_and_truth(
+        df_mt,
+        df_ut,
+        ugraph_index,
+        mrc_dir,
+        box_width=box_width,
+        box_height=box_height,
+        truth_color1=[0, 0, 0.5],
+        truth_color2=[1, 1, 0.5],
+        verbose=verbose,
+    )
+    # remove axis ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    outfilename = os.path.join(
+        plot_dir,
+        "{}_{}_matched_truth_and"
+        "_unmatched_truth.png".format(
+            ugraph_filename.strip(".mrc"),
+            meta_basename.split(".")[0],
+        ),
+    )
+    return fig, ax, outfilename
+
+
+def make_unmatched_picked_and_truth_plot(
+    df_up: pd.DataFrame,
+    meta_file: str,
+    df_truth: pd.DataFrame,
+    ugraph_filename: str,
+    ugraph_index: int,
+    box_width: int,
+    box_height: int,
+    mrc_dir: str,
+    verbose: bool,
+    plot_dir: str = "",
+):
+    meta_basename = os.path.basename(meta_file)
+    fig, ax = labelMicrograph.label_micrograph_truth_and_picked(
+        df_up,
+        meta_file,
+        df_truth,
+        ugraph_index,
+        mrc_dir,
+        box_width=box_width,
+        box_height=box_height,
+        picked_color=[1, 1, 0],
+        truth_color=[0, 1, 0],
+        verbose=verbose,
+    )
+    # remove axis ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    outfilename = os.path.join(
+        plot_dir,
+        "{}_{}_unmatched_picked_and_truth.png".format(
+            ugraph_filename.strip(".mrc"),
+            meta_basename.split(".")[0],
+        ),
+    )
+    return fig, ax, outfilename
+
+
+def make_unmatched_truth_and_picked_plot(
+    df_picked: pd.DataFrame,
+    meta_file: str,
+    df_ut: pd.DataFrame,
+    ugraph_filename: str,
+    ugraph_index: int,
+    box_width: int,
+    box_height: int,
+    mrc_dir: str,
+    verbose: bool,
+    plot_dir: str = "",
+):
+    meta_basename = os.path.basename(meta_file)
+    fig, ax = labelMicrograph.label_micrograph_truth_and_picked(
+        df_picked,
+        meta_file,
+        df_ut,
+        ugraph_index,
+        mrc_dir,
+        box_width=box_width,
+        box_height=box_height,
+        picked_color=[1, 0, 0],
+        truth_color=[1, 1, 0.5],
+        verbose=verbose,
+    )
+    # remove axis ticks
+    ax.set_xticks([])
+    ax.set_yticks([])
+    outfilename = os.path.join(
+        plot_dir,
+        "{}_{}_picked_and_unmatched_truth.png".format(
+            ugraph_filename.strip(".mrc"),
+            meta_basename.split(".")[0],
+        ),
+    )
+    return fig, ax, outfilename
 
 
 class labelMicrograph(object):
@@ -1997,7 +1986,7 @@ class plotPrecision(plotDataFrame):
             )
             print("plotting precision...")
         # precision
-        fig, ax = self.plot_precision(
+        fig, ax = plot_precision(
             self.plot_data["plot_precision"]["df_precision"],
             self.job_types,
             self.order,
@@ -2008,7 +1997,7 @@ class plotPrecision(plotDataFrame):
         if self.args.verbose:
             print("plotting recall...")
         # recall
-        fig, ax = self.plot_recall(
+        fig, ax = plot_recall(
             self.plot_data["plot_precision"]["df_precision"],
             self.job_types,
             self.order,
@@ -2019,7 +2008,7 @@ class plotPrecision(plotDataFrame):
         if self.args.verbose:
             print("plotting precision and recall in one plot...")
         # precision and recall
-        fig, ax = self.plot_precision_and_recall(
+        fig, ax = plot_precision_and_recall(
             self.plot_data["plot_precision"]["df_precision"],
             self.job_types,
             self.order,
@@ -2032,301 +2021,13 @@ class plotPrecision(plotDataFrame):
         if self.args.verbose:
             print("plotting F1 score...")
         # f1 score
-        fig, ax = self.plot_f1_score(
+        fig, ax = plot_f1_score(
             self.plot_data["plot_precision"]["df_precision"],
             self.job_types,
             self.order,
         )
         outfilename = os.path.join(self.args.plot_dir, "f1_score.png")
         self._save_plot(fig, ax, outfilename)
-
-    @classmethod
-    def plot_precision(
-        self,
-        df_precision: pd.DataFrame,
-        job_types: Dict[str, str],
-        order: list[str] | None = None,
-    ):
-        """Precision is calculated as follows:
-        precision = TP / (TP + FP)
-        where TP is the number of true positives, which is stored in the picked
-        particles dataframe
-        and FP is the number of false positives, which can be extracted from
-        the truth_particles dataframe by looking at the number of truth
-        particles that have 0 multiplicity
-        """
-
-        fig, ax = plt.subplots(figsize=(7, 3.5))
-        sns.boxplot(
-            x="metadata_filename",
-            y="precision",
-            data=df_precision,
-            ax=ax,
-            fliersize=0,
-            palette="Blues",
-            order=order,
-        )
-        sns.stripplot(
-            x="metadata_filename",
-            y="precision",
-            data=df_precision,
-            ax=ax,
-            hue="defocus",
-            alpha=0.7,
-            palette="RdYlBu",
-            order=order,
-        )
-        # change the xticklabels to the jobtype
-        if order is None:
-            ax.set_xticklabels(
-                [
-                    job_types[metadata_filename]
-                    for metadata_filename in df_precision[
-                        "metadata_filename"
-                    ].unique()
-                ],
-                rotation=45,
-                ha="right",
-                rotation_mode="anchor",
-                fontsize=12,
-            )
-        else:
-            ax.set_xticklabels(
-                [job_types[metadata_filename] for metadata_filename in order],
-                rotation=45,
-                ha="right",
-                rotation_mode="anchor",
-                fontsize=12,
-            )
-        # remove legend
-        ax.legend().remove()
-        # add colorbar
-        sm = plt.cm.ScalarMappable(
-            cmap="RdYlBu",
-            norm=plt.Normalize(
-                vmin=df_precision["defocus"].min(),
-                vmax=df_precision["defocus"].max(),
-            ),
-        )
-        sm._A = []
-        cbar = fig.colorbar(sm, ax=ax)
-        cbar.set_label("defocus (Å)", rotation=270, labelpad=20, fontsize=12)
-        # add labels
-        ax.set_xlabel("")
-        ax.set_ylabel("precision", fontsize=14)
-        ax.set_title("Precision for different job types", fontsize=16)
-        fig.tight_layout()
-        return fig, ax
-
-    @classmethod
-    def plot_recall(
-        self,
-        df_precision: pd.DataFrame,
-        job_types: Dict[str, str],
-        order: list[str] | None = None,
-    ):
-        fig, ax = plt.subplots(figsize=(7, 3.5))
-        sns.boxplot(
-            x="metadata_filename",
-            y="recall",
-            data=df_precision,
-            ax=ax,
-            fliersize=0,
-            palette="Blues",
-            order=order,
-        )
-        sns.stripplot(
-            x="metadata_filename",
-            y="recall",
-            data=df_precision,
-            ax=ax,
-            hue="defocus",
-            alpha=0.7,
-            palette="RdYlBu",
-            order=order,
-        )
-        # change the xticklabels to the jobtype
-        if order is None:
-            ax.set_xticklabels(
-                [
-                    job_types[metadata_filename]
-                    for metadata_filename in df_precision[
-                        "metadata_filename"
-                    ].unique()
-                ],
-                rotation=45,
-                ha="right",
-                rotation_mode="anchor",
-                fontsize=12,
-            )
-        else:
-            ax.set_xticklabels(
-                [job_types[metadata_filename] for metadata_filename in order],
-                rotation=45,
-                ha="right",
-                rotation_mode="anchor",
-                fontsize=12,
-            )
-        # remove legend
-        ax.legend().remove()
-        # add colorbar
-        sm = plt.cm.ScalarMappable(
-            cmap="RdYlBu",
-            norm=plt.Normalize(
-                vmin=df_precision["defocus"].min(),
-                vmax=df_precision["defocus"].max(),
-            ),
-        )
-        sm._A = []
-        cbar = fig.colorbar(sm, ax=ax)
-        cbar.set_label("defocus (Å)", rotation=270, labelpad=20, fontsize=12)
-        # add labels
-        ax.set_xlabel("")
-        ax.set_ylabel("recall", fontsize=14)
-        ax.set_title("Recall for different job types", fontsize=16)
-        fig.tight_layout()
-        return fig, ax
-
-    @classmethod
-    def plot_precision_and_recall(
-        self,
-        df_precision: pd.DataFrame,
-        job_types: Dict[str, str],
-        order: list[str] | None = None,
-    ):
-        # get all column names
-        col_names = df_precision.columns.tolist()
-        # remove the precsion and recall columns
-        col_names.remove("precision")
-        col_names.remove("recall")
-        df = df_precision.melt(
-            id_vars=col_names, var_name="variable", value_name="value"
-        )
-
-        fig, ax = plt.subplots(figsize=(7, 3.5))
-        sns.boxplot(
-            x="metadata_filename",
-            y="value",
-            data=df,
-            ax=ax,
-            fliersize=0,
-            palette="RdYlBu",
-            hue="variable",
-            order=order,
-        )
-        ax.set_ylabel("")
-        ax.set_xlabel("")
-        # change the xtix labels to the job_types
-        if order is None:
-            ax.set_xticklabels(
-                [
-                    job_types[meta_file]
-                    for meta_file in np.unique(df["metadata_filename"])
-                    if meta_file in job_types.keys()
-                ],
-                rotation=45,
-                ha="right",
-                rotation_mode="anchor",
-                fontsize=12,
-            )
-        else:
-            ax.set_xticklabels(
-                [job_types[meta_file] for meta_file in order],
-                rotation=45,
-                ha="right",
-                rotation_mode="anchor",
-                fontsize=12,
-            )
-        # add legend below axis
-        ax.legend().set_visible(False)
-        handles, labels = ax.get_legend_handles_labels()
-        fig.legend(
-            handles,
-            labels,
-            loc="upper center",
-            ncol=2,
-            bbox_to_anchor=(0.5, 1.1),
-            fontsize=10,
-        )
-        fig.tight_layout()
-        return fig, ax
-
-    @classmethod
-    def plot_f1_score(
-        self,
-        df_precision: pd.DataFrame,
-        job_types: Dict[str, str],
-        order: list[str] | None = None,
-    ):
-        # compute f1 score from the precision and recall
-        df_precision["f1_score"] = (
-            2
-            * (df_precision["precision"] * df_precision["recall"])
-            / (df_precision["precision"] + df_precision["recall"])
-        )
-        fig, ax = plt.subplots(figsize=(7, 3.5))
-        sns.boxplot(
-            x="metadata_filename",
-            y="f1_score",
-            data=df_precision,
-            ax=ax,
-            fliersize=0,
-            palette="Blues",
-            order=order,
-        )
-
-        sns.stripplot(
-            x="metadata_filename",
-            y="f1_score",
-            data=df_precision,
-            ax=ax,
-            hue="defocus",
-            alpha=0.7,
-            palette="RdYlBu",
-            order=order,
-        )
-
-        # change the xticklabels to the jobtype
-        if order is None:
-            ax.set_xticklabels(
-                [
-                    job_types[metadata_filename]
-                    for metadata_filename in df_precision[
-                        "metadata_filename"
-                    ].unique()
-                ],
-                rotation=45,
-                ha="right",
-                rotation_mode="anchor",
-                fontsize=12,
-            )
-        else:
-            ax.set_xticklabels(
-                [job_types[metadata_filename] for metadata_filename in order],
-                rotation=45,
-                ha="right",
-                rotation_mode="anchor",
-                fontsize=12,
-            )
-        # remove legend
-        ax.legend().remove()
-        # add colorbar
-        sm = plt.cm.ScalarMappable(
-            cmap="RdYlBu",
-            norm=plt.Normalize(
-                vmin=df_precision["defocus"].min(),
-                vmax=df_precision["defocus"].max(),
-            ),
-        )
-        sm._A = []
-        cbar = fig.colorbar(sm, ax=ax)
-        cbar.set_label("defocus (Å)", rotation=270, labelpad=20, fontsize=12)
-        # add labels
-        ax.set_xlabel("")
-        ax.set_ylabel("f1 score", fontsize=14)
-        ax.set_title("F1 score for different job types", fontsize=16)
-        fig.tight_layout()
-        return fig, ax
 
     def _save_plot(self, fig, ax, outfilename: str):
         # save the plot
@@ -2336,6 +2037,290 @@ class plotPrecision(plotDataFrame):
                 outfilename.replace(".png", ".pdf"), bbox_inches="tight"
             )
         fig.clf()
+
+
+def plot_precision(
+    df_precision: pd.DataFrame,
+    job_types: Dict[str, str],
+    order: list[str] | None = None,
+):
+    """Precision is calculated as follows:
+    precision = TP / (TP + FP)
+    where TP is the number of true positives, which is stored in the picked
+    particles dataframe
+    and FP is the number of false positives, which can be extracted from
+    the truth_particles dataframe by looking at the number of truth
+    particles that have 0 multiplicity
+    """
+
+    fig, ax = plt.subplots(figsize=(7, 3.5))
+    sns.boxplot(
+        x="metadata_filename",
+        y="precision",
+        data=df_precision,
+        ax=ax,
+        fliersize=0,
+        palette="Blues",
+        order=order,
+    )
+    sns.stripplot(
+        x="metadata_filename",
+        y="precision",
+        data=df_precision,
+        ax=ax,
+        hue="defocus",
+        alpha=0.7,
+        palette="RdYlBu",
+        order=order,
+    )
+    # change the xticklabels to the jobtype
+    if order is None:
+        ax.set_xticklabels(
+            [
+                job_types[metadata_filename]
+                for metadata_filename in df_precision[
+                    "metadata_filename"
+                ].unique()
+            ],
+            rotation=45,
+            ha="right",
+            rotation_mode="anchor",
+            fontsize=12,
+        )
+    else:
+        ax.set_xticklabels(
+            [job_types[metadata_filename] for metadata_filename in order],
+            rotation=45,
+            ha="right",
+            rotation_mode="anchor",
+            fontsize=12,
+        )
+    # remove legend
+    ax.legend().remove()
+    # add colorbar
+    sm = plt.cm.ScalarMappable(
+        cmap="RdYlBu",
+        norm=plt.Normalize(
+            vmin=df_precision["defocus"].min(),
+            vmax=df_precision["defocus"].max(),
+        ),
+    )
+    sm._A = []
+    cbar = fig.colorbar(sm, ax=ax)
+    cbar.set_label("defocus (Å)", rotation=270, labelpad=20, fontsize=12)
+    # add labels
+    ax.set_xlabel("")
+    ax.set_ylabel("precision", fontsize=14)
+    ax.set_title("Precision for different job types", fontsize=16)
+    fig.tight_layout()
+    return fig, ax
+
+
+def plot_recall(
+    df_precision: pd.DataFrame,
+    job_types: Dict[str, str],
+    order: list[str] | None = None,
+):
+    fig, ax = plt.subplots(figsize=(7, 3.5))
+    sns.boxplot(
+        x="metadata_filename",
+        y="recall",
+        data=df_precision,
+        ax=ax,
+        fliersize=0,
+        palette="Blues",
+        order=order,
+    )
+    sns.stripplot(
+        x="metadata_filename",
+        y="recall",
+        data=df_precision,
+        ax=ax,
+        hue="defocus",
+        alpha=0.7,
+        palette="RdYlBu",
+        order=order,
+    )
+    # change the xticklabels to the jobtype
+    if order is None:
+        ax.set_xticklabels(
+            [
+                job_types[metadata_filename]
+                for metadata_filename in df_precision[
+                    "metadata_filename"
+                ].unique()
+            ],
+            rotation=45,
+            ha="right",
+            rotation_mode="anchor",
+            fontsize=12,
+        )
+    else:
+        ax.set_xticklabels(
+            [job_types[metadata_filename] for metadata_filename in order],
+            rotation=45,
+            ha="right",
+            rotation_mode="anchor",
+            fontsize=12,
+        )
+    # remove legend
+    ax.legend().remove()
+    # add colorbar
+    sm = plt.cm.ScalarMappable(
+        cmap="RdYlBu",
+        norm=plt.Normalize(
+            vmin=df_precision["defocus"].min(),
+            vmax=df_precision["defocus"].max(),
+        ),
+    )
+    sm._A = []
+    cbar = fig.colorbar(sm, ax=ax)
+    cbar.set_label("defocus (Å)", rotation=270, labelpad=20, fontsize=12)
+    # add labels
+    ax.set_xlabel("")
+    ax.set_ylabel("recall", fontsize=14)
+    ax.set_title("Recall for different job types", fontsize=16)
+    fig.tight_layout()
+    return fig, ax
+
+
+def plot_precision_and_recall(
+    df_precision: pd.DataFrame,
+    job_types: Dict[str, str],
+    order: list[str] | None = None,
+):
+    # get all column names
+    col_names = df_precision.columns.tolist()
+    # remove the precsion and recall columns
+    col_names.remove("precision")
+    col_names.remove("recall")
+    df = df_precision.melt(
+        id_vars=col_names, var_name="variable", value_name="value"
+    )
+
+    fig, ax = plt.subplots(figsize=(7, 3.5))
+    sns.boxplot(
+        x="metadata_filename",
+        y="value",
+        data=df,
+        ax=ax,
+        fliersize=0,
+        palette="RdYlBu",
+        hue="variable",
+        order=order,
+    )
+    ax.set_ylabel("")
+    ax.set_xlabel("")
+    # change the xtix labels to the job_types
+    if order is None:
+        ax.set_xticklabels(
+            [
+                job_types[meta_file]
+                for meta_file in np.unique(df["metadata_filename"])
+                if meta_file in job_types.keys()
+            ],
+            rotation=45,
+            ha="right",
+            rotation_mode="anchor",
+            fontsize=12,
+        )
+    else:
+        ax.set_xticklabels(
+            [job_types[meta_file] for meta_file in order],
+            rotation=45,
+            ha="right",
+            rotation_mode="anchor",
+            fontsize=12,
+        )
+    # add legend below axis
+    ax.legend().set_visible(False)
+    handles, labels = ax.get_legend_handles_labels()
+    fig.legend(
+        handles,
+        labels,
+        loc="upper center",
+        ncol=2,
+        bbox_to_anchor=(0.5, 1.1),
+        fontsize=10,
+    )
+    fig.tight_layout()
+    return fig, ax
+
+
+def plot_f1_score(
+    df_precision: pd.DataFrame,
+    job_types: Dict[str, str],
+    order: list[str] | None = None,
+):
+    # compute f1 score from the precision and recall
+    df_precision["f1_score"] = (
+        2
+        * (df_precision["precision"] * df_precision["recall"])
+        / (df_precision["precision"] + df_precision["recall"])
+    )
+    fig, ax = plt.subplots(figsize=(7, 3.5))
+    sns.boxplot(
+        x="metadata_filename",
+        y="f1_score",
+        data=df_precision,
+        ax=ax,
+        fliersize=0,
+        palette="Blues",
+        order=order,
+    )
+
+    sns.stripplot(
+        x="metadata_filename",
+        y="f1_score",
+        data=df_precision,
+        ax=ax,
+        hue="defocus",
+        alpha=0.7,
+        palette="RdYlBu",
+        order=order,
+    )
+
+    # change the xticklabels to the jobtype
+    if order is None:
+        ax.set_xticklabels(
+            [
+                job_types[metadata_filename]
+                for metadata_filename in df_precision[
+                    "metadata_filename"
+                ].unique()
+            ],
+            rotation=45,
+            ha="right",
+            rotation_mode="anchor",
+            fontsize=12,
+        )
+    else:
+        ax.set_xticklabels(
+            [job_types[metadata_filename] for metadata_filename in order],
+            rotation=45,
+            ha="right",
+            rotation_mode="anchor",
+            fontsize=12,
+        )
+    # remove legend
+    ax.legend().remove()
+    # add colorbar
+    sm = plt.cm.ScalarMappable(
+        cmap="RdYlBu",
+        norm=plt.Normalize(
+            vmin=df_precision["defocus"].min(),
+            vmax=df_precision["defocus"].max(),
+        ),
+    )
+    sm._A = []
+    cbar = fig.colorbar(sm, ax=ax)
+    cbar.set_label("defocus (Å)", rotation=270, labelpad=20, fontsize=12)
+    # add labels
+    ax.set_xlabel("")
+    ax.set_ylabel("f1 score", fontsize=14)
+    ax.set_title("F1 score for different job types", fontsize=16)
+    fig.tight_layout()
+    return fig, ax
 
 
 class plotBoundaryInvestigation(plotDataFrame):
@@ -2387,7 +2372,7 @@ class plotBoundaryInvestigation(plotDataFrame):
                 if self.args.verbose:
                     print(f"plotting boundary for metadata file {meta_file}")
                 for a, bnwdth in zip(self.axis, self.bin_width):
-                    fig, ax = self.plot_boundary_investigation(
+                    fig, ax = plot_boundary_investigation(
                         self.plot_data["plot_boundary_investigation"][
                             "df_truth"
                         ],
@@ -2409,91 +2394,6 @@ class plotBoundaryInvestigation(plotDataFrame):
                 "One of df_truth and df_picked is not a pd.DataFrame!"
             )
 
-    @classmethod
-    def plot_boundary_investigation(
-        self,
-        df_truth: pd.DataFrame,
-        df_picked: pd.DataFrame,
-        metadata_filename: str,
-        job_types: Dict[str, str],
-        bin_width: int = 100,
-        axis: str = "x",
-    ):
-        if isinstance(metadata_filename, list):
-            metadata_filename = metadata_filename[0]
-
-        particles_per_ugraph = (
-            df_truth.groupby("ugraph_filename")
-            .size()
-            .reset_index(name="particles_per_ugraph")
-        )
-        avg_particles_per_ugraph = particles_per_ugraph[
-            "particles_per_ugraph"
-        ].mean()
-        num_ugraphs = len(particles_per_ugraph)
-        if axis != "z":
-            particles_per_bin = (
-                avg_particles_per_ugraph
-                * (bin_width / df_picked["ugraph_shape"][0][0])
-                * num_ugraphs
-            )
-            bins = np.arange(0, df_picked["ugraph_shape"][0][0], bin_width)
-        else:
-            particles_per_bin = (
-                avg_particles_per_ugraph
-                * (bin_width / df_truth["ice_thickness"][0])
-                * num_ugraphs
-            )
-            bins = np.arange(0, df_truth["ice_thickness"][0], bin_width)
-
-        fig, ax = plt.subplots(figsize=(3.5, 3.5))
-        if axis != "z":
-            sns.histplot(
-                x=f"position_{axis}",
-                data=df_picked.groupby("metadata_filename").get_group(
-                    metadata_filename
-                ),
-                stat="count",
-                bins=bins,
-                color="red",
-                label="picked",
-                fill=False,
-                ax=ax,
-            )
-        sns.histplot(
-            x=f"position_{axis}",
-            data=df_truth,
-            stat="count",
-            bins=bins,
-            color="blue",
-            label="truth",
-            fill=False,
-            ax=ax,
-        )
-        # plot a line at the expected number of particles per bin
-        if axis != "z":
-            ax.hlines(
-                [particles_per_bin],
-                0.0,
-                df_picked["ugraph_shape"][0][0],
-                colors=["black"],
-                linestyles=["dashed"],
-                label="expected",
-            )
-        else:
-            ax.hlines(
-                [particles_per_bin],
-                0.0,
-                df_truth["ice_thickness"][0],
-                colors=["black"],
-                linestyles=["dashed"],
-                label="expected",
-            )
-        ax.set_xlabel(f"{axis} position (Angstroms)", fontsize=14)
-        ax.set_ylabel("Count", fontsize=14)
-        ax.set_title(job_types[metadata_filename], fontsize=16)
-        return fig, ax
-
     def _save_plot(self, fig, ax, outfilename):
         # save the plot
         fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
@@ -2502,6 +2402,91 @@ class plotBoundaryInvestigation(plotDataFrame):
                 outfilename.replace(".png", ".pdf"), bbox_inches="tight"
             )
         fig.clf()
+
+
+def plot_boundary_investigation(
+    self,
+    df_truth: pd.DataFrame,
+    df_picked: pd.DataFrame,
+    metadata_filename: str,
+    job_types: Dict[str, str],
+    bin_width: int = 100,
+    axis: str = "x",
+):
+    if isinstance(metadata_filename, list):
+        metadata_filename = metadata_filename[0]
+
+    particles_per_ugraph = (
+        df_truth.groupby("ugraph_filename")
+        .size()
+        .reset_index(name="particles_per_ugraph")
+    )
+    avg_particles_per_ugraph = particles_per_ugraph[
+        "particles_per_ugraph"
+    ].mean()
+    num_ugraphs = len(particles_per_ugraph)
+    if axis != "z":
+        particles_per_bin = (
+            avg_particles_per_ugraph
+            * (bin_width / df_picked["ugraph_shape"][0][0])
+            * num_ugraphs
+        )
+        bins = np.arange(0, df_picked["ugraph_shape"][0][0], bin_width)
+    else:
+        particles_per_bin = (
+            avg_particles_per_ugraph
+            * (bin_width / df_truth["ice_thickness"][0])
+            * num_ugraphs
+        )
+        bins = np.arange(0, df_truth["ice_thickness"][0], bin_width)
+
+    fig, ax = plt.subplots(figsize=(3.5, 3.5))
+    if axis != "z":
+        sns.histplot(
+            x=f"position_{axis}",
+            data=df_picked.groupby("metadata_filename").get_group(
+                metadata_filename
+            ),
+            stat="count",
+            bins=bins,
+            color="red",
+            label="picked",
+            fill=False,
+            ax=ax,
+        )
+    sns.histplot(
+        x=f"position_{axis}",
+        data=df_truth,
+        stat="count",
+        bins=bins,
+        color="blue",
+        label="truth",
+        fill=False,
+        ax=ax,
+    )
+    # plot a line at the expected number of particles per bin
+    if axis != "z":
+        ax.hlines(
+            [particles_per_bin],
+            0.0,
+            df_picked["ugraph_shape"][0][0],
+            colors=["black"],
+            linestyles=["dashed"],
+            label="expected",
+        )
+    else:
+        ax.hlines(
+            [particles_per_bin],
+            0.0,
+            df_truth["ice_thickness"][0],
+            colors=["black"],
+            linestyles=["dashed"],
+            label="expected",
+        )
+    ax.set_xlabel(f"{axis} position (Angstroms)", fontsize=14)
+    ax.set_ylabel("Count", fontsize=14)
+    ax.set_title(job_types[metadata_filename], fontsize=16)
+    return fig, ax
 
 
 class plotOverlap(plotDataFrame):
@@ -2541,7 +2526,7 @@ class plotOverlap(plotDataFrame):
                     "metadata_filename"
                 ].unique():
                     meta_basename = os.path.basename(meta_file)
-                    fig, ax = self.plot_overlap_investigation(
+                    fig, ax = plot_overlap_investigation(
                         self.plot_data["plot_overlap"]["df_overlap"],
                         meta_file,
                     )
@@ -2561,91 +2546,6 @@ class plotOverlap(plotDataFrame):
         else:
             raise TypeError("plot_overlap is not a pd.DataFrame!")
 
-    @classmethod
-    def plot_overlap_investigation(
-        self,
-        df_overlap: pd.DataFrame,
-        metadata_filename: str | list[str] | None = None,
-        job_types: Dict[str, str] | None = None,
-    ):
-        if metadata_filename is None:
-            # plot all metadata files in one plot
-            fig, ax = plt.subplots(figsize=(7, 3.5))
-            sns.lineplot(
-                x="radius",
-                y="neighbours_truth",
-                data=df_overlap,
-                ax=ax,
-                marker="o",
-                errorbar="sd",
-                hue="metadata_filename",
-                markeredgecolor="black",
-                palette="Dark2",
-            )
-            sns.lineplot(
-                x="radius",
-                y="neighbours_picked",
-                data=df_overlap,
-                ax=ax,
-                marker="x",
-                errorbar="sd",
-                hue="metadata_filename",
-                markeredgecolor="black",
-                palette="Dark2",
-            )
-            ax.grid(which="both")
-            # only show legend for the first half of the lines
-            handles, labels = ax.get_legend_handles_labels()
-            handles = handles[: len(handles) // 2]
-            labels = labels[: len(labels) // 2]
-            if job_types is not None:
-                labels = [job_types[label] for label in labels]
-            ax.legend(
-                handles,
-                labels,
-                fontsize=12,
-            )
-            ax.set_ylabel("# Overlaps", fontsize=14)
-            fig.tight_layout()
-            return fig, ax
-
-        else:
-            if isinstance(metadata_filename, list):
-                metadata_filename = metadata_filename[0]
-            print(f"plotting overlap for {metadata_filename}")
-            # make a plot for each metadata file
-            fig, ax = plt.subplots(figsize=(7, 3.5))
-            sns.lineplot(
-                x="radius",
-                y="neighbours_truth",
-                data=df_overlap.groupby("metadata_filename").get_group(
-                    metadata_filename
-                ),
-                ax=ax,
-                marker="o",
-                errorbar="sd",
-                markeredgecolor="black",
-                color="blue",
-                label="truth",
-            )
-            sns.lineplot(
-                x="radius",
-                y="neighbours_picked",
-                data=df_overlap.groupby("metadata_filename").get_group(
-                    metadata_filename
-                ),
-                ax=ax,
-                marker="x",
-                errorbar="sd",
-                markeredgecolor="black",
-                color="red",
-                label="picked",
-            )
-            ax.grid(which="both")
-            ax.set_ylabel("# Overlaps", fontsize=14)
-            fig.tight_layout()
-            return fig, ax
-
     def _save_plot(self, fig, ax, outfilename):
         # save the plot
         fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
@@ -2654,6 +2554,91 @@ class plotOverlap(plotDataFrame):
                 outfilename.replace(".png", ".pdf"), bbox_inches="tight"
             )
         fig.clf()
+
+
+def plot_overlap_investigation(
+    self,
+    df_overlap: pd.DataFrame,
+    metadata_filename: str | list[str] | None = None,
+    job_types: Dict[str, str] | None = None,
+):
+    if metadata_filename is None:
+        # plot all metadata files in one plot
+        fig, ax = plt.subplots(figsize=(7, 3.5))
+        sns.lineplot(
+            x="radius",
+            y="neighbours_truth",
+            data=df_overlap,
+            ax=ax,
+            marker="o",
+            errorbar="sd",
+            hue="metadata_filename",
+            markeredgecolor="black",
+            palette="Dark2",
+        )
+        sns.lineplot(
+            x="radius",
+            y="neighbours_picked",
+            data=df_overlap,
+            ax=ax,
+            marker="x",
+            errorbar="sd",
+            hue="metadata_filename",
+            markeredgecolor="black",
+            palette="Dark2",
+        )
+        ax.grid(which="both")
+        # only show legend for the first half of the lines
+        handles, labels = ax.get_legend_handles_labels()
+        handles = handles[: len(handles) // 2]
+        labels = labels[: len(labels) // 2]
+        if job_types is not None:
+            labels = [job_types[label] for label in labels]
+        ax.legend(
+            handles,
+            labels,
+            fontsize=12,
+        )
+        ax.set_ylabel("# Overlaps", fontsize=14)
+        fig.tight_layout()
+        return fig, ax
+
+    else:
+        if isinstance(metadata_filename, list):
+            metadata_filename = metadata_filename[0]
+        print(f"plotting overlap for {metadata_filename}")
+        # make a plot for each metadata file
+        fig, ax = plt.subplots(figsize=(7, 3.5))
+        sns.lineplot(
+            x="radius",
+            y="neighbours_truth",
+            data=df_overlap.groupby("metadata_filename").get_group(
+                metadata_filename
+            ),
+            ax=ax,
+            marker="o",
+            errorbar="sd",
+            markeredgecolor="black",
+            color="blue",
+            label="truth",
+        )
+        sns.lineplot(
+            x="radius",
+            y="neighbours_picked",
+            data=df_overlap.groupby("metadata_filename").get_group(
+                metadata_filename
+            ),
+            ax=ax,
+            marker="x",
+            errorbar="sd",
+            markeredgecolor="black",
+            color="red",
+            label="picked",
+        )
+        ax.grid(which="both")
+        ax.set_ylabel("# Overlaps", fontsize=14)
+        fig.tight_layout()
+        return fig, ax
 
 
 def main(args):

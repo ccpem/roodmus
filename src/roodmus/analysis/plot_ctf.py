@@ -30,7 +30,7 @@ import numpy as np
 from scipy import interpolate
 import mrcfile
 
-from roodmus.analysis.utils import load_data
+from roodmus.analysis.utils import load_data, plotDataFrame
 
 
 def add_arguments(parser):
@@ -98,76 +98,79 @@ def get_name():
     return "plot_ctf"
 
 
-def plot_per_particle_defocus_scatter(
-    analysis,
-    metadata_filename,
-    palette="BuGn",
-    num_ugraphs=None,
-):
-    df_picked = pd.DataFrame(analysis.results_picking)
-    df_truth = pd.DataFrame(analysis.results_truth)
+class plotPerParticleDefocusScatter(plotDataFrame):
+    def __init__(
+        self,
+        args,
+        plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+    ) -> None:
+        super().__init__(plot_data)
 
-    # only include first --num_ugraphs micrographs
-    # select subset of ugraphs from truth df
-    if num_ugraphs:
-        ugraph_identifiers = sorted(df_truth["ugraph_filename"].unique())[
-            :num_ugraphs
-        ]
+        if plot_data:
+            self.plot_data = plot_data
 
-        # remove all rows not corresponding to selected ugraphs
-        df_picked = df_picked[
-            df_picked["ugraph_filename"].isin(ugraph_identifiers)
-        ]
-        df_truth = df_truth[
-            df_truth["ugraph_filename"].isin(ugraph_identifiers)
-        ]
+        self.args = args
 
-    # extract the group from the picked data frame
-    if isinstance(metadata_filename, list):
-        metadata_filename = metadata_filename[0]
-    df_picked = df_picked.groupby("metadata_filename").get_group(
-        metadata_filename
-    )
+    def setup_plot_data(
+        self,
+        df_truth: pd.DataFrame,
+        df_picked: pd.DataFrame,
+        df_matched_picked: pd.DataFrame,
+        df_matched_truth: pd.DataFrame,
+        df_pp_defoci: pd.DataFrame,
+    ):
+        self.plot_data = {"per_particle_defoci": {}}
+        self.plot_data["per_particle_defoci"]["df_truth"] = df_truth
+        self.plot_data["per_particle_defoci"]["df_picked"] = df_picked
+        self.plot_data["per_particle_defoci"][
+            "df_matched_picked"
+        ] = df_matched_picked
+        self.plot_data["per_particle_defoci"][
+            "df_matched_truth"
+        ] = df_matched_truth
+        self.plot_data["per_particle_defoci"]["df_pp_defoci"] = df_pp_defoci
 
-    # used for plotting
-    results = {
-        "ugraph_filename": [],
-        "defocusU": [],
-        "defocusV": [],
-        "defocus_truth": [],
-    }
+    def make_and_save_plots(
+        self,
+        overwrite_data: bool = False,
+    ):
+        self.save_dataframes(self.args.plot_dir, overwrite_data)
 
-    # match the picked particles to closest truth particle
-    mp_df, mt_df, _, _ = analysis._match_particles(
-        metadata_filename,
-        df_picked,
-        df_truth,
-        verbose=False,
-    )
-
-    # only use the successfully matched particles
-    results["ugraph_filename"].extend(mp_df["ugraph_filename"].tolist())
-    results["defocusU"].extend(mp_df["defocusU"].tolist())
-    results["defocusV"].extend(mp_df["defocusV"].tolist())
-    # combine the particle position with the ugraph defocus value!
-    results["defocus_truth"].extend(
-        (mt_df["defocus"] + mt_df["position_z"]).abs().tolist()
-    )
-    """
-    could add a functionality to save or print matched particles
-    for i in range(len(results["ugraph_filename"])):
-        print(
-            "{}\t{}\t{}\t{}".format(
-                results["ugraph_filename"][i],
-                results["defocusU"][i],
-                results["defocusV"][i],
-                results["defocus_truth"][i],
+        if isinstance(
+            self.plot_data["per_particle_defoci"]["df_pp_defoci"],
+            pd.DataFrame,
+        ):
+            fig, ax = plot_per_particle_defocus_scatter(
+                self.plot_data["per_particle_defoci"]["df_pp_defoci"],
+                self.args.meta_file,
             )
-        )
-    """
+            outfilename = os.path.join(
+                self.args.plot_dir, "ctf_per_particle_scatter.png"
+            )
+            self._save_plot(fig, ax, outfilename)
+        else:
+            TypeError(
+                "One of df_truth, df_picked or df_pp_defoci is not"
+                " a pd.Dataframe"
+            )
 
-    df = pd.DataFrame(results)
+    def _save_plot(self, fig, ax, outfilename: str):
+        # save the plot
+        outfilename = os.path.join(self.args.plot_dir, outfilename)
+        fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
+        if self.args.pdf:
+            fig.savefig(
+                outfilename.replace(".png", ".pdf"),
+                bbox_inches="tight",
+            )
+        fig.clf()
 
+
+def plot_per_particle_defocus_scatter(
+    pp_df: pd.DataFrame,
+    metadata_filename: str,
+    palette="BuGn",
+):
     # plot the results
     plt.rcParams["font.size"] = 24
     plt.style.use("seaborn-whitegrid")
@@ -175,7 +178,7 @@ def plot_per_particle_defocus_scatter(
     sns.scatterplot(
         x="defocus_truth",
         y="defocusU",
-        data=df,
+        data=pp_df,
         ax=ax[0],
         hue="ugraph_filename",
         palette=palette,
@@ -185,7 +188,7 @@ def plot_per_particle_defocus_scatter(
     sns.scatterplot(
         x="defocus_truth",
         y="defocusV",
-        data=df,
+        data=pp_df,
         ax=ax[1],
         hue="ugraph_filename",
         palette=palette,
@@ -193,8 +196,8 @@ def plot_per_particle_defocus_scatter(
         marker="+",
     )
     # add identity line
-    min_defocus_truth = df["defocus_truth"].min()
-    max_defocus_truth = df["defocus_truth"].max()
+    min_defocus_truth = pp_df["defocus_truth"].min()
+    max_defocus_truth = pp_df["defocus_truth"].max()
     ax[0].plot(
         [min_defocus_truth, max_defocus_truth],
         [min_defocus_truth, max_defocus_truth],
@@ -222,7 +225,7 @@ def plot_per_particle_defocus_scatter(
     sm = plt.cm.ScalarMappable(
         cmap=palette,
         norm=plt.Normalize(
-            vmin=0, vmax=len(np.unique(df["ugraph_filename"])) - 1
+            vmin=0, vmax=len(np.unique(pp_df["ugraph_filename"])) - 1
         ),
     )
     sm._A = []
@@ -230,6 +233,63 @@ def plot_per_particle_defocus_scatter(
     cbar.set_label("micrograph")
     fig.tight_layout()
     return fig, ax
+
+
+class plotDefocusScatter(plotDataFrame):
+    def __init__(
+        self,
+        args,
+        plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+    ) -> None:
+        super().__init__(plot_data)
+
+        if plot_data:
+            self.plot_data = plot_data
+
+        self.args = args
+
+    def setup_plot_data(
+        self,
+        df_truth: pd.DataFrame,
+        df_picked: pd.DataFrame,
+    ):
+        self.plot_data = {"defocus_scatter": {}}
+        self.plot_data["defocus_scatter"]["df_truth"] = df_truth
+        self.plot_data["defocus_scatter"]["df_picked"] = df_picked
+
+    def make_and_save_plots(
+        self,
+        overwrite_data: bool = False,
+    ):
+        self.save_dataframes(self.args.plot_dir, overwrite_data)
+
+        if isinstance(
+            self.plot_data["defocus_scatter"]["df_truth"],
+            pd.DataFrame,
+        ) and isinstance(
+            self.plot_data["defocus_scatter"]["df_picked"],
+            pd.DataFrame,
+        ):
+            outfilename = os.path.join(self.args.plot_dir, "ctf_scatter.png")
+            fig, ax = plot_defocus_scatter(
+                df_picked=self.plot_data["defocus_scatter"]["df_picked"],
+                metadata_filename=self.args.meta_file,
+                df_truth=self.plot_data["defocus_scatter"]["df_truth"],
+            )
+            self._save_plot(fig, ax, outfilename)
+        else:
+            raise TypeError("df_truth or df_picked is not a pd.DataFrame!")
+
+    def _save_plot(self, fig, ax, outfilename: str):
+        # save the plot
+        outfilename = os.path.join(self.args.plot_dir, outfilename)
+        fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
+        if self.args.pdf:
+            fig.savefig(
+                outfilename.replace(".png", ".pdf"),
+                bbox_inches="tight",
+            )
+        fig.clf()
 
 
 def plot_defocus_scatter(
@@ -241,7 +301,7 @@ def plot_defocus_scatter(
     # extract the group from the picked data frame
     if isinstance(metadata_filename, list):
         metadata_filename = metadata_filename[0]
-    df_picked = df_picked.groupby("metadata_filename").get_group(
+    df_picked_groupby = df_picked.groupby("metadata_filename").get_group(
         metadata_filename
     )
 
@@ -254,7 +314,7 @@ def plot_defocus_scatter(
     }
 
     # from the data frames, extract the defocus values on per-ugraph level
-    df_picked_grouped = df_picked.groupby("ugraph_filename")
+    df_picked_grouped = df_picked_groupby.groupby("ugraph_filename")
     df_truth_grouped = df_truth.groupby("ugraph_filename")
     for groupname in df_picked_grouped.groups.keys():
         defocusU = np.abs(
@@ -567,19 +627,12 @@ def main(args):
             if args.verbose:
                 tt = time.time()
                 print("Plotting defocus scatter plot ...")
-            filename = os.path.join(args.plot_dir, "ctf_scatter.png")
-            fig, ax = plot_defocus_scatter(
-                df_picked=df_picked,
-                metadata_filename=args.meta_file,
-                df_truth=df_truth,
+            defocus_scatter = plotDefocusScatter(args)
+            defocus_scatter.setup_plot_data(
+                df_truth,
+                df_picked,
             )
-            fig.savefig(filename, dpi=args.dpi, bbox_inches="tight")
-            if args.pdf:
-                fig.savefig(
-                    filename.replace(".png", ".pdf"),
-                    bbox_inches="tight",
-                )
-            plt.close(fig)
+            defocus_scatter.make_and_save_plots(overwrite_data=True)
             if args.verbose:
                 print(f"Time taken: {time.time()-tt:.2f} seconds")
 
@@ -588,22 +641,63 @@ def main(args):
             if args.verbose:
                 tt = time.time()
                 print("Plotting defocus per-particle scatter plot ...")
-            filename = os.path.join(
-                args.plot_dir, "ctf_per_particle_scatter.png"
+
+            # extract the group from the picked data frame
+            metadata_filename = args.meta_file
+            if isinstance(metadata_filename, list):
+                metadata_filename = metadata_filename[0]
+            df_picked_groupby = df_picked.groupby(
+                "metadata_filename"
+            ).get_group(metadata_filename)
+
+            # used for plotting
+            results = {
+                "ugraph_filename": [],
+                "defocusU": [],
+                "defocusV": [],
+                "defocus_truth": [],
+            }
+
+            # match the picked particles to closest truth particle
+            mp_df, mt_df, _, _ = analysis._match_particles(
+                metadata_filename,
+                df_picked_groupby,
+                df_truth,
+                verbose=False,
             )
-            fig, ax = plot_per_particle_defocus_scatter(
-                analysis,
-                args.meta_file,
-                palette="BuGn",
-                num_ugraphs=args.num_ugraphs,
+
+            # only use the successfully matched particles
+            results["ugraph_filename"].extend(
+                mp_df["ugraph_filename"].tolist()
             )
-            fig.savefig(filename, dpi=args.dpi, bbox_inches="tight")
-            if args.pdf:
-                fig.savefig(
-                    filename.replace(".png", ".pdf"),
-                    bbox_inches="tight",
+            results["defocusU"].extend(mp_df["defocusU"].tolist())
+            results["defocusV"].extend(mp_df["defocusV"].tolist())
+            # combine the particle position with the ugraph defocus value!
+            results["defocus_truth"].extend(
+                (mt_df["defocus"] + mt_df["position_z"]).abs().tolist()
+            )
+            """
+            could add a functionality to save or print matched particles
+            for i in range(len(results["ugraph_filename"])):
+                print(
+                    "{}\t{}\t{}\t{}".format(
+                        results["ugraph_filename"][i],
+                        results["defocusU"][i],
+                        results["defocusV"][i],
+                        results["defocus_truth"][i],
+                    )
                 )
-            plt.close(fig)
+            """
+            pp_df = pd.DataFrame(results)
+            per_particle_defocus = plotPerParticleDefocusScatter(args)
+            per_particle_defocus.setup_plot_data(
+                df_truth,
+                df_picked,
+                mp_df,
+                mt_df,
+                pp_df,
+            )
+            per_particle_defocus.make_and_save_plots(overwrite_data=True)
             if args.verbose:
                 print(f"Time taken: {time.time()-tt:.2f} seconds")
 
