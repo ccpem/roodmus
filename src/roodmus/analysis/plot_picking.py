@@ -132,15 +132,29 @@ def get_name():
 class plotLabelTruth(plotDataFrame):
     def __init__(
         self,
-        args,
+        mrc_dir: str,
         plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+        plot_dir: str = "",
+        num_ugraphs: int | None = None,
+        box_width: float = 200,
+        box_height: float = 200,
+        dpi: int = 300,
+        pdf: bool = False,
+        verbose: bool = False,
     ) -> None:
         super().__init__(plot_data)
 
         if plot_data:
             self.plot_data = plot_data
 
-        self.args = args
+        self.mrc_dir = mrc_dir
+        self.plot_dir = plot_dir
+        self.num_ugraphs = num_ugraphs
+        self.box_width = box_width
+        self.box_height = box_height
+        self.dpi = dpi
+        self.pdf = pdf
+        self.verbose = verbose
 
     def setup_plot_data(
         self,
@@ -152,7 +166,7 @@ class plotLabelTruth(plotDataFrame):
         self,
         overwrite_data: bool = False,
     ):
-        self.save_dataframes(self.args.plot_dir, overwrite_data)
+        self.save_dataframes(self.plot_dir, overwrite_data)
 
         if isinstance(
             self.plot_data["label_truth"]["df_truth"],
@@ -163,17 +177,17 @@ class plotLabelTruth(plotDataFrame):
                     self.plot_data["label_truth"]["df_truth"][
                         "ugraph_filename"
                     ]
-                )[: self.args.num_ugraphs]
+                )[: self.num_ugraphs]
             ):
                 fig, ax, outfilename = plot_label_truth(
                     self.plot_data["label_truth"]["df_truth"],
                     ugraph_index,
                     ugraph_filename,
-                    self.args.box_width,
-                    self.args.box_height,
-                    self.args.mrc_dir,
-                    self.args.verbose,
-                    self.args.plot_dir,
+                    self.box_width,
+                    self.box_height,
+                    self.mrc_dir,
+                    self.verbose,
+                    self.plot_dir,
                 )
                 self._save_plot(fig, ax, outfilename)
 
@@ -185,9 +199,9 @@ class plotLabelTruth(plotDataFrame):
 
     def _save_plot(self, fig, ax, outfilename: str):
         # save the plot
-        outfilename = os.path.join(self.args.plot_dir, outfilename)
-        fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
-        if self.args.pdf:
+        outfilename = os.path.join(self.plot_dir, outfilename)
+        fig.savefig(outfilename, dpi=self.dpi, bbox_inches="tight")
+        if self.pdf:
             fig.savefig(
                 outfilename.replace(".png", ".pdf"),
                 bbox_inches="tight",
@@ -199,8 +213,8 @@ def plot_label_truth(
     df_truth: pd.DataFrame,
     ugraph_index: int,
     ugraph_filename: str,
-    box_width: int,
-    box_height: int,
+    box_width: float,
+    box_height: float,
     mrc_dir: str,
     verbose: bool,
     plot_dir: str = "",
@@ -233,15 +247,29 @@ def plot_label_truth(
 class plotLabelPicked(plotDataFrame):
     def __init__(
         self,
-        args,
+        mrc_dir: str,
         plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+        plot_dir: str = "",
+        num_ugraphs: int | None = None,
+        box_width: float = 200,
+        box_height: float = 200,
+        dpi: int = 300,
+        pdf: bool = False,
+        verbose: bool = False,
     ) -> None:
         super().__init__(plot_data)
 
         if plot_data:
             self.plot_data = plot_data
 
-        self.args = args
+        self.mrc_dir = mrc_dir
+        self.plot_dir = plot_dir
+        self.num_ugraphs = num_ugraphs
+        self.box_width = box_width
+        self.box_height = box_height
+        self.dpi = dpi
+        self.pdf = pdf
+        self.verbose = verbose
 
     def setup_plot_data(
         self,
@@ -253,7 +281,7 @@ class plotLabelPicked(plotDataFrame):
         self,
         overwrite_data: bool = False,
     ):
-        self.save_dataframes(self.args.plot_dir, overwrite_data)
+        self.save_dataframes(self.plot_dir, overwrite_data)
 
         if isinstance(
             self.plot_data["label_picked"]["df_picked"],
@@ -267,18 +295,18 @@ class plotLabelPicked(plotDataFrame):
                         self.plot_data["label_picked"]["df_picked"][
                             "ugraph_filename"
                         ]
-                    )[: self.args.num_ugraphs]
+                    )[: self.num_ugraphs]
                 ):
                     fig, ax, outfilename = plot_label_picked(
                         self.plot_data["label_picked"]["df_picked"],
                         meta_file,
                         ugraph_filename,
                         ugraph_index,
-                        self.args.box_width,
-                        self.args.box_height,
-                        self.args.mrc_dir,
-                        self.args.verbose,
-                        self.args.plot_dir,
+                        self.box_width,
+                        self.box_height,
+                        self.mrc_dir,
+                        self.verbose,
+                        self.plot_dir,
                     )
 
                     self._save_plot(fig, ax, outfilename)
@@ -290,8 +318,8 @@ class plotLabelPicked(plotDataFrame):
 
     def _save_plot(self, fig, ax, outfilename: str):
         # save the plot
-        fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
-        if self.args.pdf:
+        fig.savefig(outfilename, dpi=self.dpi, bbox_inches="tight")
+        if self.pdf:
             fig.savefig(
                 outfilename.replace(".png", ".pdf"),
                 bbox_inches="tight",
@@ -304,8 +332,8 @@ def plot_label_picked(
     meta_file: str,
     ugraph_filename: str,
     ugraph_index: int,
-    box_width: int,
-    box_height: int,
+    box_width: float,
+    box_height: float,
     mrc_dir: str,
     verbose: bool,
     plot_dir: str = "",
@@ -343,15 +371,29 @@ def plot_label_picked(
 class plotLabelTruthAndPicked(plotDataFrame):
     def __init__(
         self,
-        args,
+        mrc_dir: str,
         plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+        plot_dir: str = "",
+        num_ugraphs: int | None = None,
+        box_width: float = 200,
+        box_height: float = 200,
+        dpi: int = 300,
+        pdf: bool = False,
+        verbose: bool = False,
     ) -> None:
         super().__init__(plot_data)
 
         if plot_data:
             self.plot_data = plot_data
 
-        self.args = args
+        self.mrc_dir = mrc_dir
+        self.plot_dir = plot_dir
+        self.num_ugraphs = num_ugraphs
+        self.box_width = box_width
+        self.box_height = box_height
+        self.dpi = dpi
+        self.pdf = pdf
+        self.verbose = verbose
 
     def setup_plot_data(
         self,
@@ -366,7 +408,7 @@ class plotLabelTruthAndPicked(plotDataFrame):
         self,
         overwrite_data: bool = False,
     ):
-        self.save_dataframes(self.args.plot_dir, overwrite_data)
+        self.save_dataframes(self.plot_dir, overwrite_data)
 
         if isinstance(
             self.plot_data["label_truth_and_picked"]["df_truth"],
@@ -383,7 +425,7 @@ class plotLabelTruthAndPicked(plotDataFrame):
                         self.plot_data["label_truth_and_picked"]["df_picked"][
                             "ugraph_filename"
                         ]
-                    )[: self.args.num_ugraphs]
+                    )[: self.num_ugraphs]
                 ):
                     fig, ax, outfilename = plot_label_picked_and_truth(
                         self.plot_data["label_truth_and_picked"]["df_truth"],
@@ -391,11 +433,11 @@ class plotLabelTruthAndPicked(plotDataFrame):
                         meta_file,
                         ugraph_filename,
                         ugraph_index,
-                        self.args.box_width,
-                        self.args.box_height,
-                        self.args.mrc_dir,
-                        self.args.verbose,
-                        self.args.plot_dir,
+                        self.box_width,
+                        self.box_height,
+                        self.mrc_dir,
+                        self.verbose,
+                        self.plot_dir,
                     )
 
                     self._save_plot(fig, ax, outfilename)
@@ -411,8 +453,8 @@ class plotLabelTruthAndPicked(plotDataFrame):
 
     def _save_plot(self, fig, ax, outfilename: str):
         # save the plot
-        fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
-        if self.args.pdf:
+        fig.savefig(outfilename, dpi=self.dpi, bbox_inches="tight")
+        if self.pdf:
             fig.savefig(
                 outfilename.replace(".png", ".pdf"),
                 bbox_inches="tight",
@@ -426,8 +468,8 @@ def plot_label_picked_and_truth(
     meta_file: str,
     ugraph_filename: str,
     ugraph_index: int,
-    box_width: int,
-    box_height: int,
+    box_width: float,
+    box_height: float,
     mrc_dir: str,
     verbose: bool,
     plot_dir: str = "",
@@ -486,8 +528,15 @@ class plotMatchedAndUnmatched(plotDataFrame):
 
     def __init__(
         self,
-        args,
+        mrc_dir: str,
         plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+        plot_dir: str = "",
+        num_ugraphs: int | None = None,
+        box_width: float = 200,
+        box_height: float = 200,
+        dpi: int = 300,
+        pdf: bool = False,
+        verbose: bool = False,
         analysis: load_data | None = None,
     ) -> None:
         super().__init__(plot_data)
@@ -496,7 +545,14 @@ class plotMatchedAndUnmatched(plotDataFrame):
         if plot_data:
             self.plot_data = plot_data
 
-        self.args = args
+        self.mrc_dir = mrc_dir
+        self.plot_dir = plot_dir
+        self.num_ugraphs = num_ugraphs
+        self.box_width = box_width
+        self.box_height = box_height
+        self.dpi = dpi
+        self.pdf = pdf
+        self.verbose = verbose
 
     def setup_plot_data(
         self,
@@ -563,7 +619,7 @@ class plotMatchedAndUnmatched(plotDataFrame):
                         self.plot_data["label_matched_and_unmatched"][
                             "df_truth"
                         ],
-                        verbose=self.args.verbose,
+                        verbose=self.verbose,
                     )
             else:
                 raise TypeError(
@@ -602,7 +658,7 @@ class plotMatchedAndUnmatched(plotDataFrame):
                         self.plot_data["label_matched_and_unmatched"][
                             "df_picked"
                         ]["ugraph_filename"]
-                    )[: self.args.num_ugraphs]
+                    )[: self.num_ugraphs]
                 ):
                     if (
                         isinstance(
@@ -681,11 +737,11 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                 meta_file,
                                 ugraph_filename,
                                 ugraph_index,
-                                self.args.box_width,
-                                self.args.box_height,
-                                self.args.mrc_dir,
-                                self.args.verbose,
-                                self.args.plot_dir,
+                                self.box_width,
+                                self.box_height,
+                                self.mrc_dir,
+                                self.verbose,
+                                self.plot_dir,
                             )
 
                             self._save_plot(fig, ax, outfilename)
@@ -723,10 +779,10 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                 meta_file,
                                 ugraph_filename,
                                 ugraph_index,
-                                self.args.box_width,
-                                self.args.box_height,
-                                self.args.mrc_dir,
-                                self.args.verbose,
+                                self.box_width,
+                                self.box_height,
+                                self.mrc_dir,
+                                self.verbose,
                             )
                             self._save_plot(fig, ax, outfilename)
                         else:
@@ -763,11 +819,11 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                 meta_file,
                                 ugraph_filename,
                                 ugraph_index,
-                                self.args.box_width,
-                                self.args.box_height,
-                                self.args.mrc_dir,
-                                self.args.verbose,
-                                self.args.plot_dir,
+                                self.box_width,
+                                self.box_height,
+                                self.mrc_dir,
+                                self.verbose,
+                                self.plot_dir,
                             )
                             self._save_plot(fig, ax, outfilename)
                         else:
@@ -804,11 +860,11 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                 meta_file,
                                 ugraph_filename,
                                 ugraph_index,
-                                self.args.box_width,
-                                self.args.box_height,
-                                self.args.mrc_dir,
-                                self.args.verbose,
-                                self.args.plot_dir,
+                                self.box_width,
+                                self.box_height,
+                                self.mrc_dir,
+                                self.verbose,
+                                self.plot_dir,
                             )
                             self._save_plot(fig, ax, outfilename)
                         else:
@@ -864,11 +920,11 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                 ],
                                 ugraph_filename,
                                 ugraph_index,
-                                self.args.box_width,
-                                self.args.box_height,
-                                self.args.mrc_dir,
-                                self.args.verbose,
-                                self.args.plot_dir,
+                                self.box_width,
+                                self.box_height,
+                                self.mrc_dir,
+                                self.verbose,
+                                self.plot_dir,
                             )
                             self._save_plot(fig, ax, outfilename)
                         else:
@@ -952,11 +1008,11 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                 meta_file,
                                 ugraph_filename,
                                 ugraph_index,
-                                self.args.box_width,
-                                self.args.box_height,
-                                self.args.mrc_dir,
-                                self.args.verbose,
-                                self.args.plot_dir,
+                                self.box_width,
+                                self.box_height,
+                                self.mrc_dir,
+                                self.verbose,
+                                self.plot_dir,
                             )
                             self._save_plot(fig, ax, outfilename)
                         else:
@@ -1034,11 +1090,11 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                 ],
                                 ugraph_filename,
                                 ugraph_index,
-                                self.args.box_width,
-                                self.args.box_height,
-                                self.args.mrc_dir,
-                                self.args.verbose,
-                                self.args.plot_dir,
+                                self.box_width,
+                                self.box_height,
+                                self.mrc_dir,
+                                self.verbose,
+                                self.plot_dir,
                             )
                             self._save_plot(fig, ax, outfilename)
 
@@ -1115,11 +1171,11 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                 ]["df_ut"],
                                 ugraph_filename,
                                 ugraph_index,
-                                self.args.box_width,
-                                self.args.box_height,
-                                self.args.mrc_dir,
-                                self.args.verbose,
-                                self.args.plot_dir,
+                                self.box_width,
+                                self.box_height,
+                                self.mrc_dir,
+                                self.verbose,
+                                self.plot_dir,
                             )
                             self._save_plot(
                                 fig,
@@ -1156,9 +1212,7 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                     " Not plotting comparison to"
                                     " picked particles!"
                                 )
-                        self.save_dataframes(
-                            self.args.plot_dir, overwrite_data
-                        )
+                        self.save_dataframes(self.plot_dir, overwrite_data)
 
                     else:
                         raise TypeError(
@@ -1188,8 +1242,8 @@ class plotMatchedAndUnmatched(plotDataFrame):
 
     def _save_plot(self, fig, ax, outfilename: str):
         # save the plot
-        fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
-        if self.args.pdf:
+        fig.savefig(outfilename, dpi=self.dpi, bbox_inches="tight")
+        if self.pdf:
             fig.savefig(
                 outfilename.replace(".png", ".pdf"),
                 bbox_inches="tight",
@@ -1202,8 +1256,8 @@ def make_matched_picked_plot(
     meta_file: str,
     ugraph_filename: str,
     ugraph_index: int,
-    box_width: int,
-    box_height: int,
+    box_width: float,
+    box_height: float,
     mrc_dir: str,
     verbose: bool,
     plot_dir: str = "",
@@ -1237,8 +1291,8 @@ def make_matched_truth_plot(
     meta_file: str,
     ugraph_filename: str,
     ugraph_index: int,
-    box_width: int,
-    box_height: int,
+    box_width: float,
+    box_height: float,
     mrc_dir: str,
     verbose: bool,
     plot_dir: str = "",
@@ -1271,8 +1325,8 @@ def make_unmatched_picked_plot(
     meta_file: str,
     ugraph_filename: str,
     ugraph_index: int,
-    box_width: int,
-    box_height: int,
+    box_width: float,
+    box_height: float,
     mrc_dir: str,
     verbose: bool,
     plot_dir: str = "",
@@ -1306,8 +1360,8 @@ def make_unmatched_truth_plot(
     meta_file: str,
     ugraph_filename: str,
     ugraph_index: int,
-    box_width: int,
-    box_height: int,
+    box_width: float,
+    box_height: float,
     mrc_dir: str,
     verbose: bool,
     plot_dir: str = "",
@@ -1342,8 +1396,8 @@ def make_matched_unmatched_picked_plot(
     df_truth: pd.DataFrame,
     ugraph_filename: str,
     ugraph_index: int,
-    box_width: int,
-    box_height: int,
+    box_width: float,
+    box_height: float,
     mrc_dir: str,
     verbose: bool,
     plot_dir: str = "",
@@ -1382,8 +1436,8 @@ def make_matched_unmatched_truth_plot(
     meta_file: str,
     ugraph_filename: str,
     ugraph_index: int,
-    box_width: int,
-    box_height: int,
+    box_width: float,
+    box_height: float,
     mrc_dir: str,
     verbose: bool,
     plot_dir: str = "",
@@ -1420,8 +1474,8 @@ def make_unmatched_picked_and_truth_plot(
     df_truth: pd.DataFrame,
     ugraph_filename: str,
     ugraph_index: int,
-    box_width: int,
-    box_height: int,
+    box_width: float,
+    box_height: float,
     mrc_dir: str,
     verbose: bool,
     plot_dir: str = "",
@@ -1458,8 +1512,8 @@ def make_unmatched_truth_and_picked_plot(
     df_ut: pd.DataFrame,
     ugraph_filename: str,
     ugraph_index: int,
-    box_width: int,
-    box_height: int,
+    box_width: float,
+    box_height: float,
     mrc_dir: str,
     verbose: bool,
     plot_dir: str = "",
@@ -1541,8 +1595,8 @@ class labelMicrograph(object):
         particles: pd.DataFrame,
         ugraph_index: int = 0,
         mrc_dir: str = "",
-        box_width: int = 50,
-        box_height: int = 50,
+        box_width: float = 50,
+        box_height: float = 50,
         edgecolor: list = [0, 1, 0],
         verbose: bool = False,
     ) -> Tuple[plt.Figure, plt.Axes]:
@@ -1600,8 +1654,8 @@ class labelMicrograph(object):
         metadata_filename: str | list[str],
         ugraph_index: int = 0,
         mrc_dir: str = "",
-        box_width: int = 50,
-        box_height: int = 50,
+        box_width: float = 50,
+        box_height: float = 50,
         edgecolor: list = [1, 0, 0],
         verbose: bool = False,
     ) -> Tuple[plt.Figure, plt.Axes]:
@@ -1674,8 +1728,8 @@ class labelMicrograph(object):
         truth_particles: pd.DataFrame,
         ugraph_index: int = 0,
         mrc_dir: str = "",
-        box_width: int = 50,
-        box_height: int = 50,
+        box_width: float = 50,
+        box_height: float = 50,
         picked_color: list = [1, 0, 0],
         truth_color: list = [0, 1, 0],
         verbose: bool = False,
@@ -1766,8 +1820,8 @@ class labelMicrograph(object):
         truth_particles2: pd.DataFrame,
         ugraph_index: int = 0,
         mrc_dir: str = "",
-        box_width: int = 50,
-        box_height: int = 50,
+        box_width: float = 50,
+        box_height: float = 50,
         truth_color1: list = [1, 0, 0],
         truth_color2: list = [0, 1, 0],
         verbose: bool = False,
@@ -1858,8 +1912,8 @@ class labelMicrograph(object):
         truth_particles: pd.DataFrame,
         ugraph_index: int = 0,
         mrc_dir: str = "",
-        box_width: int = 50,
-        box_height: int = 50,
+        box_width: float = 50,
+        box_height: float = 50,
         picked1_color: list = [1, 0, 0],
         picked2_color: list = [0, 1, 0],
         verbose: bool = False,
@@ -1951,10 +2005,13 @@ class labelMicrograph(object):
 class plotPrecision(plotDataFrame):
     def __init__(
         self,
-        args,
         job_types: dict[str, str],
         order: list[str],
         plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+        plot_dir: str = "",
+        dpi: int = 300,
+        pdf: bool = False,
+        verbose: bool = False,
     ) -> None:
         super().__init__(plot_data)
 
@@ -1962,9 +2019,12 @@ class plotPrecision(plotDataFrame):
         if plot_data:
             self.plot_data = plot_data
 
-        self.args = args
         self.job_types = job_types
         self.order = order
+        self.plot_dir = plot_dir
+        self.dpi = dpi
+        self.pdf = pdf
+        self.verbose = verbose
 
     def setup_plot_precision(self, df_precision: pd.DataFrame):
         self.plot_data = {"plot_precision": {"df_precision": df_precision}}
@@ -1974,9 +2034,9 @@ class plotPrecision(plotDataFrame):
         overwrite_data: bool = False,
     ):
         # save/overwrite data file
-        self.save_dataframes(self.args.plot_dir, overwrite_data)
+        self.save_dataframes(self.plot_dir, overwrite_data)
 
-        if self.args.verbose:
+        if self.verbose:
             print(
                 "meta_files in df: {}".format(
                     self.plot_data["plot_precision"]["df_precision"][
@@ -1991,10 +2051,10 @@ class plotPrecision(plotDataFrame):
             self.job_types,
             self.order,
         )
-        outfilename = os.path.join(self.args.plot_dir, "precision.png")
+        outfilename = os.path.join(self.plot_dir, "precision.png")
         self._save_plot(fig, ax, outfilename)
 
-        if self.args.verbose:
+        if self.verbose:
             print("plotting recall...")
         # recall
         fig, ax = plot_recall(
@@ -2002,10 +2062,10 @@ class plotPrecision(plotDataFrame):
             self.job_types,
             self.order,
         )
-        outfilename = os.path.join(self.args.plot_dir, "recall.png")
+        outfilename = os.path.join(self.plot_dir, "recall.png")
         self._save_plot(fig, ax, outfilename)
 
-        if self.args.verbose:
+        if self.verbose:
             print("plotting precision and recall in one plot...")
         # precision and recall
         fig, ax = plot_precision_and_recall(
@@ -2013,12 +2073,10 @@ class plotPrecision(plotDataFrame):
             self.job_types,
             self.order,
         )
-        outfilename = os.path.join(
-            self.args.plot_dir, "precision_and_recall.png"
-        )
+        outfilename = os.path.join(self.plot_dir, "precision_and_recall.png")
         self._save_plot(fig, ax, outfilename)
 
-        if self.args.verbose:
+        if self.verbose:
             print("plotting F1 score...")
         # f1 score
         fig, ax = plot_f1_score(
@@ -2026,13 +2084,13 @@ class plotPrecision(plotDataFrame):
             self.job_types,
             self.order,
         )
-        outfilename = os.path.join(self.args.plot_dir, "f1_score.png")
+        outfilename = os.path.join(self.plot_dir, "f1_score.png")
         self._save_plot(fig, ax, outfilename)
 
     def _save_plot(self, fig, ax, outfilename: str):
         # save the plot
-        fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
-        if self.args.pdf:
+        fig.savefig(outfilename, dpi=self.dpi, bbox_inches="tight")
+        if self.pdf:
             fig.savefig(
                 outfilename.replace(".png", ".pdf"), bbox_inches="tight"
             )
@@ -2326,21 +2384,27 @@ def plot_f1_score(
 class plotBoundaryInvestigation(plotDataFrame):
     def __init__(
         self,
-        args,
         job_types: dict[str, str],
         bin_width: list[int],
         axis: list[str],
         plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+        plot_dir: str = "",
+        dpi: int = 300,
+        pdf: bool = False,
+        verbose: bool = False,
     ) -> None:
         super().__init__(plot_data)
 
         if plot_data:
             self.plot_data = plot_data
 
-        self.args = args
         self.job_types = job_types
         self.bin_width = bin_width
         self.axis = axis
+        self.plot_dir = plot_dir
+        self.dpi = dpi
+        self.pdf = pdf
+        self.verbose = verbose
 
     def setup_plot_boundary_investigation(
         self,
@@ -2356,7 +2420,7 @@ class plotBoundaryInvestigation(plotDataFrame):
         overwrite_data=False,
     ):
         # save/overwrite data file
-        self.save_dataframes(self.args.plot_dir, overwrite_data)
+        self.save_dataframes(self.plot_dir, overwrite_data)
 
         if isinstance(
             self.plot_data["plot_boundary_investigation"]["df_truth"],
@@ -2369,7 +2433,7 @@ class plotBoundaryInvestigation(plotDataFrame):
                 "df_picked"
             ].unique():
                 meta_basename = os.path.basename(meta_file)
-                if self.args.verbose:
+                if self.verbose:
                     print(f"plotting boundary for metadata file {meta_file}")
                 for a, bnwdth in zip(self.axis, self.bin_width):
                     fig, ax = plot_boundary_investigation(
@@ -2385,7 +2449,7 @@ class plotBoundaryInvestigation(plotDataFrame):
                         a,
                     )
                     outfilename = os.path.join(
-                        self.args.plot_dir,
+                        self.plot_dir,
                         f"{meta_basename.split('.')[0]}_boundary_{a}.png",
                     )
                     self._save_plot(fig, ax, outfilename)
@@ -2396,8 +2460,8 @@ class plotBoundaryInvestigation(plotDataFrame):
 
     def _save_plot(self, fig, ax, outfilename):
         # save the plot
-        fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
-        if self.args.pdf:
+        fig.savefig(outfilename, dpi=self.dpi, bbox_inches="tight")
+        if self.pdf:
             fig.savefig(
                 outfilename.replace(".png", ".pdf"), bbox_inches="tight"
             )
@@ -2492,17 +2556,23 @@ def plot_boundary_investigation(
 class plotOverlap(plotDataFrame):
     def __init__(
         self,
-        args,
         job_types: dict[str, str],
         plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+        plot_dir: str = "",
+        dpi: int = 300,
+        pdf: bool = False,
+        verbose: bool = False,
     ) -> None:
         super().__init__(plot_data)
 
         if plot_data:
             self.plot_data = plot_data
 
-        self.args = args
         self.job_types = job_types
+        self.plot_dir = plot_dir
+        self.dpi = dpi
+        self.pdf = pdf
+        self.verbose = verbose
 
     def setup_plot_overlap(
         self,
@@ -2515,12 +2585,12 @@ class plotOverlap(plotDataFrame):
         overwrite_data=False,
     ):
         # save/overwrite data file
-        self.save_dataframes(self.args.plot_dir, overwrite_data)
+        self.save_dataframes(self.plot_dir, overwrite_data)
 
         if isinstance(
             self.plot_data["plot_overlap"]["df_overlap"], pd.DataFrame
         ):
-            if self.args.verbose:
+            if self.verbose:
                 print("plotting overlap...")
                 for meta_file in self.plot_data["plot_overlap"]["df_overlap"][
                     "metadata_filename"
@@ -2531,7 +2601,7 @@ class plotOverlap(plotDataFrame):
                         meta_file,
                     )
                     outfilename = os.path.join(
-                        self.args.plot_dir,
+                        self.plot_dir,
                         f"{meta_basename.split('.')[0]}_overlap.png",
                     )
                     self._save_plot(fig, ax, outfilename)
@@ -2548,8 +2618,8 @@ class plotOverlap(plotDataFrame):
 
     def _save_plot(self, fig, ax, outfilename):
         # save the plot
-        fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
-        if self.args.pdf:
+        fig.savefig(outfilename, dpi=self.dpi, bbox_inches="tight")
+        if self.pdf:
             fig.savefig(
                 outfilename.replace(".png", ".pdf"), bbox_inches="tight"
             )
@@ -2688,22 +2758,58 @@ def main(args):
 
     for plot_type in args.plot_types:
         if plot_type == "label_truth":  # plot the ground-truth particles
-            label_truth = plotLabelTruth(args)
+            label_truth = plotLabelTruth(
+                args.mrc_dir,
+                plot_dir=args.plot_dir,
+                num_ugraphs=args.num_ugraphs,
+                box_width=args.box_width,
+                box_height=args.box_height,
+                dpi=args.dpi,
+                pdf=args.pdf,
+                verbose=args.verbose,
+            )
             label_truth.setup_plot_data(df_truth)
             label_truth.make_and_save_plots(overwrite_data=True)
 
         if plot_type == "label_picked":  # plot the picked particles
-            label_picked = plotLabelPicked(args)
+            label_picked = plotLabelPicked(
+                args.mrc_dir,
+                plot_dir=args.plot_dir,
+                num_ugraphs=args.num_ugraphs,
+                box_width=args.box_width,
+                box_height=args.box_height,
+                dpi=args.dpi,
+                pdf=args.pdf,
+                verbose=args.verbose,
+            )
             label_picked.setup_plot_data(df_picked)
             label_picked.make_and_save_plots(overwrite_data=True)
 
         if plot_type == "label_truth_and_picked":
-            label_truth_and_picked = plotLabelTruthAndPicked(args)
+            label_truth_and_picked = plotLabelTruthAndPicked(
+                args.mrc_dir,
+                plot_dir=args.plot_dir,
+                num_ugraphs=args.num_ugraphs,
+                box_width=args.box_width,
+                box_height=args.box_height,
+                dpi=args.dpi,
+                pdf=args.pdf,
+                verbose=args.verbose,
+            )
             label_truth_and_picked.setup_plot_data(df_truth, df_picked)
             label_truth_and_picked.make_and_save_plots(overwrite_data=True)
 
         if plot_type == "label_matched_and_unmatched":
-            label_matched_and_unmatched = plotMatchedAndUnmatched(args)
+            label_matched_and_unmatched = plotMatchedAndUnmatched(
+                args.mrc_dir,
+                plot_dir=args.plot_dir,
+                num_ugraphs=args.num_ugraphs,
+                box_width=args.box_width,
+                box_height=args.box_height,
+                dpi=args.dpi,
+                pdf=args.pdf,
+                verbose=args.verbose,
+            )
             label_matched_and_unmatched.setup_plot_data(analysis)
             label_matched_and_unmatched.make_and_save_plots(
                 overwrite_data=True
@@ -2716,9 +2822,12 @@ def main(args):
             )
 
             plot_precision = plotPrecision(
-                args,
                 job_types,
                 order,
+                plot_dir=args.plot_dir,
+                dpi=args.dpi,
+                pdf=args.pdf,
+                verbose=args.verbose,
             )
             plot_precision.setup_plot_precision(df_precision)
             plot_precision.make_and_save_plots(overwrite_data=True)
@@ -2727,10 +2836,13 @@ def main(args):
             bin_width = [100, 100, 10]  # bin width for x, y, z
             axis = ["x", "y", "z"]
             plot_boundary = plotBoundaryInvestigation(
-                args,
                 job_types,
                 bin_width,
                 axis,
+                plot_dir=args.plot_dir,
+                dpi=args.dpi,
+                pdf=args.pdf,
+                verbose=args.verbose,
             )
             plot_boundary.setup_plot_boundary_investigation(
                 df_truth,
@@ -2744,8 +2856,11 @@ def main(args):
             )
 
             plot_overlap = plotOverlap(
-                args,
                 job_types,
+                plot_dir=args.plot_dir,
+                dpi=args.dpi,
+                pdf=args.pdf,
+                verbose=args.verbose,
             )
             plot_overlap.setup_plot_overlap(df_overlap)
             plot_overlap.make_and_save_plots(overwrite_data=True)

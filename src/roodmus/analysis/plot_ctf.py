@@ -101,15 +101,21 @@ def get_name():
 class plotPerParticleDefocusScatter(plotDataFrame):
     def __init__(
         self,
-        args,
+        meta_file: str,
         plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+        plot_dir: str = "",
+        dpi: int = 300,
+        pdf: bool = False,
     ) -> None:
         super().__init__(plot_data)
 
         if plot_data:
             self.plot_data = plot_data
 
-        self.args = args
+        self.meta_file = meta_file
+        self.plot_dir = plot_dir
+        self.dpi = dpi
+        self.pdf = pdf
 
     def setup_plot_data(
         self,
@@ -134,7 +140,7 @@ class plotPerParticleDefocusScatter(plotDataFrame):
         self,
         overwrite_data: bool = False,
     ):
-        self.save_dataframes(self.args.plot_dir, overwrite_data)
+        self.save_dataframes(self.plot_dir, overwrite_data)
 
         if isinstance(
             self.plot_data["per_particle_defoci"]["df_pp_defoci"],
@@ -142,10 +148,10 @@ class plotPerParticleDefocusScatter(plotDataFrame):
         ):
             fig, ax = plot_per_particle_defocus_scatter(
                 self.plot_data["per_particle_defoci"]["df_pp_defoci"],
-                self.args.meta_file,
+                self.meta_file,
             )
             outfilename = os.path.join(
-                self.args.plot_dir, "ctf_per_particle_scatter.png"
+                self.plot_dir, "ctf_per_particle_scatter.png"
             )
             self._save_plot(fig, ax, outfilename)
         else:
@@ -156,9 +162,9 @@ class plotPerParticleDefocusScatter(plotDataFrame):
 
     def _save_plot(self, fig, ax, outfilename: str):
         # save the plot
-        outfilename = os.path.join(self.args.plot_dir, outfilename)
-        fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
-        if self.args.pdf:
+        outfilename = os.path.join(self.plot_dir, outfilename)
+        fig.savefig(outfilename, dpi=self.dpi, bbox_inches="tight")
+        if self.pdf:
             fig.savefig(
                 outfilename.replace(".png", ".pdf"),
                 bbox_inches="tight",
@@ -238,15 +244,21 @@ def plot_per_particle_defocus_scatter(
 class plotDefocusScatter(plotDataFrame):
     def __init__(
         self,
-        args,
+        meta_file: str,
         plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+        plot_dir: str = "",
+        dpi: int = 300,
+        pdf: bool = False,
     ) -> None:
         super().__init__(plot_data)
 
         if plot_data:
             self.plot_data = plot_data
 
-        self.args = args
+        self.meta_file = meta_file
+        self.plot_dir = plot_dir
+        self.dpi = dpi
+        self.pdf = pdf
 
     def setup_plot_data(
         self,
@@ -261,7 +273,7 @@ class plotDefocusScatter(plotDataFrame):
         self,
         overwrite_data: bool = False,
     ):
-        self.save_dataframes(self.args.plot_dir, overwrite_data)
+        self.save_dataframes(self.plot_dir, overwrite_data)
 
         if isinstance(
             self.plot_data["defocus_scatter"]["df_truth"],
@@ -270,10 +282,10 @@ class plotDefocusScatter(plotDataFrame):
             self.plot_data["defocus_scatter"]["df_picked"],
             pd.DataFrame,
         ):
-            outfilename = os.path.join(self.args.plot_dir, "ctf_scatter.png")
+            outfilename = os.path.join(self.plot_dir, "ctf_scatter.png")
             fig, ax = plot_defocus_scatter(
                 df_picked=self.plot_data["defocus_scatter"]["df_picked"],
-                metadata_filename=self.args.meta_file,
+                metadata_filename=self.meta_file,
                 df_truth=self.plot_data["defocus_scatter"]["df_truth"],
             )
             self._save_plot(fig, ax, outfilename)
@@ -282,9 +294,9 @@ class plotDefocusScatter(plotDataFrame):
 
     def _save_plot(self, fig, ax, outfilename: str):
         # save the plot
-        outfilename = os.path.join(self.args.plot_dir, outfilename)
-        fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
-        if self.args.pdf:
+        outfilename = os.path.join(self.plot_dir, outfilename)
+        fig.savefig(outfilename, dpi=self.dpi, bbox_inches="tight")
+        if self.pdf:
             fig.savefig(
                 outfilename.replace(".png", ".pdf"),
                 bbox_inches="tight",
@@ -627,7 +639,12 @@ def main(args):
             if args.verbose:
                 tt = time.time()
                 print("Plotting defocus scatter plot ...")
-            defocus_scatter = plotDefocusScatter(args)
+            defocus_scatter = plotDefocusScatter(
+                meta_file=args.meta_file,
+                plot_dir=args.plot_dir,
+                dpi=args.dpi,
+                pdf=args.pdf,
+            )
             defocus_scatter.setup_plot_data(
                 df_truth,
                 df_picked,
@@ -689,7 +706,12 @@ def main(args):
                 )
             """
             pp_df = pd.DataFrame(results)
-            per_particle_defocus = plotPerParticleDefocusScatter(args)
+            per_particle_defocus = plotPerParticleDefocusScatter(
+                meta_file=args.meta_file,
+                plot_dir=args.plot_dir,
+                dpi=args.dpi,
+                pdf=args.pdf,
+            )
             per_particle_defocus.setup_plot_data(
                 df_truth,
                 df_picked,

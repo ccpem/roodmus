@@ -111,17 +111,25 @@ def get_name():
 class plot2DClasses(plotDataFrame):
     def __init__(
         self,
-        args,
         job_types: dict[str, str],
+        plot_types: list[str],
         plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+        plot_dir: str = "",
+        bin_factor: int = 100,
+        dpi: int = 300,
+        pdf: bool = False,
     ) -> None:
         super().__init__(plot_data)
 
         if plot_data:
             self.plot_data = plot_data
 
-        self.args = args
         self.job_types = job_types
+        self.plot_types = plot_types
+        self.plot_dir = plot_dir
+        self.bin_factor = bin_factor
+        self.dpi = dpi
+        self.pdf = pdf
 
     def setup_plot_data(self, df_picked: pd.DataFrame):
         self.plot_data = {"plot_classes": {"df_picked": df_picked}}
@@ -131,7 +139,7 @@ class plot2DClasses(plotDataFrame):
         overwrite_data: bool = False,
     ):
         # save/overwrite data file
-        self.save_dataframes(self.args.plot_dir, overwrite_data)
+        self.save_dataframes(self.plot_dir, overwrite_data)
 
         # now use the data to make and save the plots
         if isinstance(
@@ -146,7 +154,7 @@ class plot2DClasses(plotDataFrame):
                     self.plot_data["plot_classes"]["df_picked"],
                     metadata_filename,
                 ):
-                    if "precision" in self.args.plot_types:
+                    if "precision" in self.plot_types:
                         print(
                             f"plotting 2D class precision for \
                             {metadata_filename}..."
@@ -161,7 +169,7 @@ class plot2DClasses(plotDataFrame):
                         )
                         self._save_precision_plot(metadata_filename)
 
-                    if "frame_distribution" in self.args.plot_types:
+                    if "frame_distribution" in self.plot_types:
                         print(
                             f"plotting 2D class frame distribution \
                             for {metadata_filename}..."
@@ -172,7 +180,7 @@ class plot2DClasses(plotDataFrame):
                         ) = plot_2Dclasses_frames(
                             self.plot_data["plot_classes"]["df_picked"],
                             metadata_filename,
-                            self.args.bin_factor,
+                            self.bin_factor,
                         )
                         self._save_frame_distribution_plot(metadata_filename)
         else:
@@ -183,13 +191,13 @@ class plot2DClasses(plotDataFrame):
 
     def _save_precision_plot(self, meta_file: str):
         outfilename = os.path.join(
-            self.args.plot_dir,
+            self.plot_dir,
             "{}_2Dclass_precision.png".format(self.job_types[meta_file]),
         )
         self.precision_fig.savefig(
-            outfilename, dpi=self.args.dpi, bbox_inches="tight"
+            outfilename, dpi=self.dpi, bbox_inches="tight"
         )
-        if self.args.pdf:
+        if self.pdf:
             self.precision_fig.savefig(
                 outfilename.replace(".png", ".pdf"),
                 bbox_inches="tight",
@@ -197,15 +205,15 @@ class plot2DClasses(plotDataFrame):
 
     def _save_frame_distribution_plot(self, meta_file: str):
         outfilename = os.path.join(
-            self.args.plot_dir,
+            self.plot_dir,
             "{}_2Dclass_frame_distribution.png".format(
                 self.job_types[meta_file]
             ),
         )
         self.frame_dist_fig.savefig(
-            outfilename, dpi=self.args.dpi, bbox_inches="tight"
+            outfilename, dpi=self.dpi, bbox_inches="tight"
         )
-        if self.args.pdf:
+        if self.pdf:
             self.frame_dist_fig.savefig(
                 outfilename.replace(".png", ".pdf"),
                 bbox_inches="tight",
@@ -355,7 +363,13 @@ def main(args):
         df_picked, df_truth, verbose=args.verbose
     )
 
-    plot_2d_classes = plot2DClasses(args, job_types)
+    plot_2d_classes = plot2DClasses(
+        job_types,
+        args.plot_types,
+        args.bin_factor,
+        args.dpi,
+        args.pdf,
+    )
     plot_2d_classes.setup_plot_data(df_picked)
     plot_2d_classes.make_and_save_plots(overwrite_data=True)
 

@@ -89,8 +89,10 @@ def get_name():
 class plotTruePoseDistribution(plotDataFrame):
     def __init__(
         self,
-        args,
         plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+        plot_dir: str = "",
+        dpi: int = 300,
+        pdf: bool = False,
     ) -> None:
         super().__init__(plot_data)
 
@@ -98,7 +100,9 @@ class plotTruePoseDistribution(plotDataFrame):
         if plot_data:
             self.plot_data = plot_data
 
-        self.args = args
+        self.plot_dir = plot_dir
+        self.dpi = dpi
+        self.pdf = pdf
 
     def setup_plot_data(self, df_truth: pd.DataFrame):
         # set up the dict[str: dict[str: pd.DataFrame | None]] object
@@ -114,7 +118,7 @@ class plotTruePoseDistribution(plotDataFrame):
         overwrite_data: bool = False,
     ):
         # save/overwrite data file
-        self.save_dataframes(self.args.plot_dir, overwrite_data)
+        self.save_dataframes(self.plot_dir, overwrite_data)
 
         if isinstance(
             self.plot_data["plot_truth_pose_distribution"]["df_truth"],
@@ -135,11 +139,9 @@ class plotTruePoseDistribution(plotDataFrame):
 
     def _save_plot(self):
         # save the plot
-        outfilename = os.path.join(
-            self.args.plot_dir, "true_pose_distribution.png"
-        )
-        self.grid.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
-        if self.args.pdf:
+        outfilename = os.path.join(self.plot_dir, "true_pose_distribution.png")
+        self.grid.savefig(outfilename, dpi=self.dpi, bbox_inches="tight")
+        if self.pdf:
             self.grid.savefig(
                 outfilename.replace(".png", ".pdf"), bbox_inches="tight"
             )
@@ -221,8 +223,10 @@ def true_pose_distribution_plot(
 class plotPickedPoseDistribution(plotDataFrame):
     def __init__(
         self,
-        args,
         plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+        plot_dir: str = "",
+        dpi: int = 300,
+        pdf: bool = False,
     ) -> None:
         super().__init__(plot_data)
 
@@ -230,7 +234,9 @@ class plotPickedPoseDistribution(plotDataFrame):
         if plot_data:
             self.plot_data = plot_data
 
-        self.args = args
+        self.plot_dir = plot_dir
+        self.dpi = dpi
+        self.pdf = pdf
 
     def setup_plot_data(self, df_picked: pd.DataFrame):
         # set up the dict[str: dict[str: pd.DataFrame | None]] object
@@ -244,7 +250,7 @@ class plotPickedPoseDistribution(plotDataFrame):
         overwrite_data: bool = False,
     ):
         # save/overwrite data file
-        self.save_dataframes(self.args.plot_dir, overwrite_data)
+        self.save_dataframes(self.plot_dir, overwrite_data)
 
         # now use the data to make and save the plots
         if isinstance(
@@ -280,12 +286,12 @@ class plotPickedPoseDistribution(plotDataFrame):
     def _save_plot(self, meta_file: str):
         # save the plot
         outfilename = os.path.join(
-            self.args.plot_dir,
+            self.plot_dir,
             os.path.splitext(os.path.basename(meta_file))[0]
             + "_picked_pose_distribution.png",
         )
-        self.grid.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
-        if self.args.pdf:
+        self.grid.savefig(outfilename, dpi=self.dpi, bbox_inches="tight")
+        if self.pdf:
             self.grid.savefig(
                 outfilename.replace(".png", ".pdf"), bbox_inches="tight"
             )
@@ -423,12 +429,20 @@ def main(args):
     print(f"meta_files in df: {df_picked['metadata_filename'].unique()}")
 
     # plot the picked particle pose distribution
-    plot_picked_pose_distribution = plotPickedPoseDistribution(args)
+    plot_picked_pose_distribution = plotPickedPoseDistribution(
+        plot_dir=args.plot_dir,
+        dpi=args.dpi,
+        pdf=args.pdf,
+    )
     plot_picked_pose_distribution.setup_plot_data(df_picked)
     plot_picked_pose_distribution.make_and_save_plots(overwrite_data=True)
 
     # plot the true particle pose distribution
-    plot_true_pose_distribution = plotTruePoseDistribution(args)
+    plot_true_pose_distribution = plotTruePoseDistribution(
+        plot_dir=args.plot_dir,
+        dpi=args.dpi,
+        pdf=args.pdf,
+    )
     plot_true_pose_distribution.setup_plot_data(df_truth)
     plot_true_pose_distribution.make_and_save_plots(
         vmin=plot_picked_pose_distribution.vmin_total,

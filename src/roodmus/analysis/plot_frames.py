@@ -86,17 +86,23 @@ def get_name():
 class plotFrameDistribution(plotDataFrame):
     def __init__(
         self,
-        args,
         job_types: dict[str, str],
         plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+        plot_dir: str = "",
+        particle_diameter: float = 200,
+        dpi: int = 300,
+        pdf: bool = False,
     ) -> None:
         super().__init__(plot_data)
 
         if plot_data:
             self.plot_data = plot_data
 
-        self.args = args
         self.job_types = job_types
+        self.plot_dir = plot_dir
+        self.particle_diameter = particle_diameter
+        self.dpi = dpi
+        self.pdf = pdf
 
     def setup_plot_data(
         self,
@@ -111,7 +117,7 @@ class plotFrameDistribution(plotDataFrame):
         self,
         overwrite_data: bool = False,
     ):
-        self.save_dataframes(self.args.plot_dir, overwrite_data)
+        self.save_dataframes(self.plot_dir, overwrite_data)
 
         if isinstance(
             self.plot_data["frame_distribution"]["df_truth"],
@@ -132,12 +138,12 @@ class plotFrameDistribution(plotDataFrame):
                     self.plot_data["frame_distribution"]["df_picked"],
                     metadata_filename,
                     self.plot_data["frame_distribution"]["df_truth"],
-                    self.args.particle_diameter,
+                    self.particle_diameter,
                     self.job_types,
                 )
                 meta_basename = os.path.basename(metadata_filename)
                 outfilename = os.path.join(
-                    self.args.plot_dir,
+                    self.plot_dir,
                     f"{meta_basename.split('.')[0]}_frame_distribution.png",
                 )
 
@@ -148,9 +154,9 @@ class plotFrameDistribution(plotDataFrame):
 
     def _save_plot(self, fig, ax, outfilename: str):
         # save the plot
-        outfilename = os.path.join(self.args.plot_dir, outfilename)
-        fig.savefig(outfilename, dpi=self.args.dpi, bbox_inches="tight")
-        if self.args.pdf:
+        outfilename = os.path.join(self.plot_dir, outfilename)
+        fig.savefig(outfilename, dpi=self.dpi, bbox_inches="tight")
+        if self.pdf:
             fig.savefig(
                 outfilename.replace(".png", ".pdf"),
                 bbox_inches="tight",
@@ -264,6 +270,10 @@ def main(args):
     frame_distribution = plotFrameDistribution(
         args,
         job_types,
+        plot_dir=args.plot_dir,
+        particle_diameter=args.particle_diameter,
+        dpi=args.dpi,
+        pdf=args.pdf,
     )
     frame_distribution.setup_plot_data(df_truth, df_picked)
     frame_distribution.make_and_save_plots(overwrite_data=True)
