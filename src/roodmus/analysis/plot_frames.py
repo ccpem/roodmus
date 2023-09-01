@@ -75,6 +75,13 @@ def add_arguments(parser):
     parser.add_argument(
         "--tqdm", help="show tqdm progress bar", action="store_true"
     )
+    parser.add_argument(
+        "--dpi",
+        help="choose dots per inch in png plots, default to 100",
+        type=int,
+        default=100,
+        required=False,
+    )
     parser.add_argument("--pdf", help="save plot as pdf", action="store_true")
     return parser
 
@@ -154,7 +161,6 @@ class plotFrameDistribution(plotDataFrame):
 
     def _save_plot(self, fig, ax, outfilename: str):
         # save the plot
-        outfilename = os.path.join(self.plot_dir, outfilename)
         fig.savefig(outfilename, dpi=self.dpi, bbox_inches="tight")
         if self.pdf:
             fig.savefig(
@@ -169,7 +175,7 @@ def plot_frame_distribution(
     metadata_filename: str,
     df_truth: pd.DataFrame,
     particle_diameter: float,
-    jobtypes: dict,
+    jobtypes: dict[str, str],
 ):
     # check if the precision has been computed for the picked particles
     if "closest_pdb_index" not in df_picked.columns:
@@ -268,7 +274,6 @@ def main(args):
     )
 
     frame_distribution = plotFrameDistribution(
-        args,
         job_types,
         plot_dir=args.plot_dir,
         particle_diameter=args.particle_diameter,

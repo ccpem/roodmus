@@ -199,7 +199,6 @@ class plotLabelTruth(plotDataFrame):
 
     def _save_plot(self, fig, ax, outfilename: str):
         # save the plot
-        outfilename = os.path.join(self.plot_dir, outfilename)
         fig.savefig(outfilename, dpi=self.dpi, bbox_inches="tight")
         if self.pdf:
             fig.savefig(
@@ -496,7 +495,7 @@ def plot_label_picked_and_truth(
     ax.set_xticks([])
     ax.set_yticks([])
     outfilename = os.path.join(
-        args.plot_dir,
+        plot_dir,
         "{}_{}_truth_and_picked.png".format(
             ugraph_filename.strip(".mrc"),
             meta_basename.split(".")[0],
@@ -572,6 +571,7 @@ class plotMatchedAndUnmatched(plotDataFrame):
             unmatched_picked_df = up_df
             unmatched_truth_df = ut_df
             """
+            self.plot_data = {"label_matched_and_unmatched": {}}
             self.plot_data["label_matched_and_unmatched"][
                 "df_truth"
             ] = pd.DataFrame(analysis.results_truth)
@@ -590,6 +590,11 @@ class plotMatchedAndUnmatched(plotDataFrame):
                     "df_picked"
                 ]["metadata_filename"].unique():
                     meta_basename = os.path.basename(meta_file)
+                    self.plot_data[
+                        "label_matched_and_unmatched_{}".format(
+                            meta_basename.split(".")[0]
+                        )
+                    ] = {}
                     (
                         self.plot_data[
                             "label_matched_and_unmatched_{}".format(
@@ -632,7 +637,7 @@ class plotMatchedAndUnmatched(plotDataFrame):
 
     def make_and_save_plots(
         self,
-        analysis: load_data | None,
+        analysis: load_data | None = None,
         overwrite_data: bool = False,
     ):
         # compute the matching if the matched dfs are not provided
@@ -783,6 +788,7 @@ class plotMatchedAndUnmatched(plotDataFrame):
                                 self.box_height,
                                 self.mrc_dir,
                                 self.verbose,
+                                self.plot_dir,
                             )
                             self._save_plot(fig, ax, outfilename)
                         else:
@@ -2431,7 +2437,7 @@ class plotBoundaryInvestigation(plotDataFrame):
         ):
             for meta_file in self.plot_data["plot_boundary_investigation"][
                 "df_picked"
-            ].unique():
+            ]["metadata_filename"].unique():
                 meta_basename = os.path.basename(meta_file)
                 if self.verbose:
                     print(f"plotting boundary for metadata file {meta_file}")
@@ -2469,7 +2475,6 @@ class plotBoundaryInvestigation(plotDataFrame):
 
 
 def plot_boundary_investigation(
-    self,
     df_truth: pd.DataFrame,
     df_picked: pd.DataFrame,
     metadata_filename: str,
@@ -2627,7 +2632,6 @@ class plotOverlap(plotDataFrame):
 
 
 def plot_overlap_investigation(
-    self,
     df_overlap: pd.DataFrame,
     metadata_filename: str | list[str] | None = None,
     job_types: Dict[str, str] | None = None,

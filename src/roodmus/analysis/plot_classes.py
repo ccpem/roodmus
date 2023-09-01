@@ -366,9 +366,10 @@ def main(args):
     plot_2d_classes = plot2DClasses(
         job_types,
         args.plot_types,
-        args.bin_factor,
-        args.dpi,
-        args.pdf,
+        plot_dir=args.plot_dir,
+        bin_factor=args.bin_factor,
+        dpi=args.dpi,
+        pdf=args.pdf,
     )
     plot_2d_classes.setup_plot_data(df_picked)
     plot_2d_classes.make_and_save_plots(overwrite_data=True)

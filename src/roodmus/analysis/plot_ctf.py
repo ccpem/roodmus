@@ -162,7 +162,6 @@ class plotPerParticleDefocusScatter(plotDataFrame):
 
     def _save_plot(self, fig, ax, outfilename: str):
         # save the plot
-        outfilename = os.path.join(self.plot_dir, outfilename)
         fig.savefig(outfilename, dpi=self.dpi, bbox_inches="tight")
         if self.pdf:
             fig.savefig(
@@ -294,7 +293,6 @@ class plotDefocusScatter(plotDataFrame):
 
     def _save_plot(self, fig, ax, outfilename: str):
         # save the plot
-        outfilename = os.path.join(self.plot_dir, outfilename)
         fig.savefig(outfilename, dpi=self.dpi, bbox_inches="tight")
         if self.pdf:
             fig.savefig(
