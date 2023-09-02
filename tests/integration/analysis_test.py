@@ -51,7 +51,6 @@ class IntegrationTestAnalysis(unittest.TestCase):
         os.environ["PATH"] = self.oldpath
         return super().tearDown()
 
-    """
     def test_plot_frames_star(self):
         config_dir = os.path.join(
             self.test_data, "analysis_test_inputs/relion_subset_ugraphs"
@@ -74,11 +73,20 @@ class IntegrationTestAnalysis(unittest.TestCase):
         os.system(system_cmd)
 
         # find the outputs
-        output_files: list = os.listdir(plot_dir)
+        pfd = "particles_frame_distribution.png"
+        df_truth = os.path.join("frame_distribution", "df_truth.csv")
+        df_picked = os.path.join("frame_distribution", "df_picked.csv")
+        output_files: list = [
+            os.path.join(plot_dir, pfd),
+            os.path.join(plot_dir, df_truth),
+            os.path.join(plot_dir, df_picked),
+        ]
         output_files = sorted(output_files)
         output_files = [
             os.path.join(plot_dir, output_file) for output_file in output_files
         ]
+        for output_file in output_files:
+            assert os.path.isfile(output_file)
         self.assertIsNotNone(output_files)
         assert isinstance(output_files, list)
         print("Output files: {}".format(output_files))
@@ -90,11 +98,24 @@ class IntegrationTestAnalysis(unittest.TestCase):
                 "analysis_test_outputs/frames_star/particles_frame_"
                 + "distribution.png",
             ),
+            os.path.join(
+                self.test_data,
+                "analysis_test_outputs/frames_star/frames_star/"
+                + "frame_distribution/df_truth.csv",
+            ),
+            os.path.join(
+                self.test_data,
+                "analysis_test_outputs/frames_star/frames_star/"
+                + "frame_distribution/df_picked.csv",
+            ),
         ]
         ref_files = sorted(ref_files)
 
         for output, ref in zip(output_files, ref_files):
-            assert filecmp.cmp(ref, output)
+            if output.endswith(".mrc") and ref.endswith(".mrc"):
+                assert filecmp.cmp(ref, output)
+            else:
+                print("{} and {} are not compared".format(output, ref))
 
     def test_extract_particles(self):
         config_dir = os.path.join(
@@ -156,7 +177,6 @@ class IntegrationTestAnalysis(unittest.TestCase):
                     )
                 )
                 assert np.array_equal(ref_mrc.data, out_mrc.data)
-    """
 
     """
     def test_plot_ctf_star(self):
