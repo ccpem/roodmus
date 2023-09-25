@@ -1,0 +1,2 @@
+,metadata_filename,ugraph_filename,defocus,num_particles_picked,num_particles_truth,TP,FP,FN,precision,recall,multiplicity
+0,/mnt/parakeet_storage4/roodmus/tests/integration/fixtures/analysis_test_inputs/relion_subset/Extract/job007/particles.star,000000.mrc,-15309.73434082482,269,300,269.0,0.0,0.0,1.0,1.0,1.1633333333333333

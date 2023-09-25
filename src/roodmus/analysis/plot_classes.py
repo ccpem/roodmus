@@ -134,6 +134,9 @@ class plot2DClasses(plotDataFrame):
     def setup_plot_data(self, df_picked: pd.DataFrame):
         self.plot_data = {"plot_classes": {"df_picked": df_picked}}
 
+    def setup_plot_data_empty(self):
+        self.plot_data = {"plot_classes": {"df_picked": None}}
+
     def make_and_save_plots(
         self,
         overwrite_data: bool = False,

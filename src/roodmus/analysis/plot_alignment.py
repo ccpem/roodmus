@@ -111,6 +111,11 @@ class plotTruePoseDistribution(plotDataFrame):
             "plot_truth_pose_distribution": {"df_truth": df_truth}
         }
 
+    def setup_plot_data_empty(self):
+        # set up the dict[str: dict[str: pd.DataFrame | None]] object
+        # this can be
+        self.plot_data = {"plot_truth_pose_distribution": {"df_truth": None}}
+
     def make_and_save_plots(
         self,
         vmin: float | None = None,
@@ -244,6 +249,11 @@ class plotPickedPoseDistribution(plotDataFrame):
         self.plot_data = {
             "plot_picked_pose_distribution": {"df_picked": df_picked}
         }
+
+    def setup_plot_data_empty(self):
+        # set up the dict[str: dict[str: pd.DataFrame | None]] object
+        # this can be
+        self.plot_data = {"plot_picked_pose_distribution": {"df_picked": None}}
 
     def make_and_save_plots(
         self,

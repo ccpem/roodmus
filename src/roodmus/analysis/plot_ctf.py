@@ -136,6 +136,14 @@ class plotPerParticleDefocusScatter(plotDataFrame):
         ] = df_matched_truth
         self.plot_data["per_particle_defoci"]["df_pp_defoci"] = df_pp_defoci
 
+    def setup_plot_data_empty(self):
+        self.plot_data = {"per_particle_defoci": {}}
+        self.plot_data["per_particle_defoci"]["df_truth"] = None
+        self.plot_data["per_particle_defoci"]["df_picked"] = None
+        self.plot_data["per_particle_defoci"]["df_matched_picked"] = None
+        self.plot_data["per_particle_defoci"]["df_matched_truth"] = None
+        self.plot_data["per_particle_defoci"]["df_pp_defoci"] = None
+
     def make_and_save_plots(
         self,
         overwrite_data: bool = False,
@@ -267,6 +275,13 @@ class plotDefocusScatter(plotDataFrame):
         self.plot_data = {"defocus_scatter": {}}
         self.plot_data["defocus_scatter"]["df_truth"] = df_truth
         self.plot_data["defocus_scatter"]["df_picked"] = df_picked
+
+    def setup_plot_data_empty(
+        self,
+    ):
+        self.plot_data = {"defocus_scatter": {}}
+        self.plot_data["defocus_scatter"]["df_truth"] = None
+        self.plot_data["defocus_scatter"]["df_picked"] = None
 
     def make_and_save_plots(
         self,

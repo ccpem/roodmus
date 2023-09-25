@@ -162,6 +162,11 @@ class plotLabelTruth(plotDataFrame):
     ):
         self.plot_data = {"label_truth": {"df_truth": df_truth}}
 
+    def setup_plot_data_empty(
+        self,
+    ):
+        self.plot_data = {"label_truth": {"df_truth": None}}
+
     def make_and_save_plots(
         self,
         overwrite_data: bool = False,
@@ -275,6 +280,11 @@ class plotLabelPicked(plotDataFrame):
         df_picked: pd.DataFrame,
     ):
         self.plot_data = {"label_picked": {"df_picked": df_picked}}
+
+    def setup_plot_data_empty(
+        self,
+    ):
+        self.plot_data = {"label_picked": {"df_picked": None}}
 
     def make_and_save_plots(
         self,
@@ -402,6 +412,13 @@ class plotLabelTruthAndPicked(plotDataFrame):
         self.plot_data = {"label_truth_and_picked": {}}
         self.plot_data["label_truth_and_picked"]["df_truth"] = df_truth
         self.plot_data["label_truth_and_picked"]["df_picked"] = df_picked
+
+    def setup_plot_data_empty(
+        self,
+    ):
+        self.plot_data = {"label_truth_and_picked": {}}
+        self.plot_data["label_truth_and_picked"]["df_truth"] = None
+        self.plot_data["label_truth_and_picked"]["df_picked"] = None
 
     def make_and_save_plots(
         self,
@@ -634,6 +651,33 @@ class plotMatchedAndUnmatched(plotDataFrame):
                     '["df_truth"] is not a pd.DataFrame when extracting'
                     " from analysis (load_data() class) object"
                 )
+
+    """
+    def setup_plot_data_empty(
+        self,
+        metadata_file_basenames: list[str] | None = None,
+    ):
+        # Provide data loaded into the load_data class from metadata file
+
+        self.plot_data = {"label_matched_and_unmatched": {}}
+        self.plot_data["label_matched_and_unmatched"]["df_truth"] = None
+        self.plot_data["label_matched_and_unmatched"]["df_picked"] = None
+
+        if metadata_file_basenames:
+            for metadata_file in metadata_file_basenames:
+                self.plot_data[
+                    "label_matched_and_unmatched_{}".format(metadata_file)
+                ]["df_mp"] = None
+                self.plot_data[
+                    "label_matched_and_unmatched_{}".format(metadata_file)
+                ]["df_mt"] = None
+                self.plot_data[
+                    "label_matched_and_unmatched_{}".format(metadata_file)
+                ]["df_up"] = None
+                self.plot_data[
+                    "label_matched_and_unmatched_{}".format(metadata_file)
+                ]["df_ut"] = None
+    """
 
     def make_and_save_plots(
         self,
@@ -2032,8 +2076,11 @@ class plotPrecision(plotDataFrame):
         self.pdf = pdf
         self.verbose = verbose
 
-    def setup_plot_precision(self, df_precision: pd.DataFrame):
+    def setup_plot_data(self, df_precision: pd.DataFrame):
         self.plot_data = {"plot_precision": {"df_precision": df_precision}}
+
+    def setup_plot_data_empty(self):
+        self.plot_data = {"plot_precision": {"df_precision": None}}
 
     def make_and_save_plots(
         self,
@@ -2412,7 +2459,7 @@ class plotBoundaryInvestigation(plotDataFrame):
         self.pdf = pdf
         self.verbose = verbose
 
-    def setup_plot_boundary_investigation(
+    def setup_plot_data(
         self,
         df_truth,
         df_picked,
@@ -2420,6 +2467,11 @@ class plotBoundaryInvestigation(plotDataFrame):
         self.plot_data = {"plot_boundary_investigation": {}}
         self.plot_data["plot_boundary_investigation"]["df_truth"] = df_truth
         self.plot_data["plot_boundary_investigation"]["df_picked"] = df_picked
+
+    def setup_plot_data_empty(self):
+        self.plot_data = {"plot_boundary_investigation": {}}
+        self.plot_data["plot_boundary_investigation"]["df_truth"] = None
+        self.plot_data["plot_boundary_investigation"]["df_picked"] = None
 
     def make_and_save_plots(
         self,
@@ -2579,11 +2631,14 @@ class plotOverlap(plotDataFrame):
         self.pdf = pdf
         self.verbose = verbose
 
-    def setup_plot_overlap(
+    def setup_plot_data(
         self,
         df_overlap: pd.DataFrame,
     ):
         self.plot_data = {"plot_overlap": {"df_overlap": df_overlap}}
+
+    def setup_plot_data_empty(self):
+        self.plot_data = {"plot_overlap": {"df_overlap": None}}
 
     def make_and_save_plots(
         self,
@@ -2833,7 +2888,7 @@ def main(args):
                 pdf=args.pdf,
                 verbose=args.verbose,
             )
-            plot_precision.setup_plot_precision(df_precision)
+            plot_precision.setup_plot_data(df_precision)
             plot_precision.make_and_save_plots(overwrite_data=True)
 
         if plot_type == "boundary":
@@ -2848,7 +2903,7 @@ def main(args):
                 pdf=args.pdf,
                 verbose=args.verbose,
             )
-            plot_boundary.setup_plot_boundary_investigation(
+            plot_boundary.setup_plot_data(
                 df_truth,
                 df_picked,
             )
@@ -2866,7 +2921,7 @@ def main(args):
                 pdf=args.pdf,
                 verbose=args.verbose,
             )
-            plot_overlap.setup_plot_overlap(df_overlap)
+            plot_overlap.setup_plot_data(df_overlap)
             plot_overlap.make_and_save_plots(overwrite_data=True)
 
 

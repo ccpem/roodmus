@@ -120,6 +120,13 @@ class plotFrameDistribution(plotDataFrame):
         self.plot_data["frame_distribution"]["df_truth"] = df_truth
         self.plot_data["frame_distribution"]["df_picked"] = df_picked
 
+    def setup_plot_data_empty(
+        self,
+    ):
+        self.plot_data = {"frame_distribution": {}}
+        self.plot_data["frame_distribution"]["df_truth"] = None
+        self.plot_data["frame_distribution"]["df_picked"] = None
+
     def make_and_save_plots(
         self,
         overwrite_data: bool = False,
