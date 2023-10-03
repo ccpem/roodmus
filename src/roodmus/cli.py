@@ -5,6 +5,9 @@ software (https://doi.org/10.1098/rsob.210160). Utilities allow analysis
 and evaluation of the performance of structure determination pipelines
 and heterogeneous reconstruction algorithms.
 
+Delft University of Technology (TU Delft) hereby disclaims
+all copyright interest in the program “Roodmus” written by
+the Author(s).
 Copyright (C) 2023  Joel Greer(UKRI), Tom Burnley (UKRI),
 Maarten Joosten (TU Delft), Arjen Jakobi (TU Delft)
 

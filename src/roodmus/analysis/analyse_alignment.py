@@ -1,5 +1,8 @@
 """API containing functions for the analysis of the 3D alignment results.
 
+Delft University of Technology (TU Delft) hereby disclaims
+all copyright interest in the program “Roodmus” written by
+the Author(s).
 Copyright (C) 2023  Joel Greer(UKRI), Tom Burnley (UKRI),
 Maarten Joosten (TU Delft), Arjen Jakobi (TU Delft)
 
@@ -269,7 +272,7 @@ class alignment_3D(object):
 
     def _extract_from_metadata(
         self,
-        metadata: dict[str, Any],
+        metadata,
         file_type: str,
         verbose: bool = False,
     ):

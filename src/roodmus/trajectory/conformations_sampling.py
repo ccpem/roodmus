@@ -1,6 +1,9 @@
 """Sampling a molecular dynamics trajectory and saving the
 conformations to PDB files.
 
+Delft University of Technology (TU Delft) hereby disclaims
+all copyright interest in the program “Roodmus” written by
+the Author(s).
 Copyright (C) 2023  Joel Greer(UKRI), Tom Burnley (UKRI),
 Maarten Joosten (TU Delft), Arjen Jakobi (TU Delft)
 
@@ -20,7 +23,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import os
-from typing import Tuple, List
+from typing import Tuple, List, Any
 import argparse
 
 import numpy as np
@@ -245,7 +248,7 @@ def waymark(
 ) -> Tuple[
     List[List[int]],
     List[List[np.int64]],
-    List[np.ndarray[np.int64, np.int64]],
+    List[np.ndarray[Any, Any]],
     mdt.Trajectory,
     List[int],
 ]:
@@ -330,7 +333,7 @@ def waymark(
         rms_dists = mdt.rmsd(traj, traj, frame=0, atom_indices=atom_indices)
         # grab the indices of the conformations which were different by
         # >rmsd threshold
-        frame_ind = np.argmax(rms_dists > rmsd)
+        frame_ind = int(np.argmax(rms_dists > rmsd))
         # convert array to at least 2d
         rms_dists_list = np.atleast_2d(rms_dists)
 
@@ -351,7 +354,7 @@ def waymark(
             rms_dists_list = np.append(
                 rms_dists_list, np.atleast_2d(rms_dists), axis=0
             )
-            frame_ind = np.argmax(rms_dists_list.min(axis=0) > rmsd)
+            frame_ind = int(np.argmax(rms_dists_list.min(axis=0) > rmsd))
 
         # these are kept for continuity in updating code but frankly will no
         # longer be useful to analyse things because
@@ -505,11 +508,11 @@ def get_traj_steps(
         t = load_traj(traj, topfile, verbose)
         len_t = len(t)
         traj_steps += len_t
-        steps_per_file.append(len_t)
+        steps_per_file.append(np.uint64(len_t))
 
     if verbose:
         print("Total of {} steps in trajectory files".format(traj_steps))
-    return traj_steps, steps_per_file
+    return np.uint64(traj_steps), steps_per_file
 
 
 def create_output_dir(output_dir: str, verbose: bool) -> None:
@@ -605,7 +608,7 @@ def get_traj_indices(
     traj_steps: np.uint64,
     steps_per_file: List[np.uint64],
     verbose: bool,
-    n_conformations: np.uint64 = 1,
+    n_conformations: np.uint64 = np.uint64(1),
     rnd_start: bool = False,
     seed: int = 1385737,
     contiguous: bool = False,

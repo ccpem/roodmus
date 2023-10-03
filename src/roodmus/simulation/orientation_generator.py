@@ -1,6 +1,9 @@
 """Class to generate orientations for a given molecule
 based on some specifications.
 
+Delft University of Technology (TU Delft) hereby disclaims
+all copyright interest in the program “Roodmus” written by
+the Author(s).
 Copyright (C) 2023  Joel Greer(UKRI), Tom Burnley (UKRI),
 Maarten Joosten (TU Delft), Arjen Jakobi (TU Delft)
 

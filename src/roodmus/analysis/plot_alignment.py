@@ -1,6 +1,9 @@
 """Compare estimated 3D alignments from RELION or CryoSPARC to the
 ground-truth orientation values used in Parakeet data generation.
 
+Delft University of Technology (TU Delft) hereby disclaims
+all copyright interest in the program “Roodmus” written by
+the Author(s).
 Copyright (C) 2023  Joel Greer(UKRI), Tom Burnley (UKRI),
 Maarten Joosten (TU Delft), Arjen Jakobi (TU Delft)
 
