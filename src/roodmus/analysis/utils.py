@@ -54,7 +54,7 @@ class IO(object):
         return metadata
 
     @classmethod
-    def get_ugraph_cs(self, metadata_cs: np.recarray):
+    def get_ugraph_cs(self, metadata_cs: np.recarray) -> List[str]:
         """Grab micrograph file paths from .cs data.
 
         Args:
@@ -63,12 +63,13 @@ class IO(object):
         Returns:
             ugraph_paths (List[str]): micrograph file paths.
         """
-        if "location/micrograph_path" in metadata_cs.dtype.names:
-            ugraph_paths = metadata_cs["location/micrograph_path"]
-        elif "blob/path" in metadata_cs.dtype.names:
-            ugraph_paths = metadata_cs["blob/path"]
-        else:
-            return None
+        ugraph_paths = metadata_cs["location/micrograph_path"].tolist()
+
+        # elif "blob/path" in metadata_cs.dtype.names:
+        #     ugraph_paths = metadata_cs["blob/path"]
+        # removed None from within the function to stop mypy errors
+        # else:
+        #     return None
 
         ugraph_paths = [
             os.path.basename(path).decode("utf-8").split("_")[-1]
@@ -159,8 +160,10 @@ class IO(object):
                 "alignments3D/pose"
             ]  # orientations as rodriques vectors
             # convert to euler angles
-            euler = [geom.rot2euler(geom.expmap(p)) for p in pose]
-            euler = np.array(euler)
+            euler = np.array(
+                [geom.rot2euler(geom.expmap(p)) for p in pose],
+                dtype=float,
+            )
             # euler = R.from_rotvec(pose).as_euler(
             #     "zyx", degrees=False
             # )  # convert to euler angles
@@ -508,7 +511,7 @@ class load_data(object):
         self.config_dir = config_dir
         self.particle_diameter = particle_diameter
         self.ugraph_shape = ugraph_shape
-        self.results_picking: dict[str, Any] = {
+        self.results_picking: dict[str, List[Any]] = {
             "metadata_filename": [],
             "ugraph_filename": [],
             "position_x": [],
@@ -738,7 +741,7 @@ class load_data(object):
             progressbar = tqdm(
                 total=len(ugraphs_to_load),
                 desc="loading micrographs",
-                disable=not self.verbose,
+                disable=not self.enable_tqdm,
             )
             for ugraph_path in ugraphs_to_load:
                 if not os.path.isfile(
@@ -982,7 +985,7 @@ class load_data(object):
         """
         if isinstance(metadata, list) and file_type == "cs":
             print(f"loading {len(metadata)} files into the results")
-            tmp_results: dict = {"uid": [], "mask": []}
+            tmp_results: dict[str, List[Any]] = {"uid": [], "mask": []}
             for key in self.results_picking.keys():
                 tmp_results[key] = []
 
@@ -996,7 +999,7 @@ class load_data(object):
                     tmp_results["ugraph_filename"].extend(
                         [np.nan] * num_particles
                     )
-                    mask = [False] * num_particles
+                    mask = np.array([False] * num_particles, dtype=bool)
                 else:
                     num_particles = len(
                         ugraph_filename
@@ -1061,10 +1064,12 @@ class load_data(object):
 
             if "metadata_filename" in tmp_results.keys():
                 tmp_results.pop("metadata_filename")
-            df_tmp = pd.DataFrame(tmp_results, columns=tmp_results.keys())
-            mask_true = df_tmp["mask"]
-            all_filenames = df_tmp["ugraph_filename"]
-            df_tmp = df_tmp.groupby("uid").agg(
+            df_tmp = pd.DataFrame(
+                tmp_results, columns=list(tmp_results.keys())
+            )
+            # mask_true = df_tmp["mask"]
+            # all_filenames = df_tmp["ugraph_filename"]
+            df_tmp = df_tmp.groupby("uid", as_index=False).agg(
                 {
                     "ugraph_filename": "first",
                     "mask": "sum",
@@ -1079,12 +1084,26 @@ class load_data(object):
                     "class2D": "first",
                 }
             )
+            mapping = {
+                key: value
+                for key, value, mask in zip(
+                    tmp_results["uid"],
+                    tmp_results["ugraph_filename"],
+                    tmp_results["mask"],
+                )
+                if mask
+            }
             df_tmp_filtered = df_tmp[df_tmp["mask"] > 0]
-            all_filenames = all_filenames[mask_true == 1]
-            mask_true = mask_true[mask_true == 1]
-            df_tmp_filtered["ugraph_filename"] = all_filenames.iloc[
-                -len(df_tmp) :
-            ].values
+            # correct the ugraph_filename
+            df_tmp_filtered["ugraph_filename"] = df_tmp_filtered["uid"].map(
+                mapping
+            )
+
+            # all_filenames = all_filenames[mask_true == 1]
+            # mask_true = mask_true[mask_true == 1]
+            # df_tmp_filtered["ugraph_filename"] = all_filenames.iloc[
+            #     -len(df_tmp) :
+            # ].values
 
             # add the temporary results to the results
             self.results_picking["position_x"].extend(
@@ -1127,12 +1146,18 @@ class load_data(object):
             pass  # should not happen, but just in case we add it here
 
         elif file_type == "cs":
-            ugraph_filename = IO.get_ugraph_cs(
-                metadata,
-            )  # a list of all microraphs in the metadata file
+            if "location/micrograph_path" in metadata.dtype.names:
+                ugraph_filename = IO.get_ugraph_cs(
+                    metadata,
+                )  # a list of all micrographs in the metadata file
+            else:
+                raise ValueError(
+                    "ugraph_filename is None due to location/micrograph_path"
+                    " not found in cryosparc metadata file {}".format(metadata)
+                )
 
             if ignore_missing_files:
-                mask = [True] * len(ugraph_filename)
+                mask = np.array([True] * len(ugraph_filename), dtype=bool)
             else:
                 print("checking if ugraphs exist...")
                 mask = self._check_if_ugraphs_exist(ugraph_filename)
@@ -1217,7 +1242,7 @@ class load_data(object):
                 metadata,
             )  # a list of all microraphs in the metadata file
             if ignore_missing_files:
-                mask = [True] * len(ugraph_filename)
+                mask = np.array([True] * len(ugraph_filename), dtype=bool)
             else:
                 print("checking if ugraphs exist...")
                 mask = self._check_if_ugraphs_exist(ugraph_filename)
@@ -1369,36 +1394,68 @@ class load_data(object):
 
         # add to results
         self.results_truth["pdb_filename"] = np.append(
-            self.results_truth["pdb_filename"], filenames
-        )
+            np.array(
+                self.results_truth["pdb_filename"],
+                dtype=str,
+            ),
+            filenames,
+        ).tolist()
         self.results_truth["position_x"] = np.append(
-            self.results_truth["position_x"], positions[:, 0]
-        )
+            np.array(
+                self.results_truth["position_x"],
+                dtype=float,
+            ),
+            positions[:, 0],
+        ).tolist()
         self.results_truth["position_y"] = np.append(
-            self.results_truth["position_y"], positions[:, 1]
-        )
+            np.array(
+                self.results_truth["position_y"],
+                dtype=float,
+            ),
+            positions[:, 1],
+        ).tolist()
         self.results_truth["position_z"] = np.append(
-            self.results_truth["position_z"], positions[:, 2]
-        )
+            np.array(
+                self.results_truth["position_z"],
+                dtype=float,
+            ),
+            positions[:, 2],
+        ).tolist()
         self.results_truth["euler_phi"] = np.append(
-            self.results_truth["euler_phi"],
+            np.array(
+                self.results_truth["euler_phi"],
+                dtype=float,
+            ),
             orientations[:, 0],
-        )
+        ).tolist()
         self.results_truth["euler_theta"] = np.append(
-            self.results_truth["euler_theta"],
+            np.array(
+                self.results_truth["euler_theta"],
+                dtype=float,
+            ),
             orientations[:, 1],
-        )
+        ).tolist()
         self.results_truth["euler_psi"] = np.append(
-            self.results_truth["euler_psi"],
+            np.array(
+                self.results_truth["euler_psi"],
+                dtype=float,
+            ),
             orientations[:, 2],
-        )
+        ).tolist()
         self.results_truth["defocus"] = np.append(
-            self.results_truth["defocus"], [defocus] * len(positions)
-        )
+            np.array(
+                self.results_truth["defocus"],
+                dtype=float,
+            ),
+            [defocus] * len(positions),
+        ).tolist()
         self.results_truth["ice_thickness"] = np.append(
-            self.results_truth["ice_thickness"],
+            np.array(
+                self.results_truth["ice_thickness"],
+                dtype=float,
+            ),
             [ice_thickness] * len(positions),
-        )
+        ).tolist()
         num_particles = len(positions)
         return num_particles
 
@@ -1430,6 +1487,247 @@ class load_data(object):
         )
         sdm[sdm < np.finfo(float).eps] = np.nan
         return sdm
+
+    def _match_particles(
+        self,
+        metadata_filename: str,
+        results_picking: pd.DataFrame,
+        results_truth: pd.DataFrame,
+        verbose: bool = False,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame,]:
+        """When picked and truth dfs are loaded, this can be used to create
+        dataframes of matched picked particles, matched truth particles,
+        picked particles not matched to truth particles and finally, truth
+        particle not matched to picked particles
+
+        Return 4 pd dfs which each correspond to all ugraphs for a given
+        metadata file.
+        Matching particles is calculated for a given ugraph at a time and
+        then the results are concatenated together into a df for the whole
+        metadata file:
+        Picked particles are matched to nearest truth particle in ugraph.
+        If they happen to be within particle diameter, they are matched.
+        -If match is found:
+            +add matched index of picked particle df to `p_match' list, add
+            matched index of truth particle df to `t_match' list
+        -Else (no match is found):
+            +add unmatched index of picked_particle df to `p_no_match' list
+        -Grab all indexes from truth particles df which are not present
+        in the `t_match' list and use them to create `t_no_match' list
+        -Select matched picked particles via `p_match' index selection to get
+        `p_match' df
+        -Select matched truth particles via `t_match' index selection to get
+        `t_match' df
+        `match' df, which is OUTPUT 1
+        -Create `p_match' list of dfs
+        -Create `t_match' list of dfs
+        -Create `p_unmatched' lsit of dfs
+        -Create `t_unmatched' list of dfs
+        -Combine/concat each list of to get a set of
+        4 dfs which correspond to the metadata file (as matching depends on
+        the picked particles rather than the truth particles).
+        -Reindex all 4 dfs and output them
+        -OUTPUT1 is p_match for metadata
+        -OUTPUT2 is t_match for metadata
+        -OUTPUT3 is p_unmatched for metadata
+        -OUTPUT4 is p_unmatched for metadata
+
+        Note that a single truth particle may be matched with more than 1
+        picked particle. Heed the warning related to this!
+
+        Returns:
+            Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+            matched_particles, unmatched_picked_particles,
+            unmatched_truth_particles
+        """
+        # to hold list of dfs (1 entry per ugraph) before concat
+        matched_picked_dfs = []
+        matched_truth_dfs = []
+        unmatched_picked_dfs = []
+        unmatched_truth_dfs = []
+
+        # grab particles for this metadata file only
+        metafile_picked = results_picking.loc[
+            results_picking["metadata_filename"] == metadata_filename
+        ]
+        metafile_truth = results_truth
+
+        # now find unique ugraphs, loop over whilst computing matches
+        # and unmatched particles
+        ugraph_ids = metafile_picked["ugraph_filename"].unique()
+        progressbar = tqdm(
+            total=len(ugraph_ids),
+            desc="computing closest matches",
+            disable=not verbose,
+        )
+        for ugraph in ugraph_ids:
+            # grab the positions from picked+truth to match
+            ugraph_picked = metafile_picked.loc[
+                metafile_picked["ugraph_filename"] == ugraph
+            ]
+            ugraph_truth = metafile_truth.loc[
+                metafile_truth["ugraph_filename"] == ugraph
+            ]
+
+            picked_pos_x = ugraph_picked["position_x"]
+            picked_pos_y = ugraph_picked["position_y"]
+            truth_pos_x = ugraph_truth["position_x"]
+            truth_pos_y = ugraph_truth["position_y"]
+
+            # now that we have the particles centres, get the sdm and indices
+            # of the particles which are matched
+            picked_centres = np.array([picked_pos_x, picked_pos_y]).T
+            truth_centres = np.array([truth_pos_x, truth_pos_y]).T
+            sdm = (
+                cKDTree(picked_centres)
+                .sparse_distance_matrix(
+                    cKDTree(truth_centres), self.particle_diameter / 2.0
+                )
+                .toarray()
+            )
+            sdm[sdm < np.finfo(float).eps] = np.nan
+            if verbose:
+                print("Shape of {}\n\tsdm: {}".format(ugraph, sdm.shape))
+
+            # find the minimum value along axis 0 (1 per picked particle)
+            # and keep track of the index of the truth particle
+            # Using List[Any] to include np.nan which are floats
+            closest_truth_index: List[Any] = []
+            p_match: List[int] = []
+            t_match: List[int] = []
+
+            for j, picked_particle in enumerate(sdm):
+                # make sure there is at least one match to a truth particle
+                if ~np.isnan(picked_particle).all():
+                    truth_particle_index = int(np.nanargmin(picked_particle))
+                else:
+                    print(
+                        "all nan slice in ugraph {} with picked particle"
+                        " index {} with entries: {}".format(
+                            ugraph, j, picked_particle
+                        )
+                    )
+                    # no particle is matched to picked particle
+                    # and we move on to next particle
+                    continue
+                # check if closest truth particle is within particle diameter
+                # of picked particle
+                if (
+                    picked_particle[truth_particle_index]
+                    > self.particle_diameter
+                ):
+                    closest_truth_index.append(np.nan)
+                    continue
+                # if it is, consider picking successful and allow the picked
+                # and truth particle to be associated with each other
+                else:
+                    closest_truth_index.append(truth_particle_index)
+                    # add the indices of matched particles to respective list
+                    p_match.append(j)
+                    t_match.append(truth_particle_index)
+
+            # check whether any truth particles had multiple picked particles
+            # mapped to them
+            non_unique_count = len(
+                np.unique(
+                    np.array(closest_truth_index, dtype=float)[
+                        ~np.isnan(closest_truth_index)
+                    ]
+                )[
+                    np.unique(
+                        np.array(closest_truth_index, dtype=float)[
+                            ~np.isnan(closest_truth_index)
+                        ],
+                        return_counts=True,
+                    )[1]
+                    > 1
+                ]
+            )
+            print(
+                "There are {} non-unique picked"
+                " particles in ugraph {}!".format(
+                    non_unique_count,
+                    ugraph,
+                )
+            )
+            if non_unique_count > 0:
+                print(
+                    "This may cause problems with overwritten assns"
+                    " in truth particles dict!"
+                )
+            # check if there were no matches to truth for a picked particle
+            no_truth_match = len(
+                np.unique(
+                    np.array(closest_truth_index, dtype=float)[
+                        ~np.isnan(closest_truth_index)
+                    ]
+                )[
+                    np.unique(
+                        np.array(closest_truth_index, dtype=float)[
+                            ~np.isnan(closest_truth_index)
+                        ],
+                        return_counts=True,
+                    )[1]
+                    == 0
+                ]
+            )
+            if no_truth_match > 0:
+                print(
+                    "There are {} no-truth-match picked particles!".format(
+                        no_truth_match
+                    )
+                )
+                if non_unique_count > 0:
+                    print(
+                        "This may cause problems with overwritten assns"
+                        " in truth particles dict!"
+                    )
+
+            # Next extract the matched particles by df row
+            # for this ugraph. df indices should be propagated.
+            # Use iloc as indices of df that position data was
+            # extracted (to do matching) from is not necessarily ordered
+
+            # Extract matched picked particles
+            matched_picked_dfs.append(ugraph_picked.iloc[p_match])
+
+            # Extract matched truth particles
+            matched_truth_dfs.append(ugraph_truth.iloc[t_match])
+
+            # Extract the unmatched picked particles
+            p_list = np.arange(len(picked_pos_x), dtype=int).tolist()
+            p_unmatched = list(set(p_list).difference(p_match))
+            unmatched_picked_dfs.append(ugraph_picked.iloc[p_unmatched])
+
+            # Extract the unmatched truth particles
+            t_list = np.arange(len(picked_pos_x), dtype=int).tolist()
+            t_unmatched = list(set(t_list).difference(t_match))
+            unmatched_truth_dfs.append(ugraph_truth.iloc[t_unmatched])
+
+            progressbar.update(1)
+        progressbar.close()
+
+        # now that we have 4 lists of picked and truth matched/unmatched dfs
+        # need to combine them into a df each and reindex
+        matched_picked_df = pd.concat(matched_picked_dfs, axis=0).reset_index(
+            drop=True
+        )
+        matched_truth_df = pd.concat(matched_truth_dfs, axis=0).reset_index(
+            drop=True
+        )
+        unmatched_picked_df = pd.concat(
+            unmatched_picked_dfs, axis=0
+        ).reset_index(drop=True)
+        unmatched_truth_df = pd.concat(
+            unmatched_truth_dfs, axis=0
+        ).reset_index(drop=True)
+
+        return (
+            matched_picked_df,
+            matched_truth_df,
+            unmatched_picked_df,
+            unmatched_truth_df,
+        )
 
     def _calc_neighbours(self, pos_picked, pos_truth, r):
         """Calculates the number of neighbours for each particle in the
@@ -1613,11 +1911,15 @@ class load_data(object):
             # than 1 particle radius to any of the true particles
             # A picked particle is considered a false positive if it is not
             # closer than 1 particle radius to any of the true particles
-            TP = 0  # the number of true positives in the current micrograph
-            FP = 0  # the number of false positives in the current micrograph
+            TP: float = (
+                0  # the number of true positives in the current micrograph
+            )
+            FP: float = (
+                0  # the number of false positives in the current micrograph
+            )
             for particle in range(len(pos_picked_in_ugraph)):
-                TP += np.any(sdm[particle] < self.particle_diameter / 2)
-                FP += np.all(sdm[particle] > self.particle_diameter / 2)
+                TP += float(np.any(sdm[particle] < self.particle_diameter / 2))
+                FP += float(np.all(sdm[particle] > self.particle_diameter / 2))
 
                 TP_all.append(
                     np.any(sdm[particle] < self.particle_diameter / 2)
@@ -1634,18 +1936,22 @@ class load_data(object):
             # not closer than 1 particle radius to any of the picked particles
             # The multiplicity is defined as the average number of times
             # a truth particle is picked
-            FN = 0  # the number of false negatives in the current micrograph
+            FN: float = (
+                0.0  # the number of false negatives in the current micrograph
+            )
             multiplicity = []  # the number of times a truth particle is picked
             for particle in range(len(pos_truth_in_ugraph)):
-                FN += np.all(sdm[:, particle] > self.particle_diameter / 2)
+                FN += float(
+                    np.all(sdm[:, particle] > self.particle_diameter / 2)
+                )
                 multiplicity.append(
                     np.sum(sdm[:, particle] < self.particle_diameter / 2)
                 )
             multiplicity = np.mean(multiplicity)
 
             # calculate the precision, recall and multiplicity
-            precision = TP / (TP + FP)
-            recall = TP / (TP + FN)
+            precision = float(TP) / (float(TP) + float(FP))
+            recall = float(TP) / (float(TP) + float(FN))
 
             # append the results to the results data frame
             results_precision["metadata_filename"].append(groupname[0])
@@ -1777,3 +2083,87 @@ class load_data(object):
         progressbar.close()
 
         return pd.DataFrame(data=results_overlap)
+
+
+class plotDataFrame(object):
+    """Parent class to hold methods for standard saving and loading of data
+    to be plotted.
+    Input is a dict which holds information for one or more plots.
+    This is designed to hold all the information for a given cmd line plotting
+    functionality
+
+    Each (outer) dict key is expected to be a plot name
+    Which holds an inner dict
+    The inner dict holds one or more pandas DataFrames which are used to make
+    the given plot and are labelled according to the particular variable
+    holding the df at that point in the code.
+
+    When saving dataframes, a subdir is created from plot name (no file
+    extension) \nd the dataframes are saved within as csv files (index
+    is column 0)
+
+    When loading dataframes, existence of the subdir is checked for each
+    plot (using the outer dict key(s) and the dataframes are searched for
+    via the inner dict key(s) and then loaded as pd.DdataFrames using index
+    col=0
+
+    Methods are to save and load files.
+    This is intended to be a parent class with a child class specific to each
+    plot
+    The child class will include a function for making the plot and a function
+    for saving the plot
+
+    Args:
+        object (_type_): _description_
+    """
+
+    def __init__(
+        self,
+        plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+    ) -> None:
+        if plot_data:
+            self.plot_data = plot_data
+
+    def save_dataframes(self, plot_dir: str, overwrite: bool = False):
+        # loop over plots and create subdir for data if not already exists
+        if self.plot_data:
+            for plot, data_frames in self.plot_data.items():
+                subdir_path = os.path.join(plot_dir, plot)
+                if not os.path.isdir(subdir_path):
+                    os.makedirs(subdir_path)
+
+                # loop over dataframes and save data in csv file(s)
+                for df_label, df in data_frames.items():
+                    df_filename = os.path.join(subdir_path, df_label)
+                    df_filename += ".csv"
+                    if isinstance(df, pd.DataFrame):
+                        if os.path.isfile(df_filename):
+                            if overwrite:
+                                df.to_csv(df_filename)
+                        else:
+                            df.to_csv(df_filename)
+                    else:
+                        raise TypeError("df is not a pd.DataFrame!")
+        else:
+            raise ValueError(
+                "plotDataFrame.plot_data is None."
+                " Set it up with <ChildClass>.setup_plot_data()"
+            )
+
+    def load_dataframes(self, plot_dir: str) -> None:
+        # loop over plots and check if subdir for data exists
+        if self.plot_data:
+            for plot, data_frames in self.plot_data.items():
+                subdir_path = os.path.join(plot_dir, plot)
+                # locate the file and load the csv(s) to the dataframe(s)
+                for df_label in data_frames.keys():
+                    df_filename = os.path.join(subdir_path, df_label)
+                    df_filename += ".csv"
+                    self.plot_data[plot][df_label] = pd.read_csv(
+                        df_filename, index_col=0
+                    )
+        else:
+            raise ValueError(
+                "plotDataFrame.plot_data is None."
+                " Set it up with <ChildClass>.setup_plot_data()"
+            )

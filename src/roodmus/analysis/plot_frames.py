@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from roodmus.analysis.utils import load_data
+from roodmus.analysis.utils import load_data, plotDataFrame
 
 
 def add_arguments(parser):
@@ -75,6 +75,13 @@ def add_arguments(parser):
     parser.add_argument(
         "--tqdm", help="show tqdm progress bar", action="store_true"
     )
+    parser.add_argument(
+        "--dpi",
+        help="choose dots per inch in png plots, default to 100",
+        type=int,
+        default=100,
+        required=False,
+    )
     parser.add_argument("--pdf", help="save plot as pdf", action="store_true")
     return parser
 
@@ -83,12 +90,99 @@ def get_name():
     return "plot_frames"
 
 
+class plotFrameDistribution(plotDataFrame):
+    def __init__(
+        self,
+        job_types: dict[str, str],
+        plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+        plot_dir: str = "",
+        particle_diameter: float = 200,
+        dpi: int = 300,
+        pdf: bool = False,
+    ) -> None:
+        super().__init__(plot_data)
+
+        if plot_data:
+            self.plot_data = plot_data
+
+        self.job_types = job_types
+        self.plot_dir = plot_dir
+        self.particle_diameter = particle_diameter
+        self.dpi = dpi
+        self.pdf = pdf
+
+    def setup_plot_data(
+        self,
+        df_truth: pd.DataFrame,
+        df_picked: pd.DataFrame,
+    ):
+        self.plot_data = {"frame_distribution": {}}
+        self.plot_data["frame_distribution"]["df_truth"] = df_truth
+        self.plot_data["frame_distribution"]["df_picked"] = df_picked
+
+    def setup_plot_data_empty(
+        self,
+    ):
+        self.plot_data = {"frame_distribution": {}}
+        self.plot_data["frame_distribution"]["df_truth"] = None
+        self.plot_data["frame_distribution"]["df_picked"] = None
+
+    def make_and_save_plots(
+        self,
+        overwrite_data: bool = False,
+    ):
+        self.save_dataframes(self.plot_dir, overwrite_data)
+
+        if isinstance(
+            self.plot_data["frame_distribution"]["df_truth"],
+            pd.DataFrame,
+        ) and isinstance(
+            self.plot_data["frame_distribution"]["df_picked"],
+            pd.DataFrame,
+        ):
+            # plot the distribution of frames
+            print("plotting the frame distribution...")
+            for i, metadata_filename in enumerate(
+                self.plot_data["frame_distribution"]["df_picked"][
+                    "metadata_filename"
+                ].unique()
+            ):
+                print(f"plotting frames in {metadata_filename}...")
+                fig, ax = plot_frame_distribution(
+                    self.plot_data["frame_distribution"]["df_picked"],
+                    metadata_filename,
+                    self.plot_data["frame_distribution"]["df_truth"],
+                    self.particle_diameter,
+                    self.job_types,
+                )
+                meta_basename = os.path.basename(metadata_filename)
+                outfilename = os.path.join(
+                    self.plot_dir,
+                    f"{meta_basename.split('.')[0]}_frame_distribution.png",
+                )
+
+                self._save_plot(fig, ax, outfilename)
+
+        else:
+            raise TypeError("df_truth or df_picked is not a pd.DataFrame!")
+
+    def _save_plot(self, fig, ax, outfilename: str):
+        # save the plot
+        fig.savefig(outfilename, dpi=self.dpi, bbox_inches="tight")
+        if self.pdf:
+            fig.savefig(
+                outfilename.replace(".png", ".pdf"),
+                bbox_inches="tight",
+            )
+        fig.clf()
+
+
 def plot_frame_distribution(
     df_picked: pd.DataFrame,
     metadata_filename: str,
     df_truth: pd.DataFrame,
     particle_diameter: float,
-    jobtypes: dict,
+    jobtypes: dict[str, str],
 ):
     # check if the precision has been computed for the picked particles
     if "closest_pdb_index" not in df_picked.columns:
@@ -115,13 +209,13 @@ def plot_frame_distribution(
             "closest_pdb_index"
         ],
         ax=ax,
-        bins=100,
+        bins=25,
         kde=True,
     )
     sns.histplot(
         df_truth["pdb_index"],
         ax=ax,
-        bins=100,
+        bins=25,
         kde=True,
         color="red",
         alpha=0.2,
@@ -134,7 +228,7 @@ def plot_frame_distribution(
         ["picked", "truth"],
         loc="lower center",
         ncol=2,
-        bbox_to_anchor=(0.5, -0.05),
+        bbox_to_anchor=(0.5, -0.1),
         fontsize=12,
     )
     return fig, ax
@@ -151,7 +245,7 @@ def main(args):
         args.mrc_dir = args.config_dir
 
     # parse the metadata files and job types
-    meta_files, job_types, order = load_data.parse_jobtypes(
+    meta_files, job_types, _ = load_data.parse_jobtypes(
         args.meta_file, args.job_types
     )
     if args.verbose:
@@ -186,26 +280,15 @@ def main(args):
         df_picked, df_truth, verbose=args.verbose
     )
 
-    # plot the distribution of frames
-    print("plotting the frame distribution...")
-    for i, metadata_filename in enumerate(
-        df_picked["metadata_filename"].unique()
-    ):
-        print(f"plotting frames in {metadata_filename}...")
-        fig, ax = plot_frame_distribution(
-            df_picked,
-            metadata_filename,
-            df_truth,
-            args.particle_diameter,
-            job_types,
-        )
-        meta_basename = os.path.basename(metadata_filename)
-        outfilename = os.path.join(
-            args.plot_dir,
-            f"{meta_basename.split('.')[0]}_frame_distribution.png",
-        )
-        fig.savefig(outfilename, dpi=300)
-        fig.clf()
+    frame_distribution = plotFrameDistribution(
+        job_types,
+        plot_dir=args.plot_dir,
+        particle_diameter=args.particle_diameter,
+        dpi=args.dpi,
+        pdf=args.pdf,
+    )
+    frame_distribution.setup_plot_data(df_truth, df_picked)
+    frame_distribution.make_and_save_plots(overwrite_data=True)
 
 
 if __name__ == "__main__":
