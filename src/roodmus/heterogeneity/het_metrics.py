@@ -43,10 +43,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import argparse
 import os
+import pickle
 
 from itertools import combinations
 
 import glob2 as glob
+
 import MDAnalysis as mda
 from MDAnalysis.analysis import align, diffusionmap
 from MDAnalysis.analysis import encore
@@ -54,19 +56,31 @@ from MDAnalysis.analysis.encore.clustering import ClusteringMethod as clm
 from MDAnalysis.analysis.encore.dimensionality_reduction import (
     DimensionalityReductionMethod as drm,
 )
+
 import matplotlib.pyplot as plt
 
 # import matplotlib.cm as cm
 import numpy as np
+import pandas as pd
 import mdtraj
 import scipy.cluster.hierarchy
 
 # from scipy.spatial.distance import pdist
-from scipy.spatial.distance import squareform
+from scipy.spatial.distance import squareform, pdist
 from sklearn.decomposition import PCA
 
 
-def add_arguments(parser):
+def add_arguments(parser: argparse.ArgumentParser):
+    """Parse arguments for performing one or more clustering workflows
+    (as configured by provided argument permutations)
+
+    Args:
+        parser (argparse.ArgumentParser): _description_
+
+    Returns:
+        _type_: _description_
+    """    
+
     parser.add_argument(
         "--conformations_dir",
         "-c",
@@ -111,6 +125,15 @@ def add_arguments(parser):
     )
 
     parser.add_argument(
+        "--workflows_filename",
+        help="Filename for csv which keeps track of workflows and locations"
+        " of the pkl file containing the clusters from each workflow."
+        " Defaults to workflows.csv",
+        type=str,
+        default="workflows.csv",
+    )
+
+    parser.add_argument(
         "--file_ext",
         help="File extension of the conformation files. Default is .pdb",
         type=str,
@@ -138,6 +161,52 @@ def add_arguments(parser):
         help="Number of compute cores to use." " Default is 1",
         type=int,
         default=1,
+    )
+
+    # distance metrics
+    parser.add_argument(
+        "--distance_metric",
+        help="Distance metric to use in workflow."
+        " Defaults to RMSD.",
+        nargs="+",
+        choices=["rmsd"],
+        type=str,
+        default=["rmsd"],
+    )
+
+    # dimension reduction
+    parser.add_argument(
+        "--dimension_reduction",
+        help="Dimensionality reduction technique to apply to distance"
+        " metric",
+        nargs="+",
+        choices=["", "pca"],
+        type=str,
+        default=[""],
+    )
+
+    # dimensions to reduce to
+    parser.add_argument(
+        "--dimensions",
+        help="Number of dimensions to reduce the pairwise distance metric."
+        " If number of args provided is not same as number of uses of"
+        " dimension_reduction argument then: if no --dimensions arg (or a"
+        " single) argument is supplied made, the default (2) will be used"
+        " for all. Else an error will be raised.",
+        nargs="+",
+        type=int,
+        default=[None],
+    )
+
+    # clustering alg
+    parser.add_argument(
+        "--cluster_alg",
+        help="Algorithm to use for clustering of (optionally dimension"
+        " reduced) distance metric.",
+        nargs="+",
+        choices=["kmeans", "ward"],
+        type=str,
+        default=["kmeans"],
     )
 
     parser.add_argument("--pdf", help="save plot as pdf", action="store_true")
@@ -269,14 +338,14 @@ def plot_rmsd_dendrogram(
 
 
 def mdtraj_apply_pca(
-    args,
     vector_1_3: np.ndarray,
     n_components: int = 2,
+    verbose: bool = False,
 ) -> np.ndarray:
     # get pca ou of mdtraj inputs
-    pca1 = PCA(n_components=2)
+    pca1 = PCA(n_components=n_components)
     reduced_cartesian = pca1.fit_transform(vector_1_3)
-    if args.verbose:
+    if verbose:
         print(reduced_cartesian.shape)
     return reduced_cartesian
 
@@ -318,7 +387,7 @@ def mda_distancematrix(
     conformations: mda.Universe,
     select: str = "name CA",
     in_memory: bool = True,
-) -> mda.analysis.DistanceMatrix:
+) -> mda.analysis.diffusionmap.DistanceMatrix:
     align.AlignTraj(
         conformations,
         conformations,
@@ -356,38 +425,371 @@ def plot_mda_distancematrix(
     plt.clf()
 
 
-def main(args):
-    """Load in conformations (pdb) and compute heterogeneity
-    related metrics and (optimal) clustering"""
+class ensembleComparison(object):
+    """Class to perform comparison of clusters. Clusters to compare are
+    specified via CLI args from the csv (or otherwise) which keeps
+    track of the clustering workflows.
+    Adds a file location of computed metrics into the tracking csv file.
+    This contains pairwise computation of (symmetric) hausdorf metric
+    and Shannon-Jensen comparison of the clusters (from the 2 workflows).
+    Run on the same workflow the get pairwise comparison between itself
+    instead.
 
-    # load the trajectory as an mda.Universe
-    conformations = mda_load_universe(args)
+    Args:
+        object (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    def __init__(self) -> None:
+        pass
+
+def determine_workflow_permutations(
+        dimension_reduction: list[str],
+        dimensions: list[int|None],
+        distance_metric: list[str],
+        cluster_alg: list[str],
+        alignment: list[str] = ["superpose"],
+        verbose: bool=False,
+    )->pd.DataFrame:
+    """Turn permutations of workflow into a dataframe
+
+    Args:
+        distance_metric (list[str]): list of distance metrics
+        dimension_reduction (list[str]): _description_
+        dimensions (list[int]): _description_
+        cluster_alg (list[str]): _description_
+        alignment (list[str], optional): _description_. Defaults to ["superpose"].
+
+    Returns:
+        pd.DataFrame: _description_
+    """    
+    workflow_labels = [
+        "alignment",
+        "dimension_reduction",
+        "dimensions",
+        "distance_metric",
+        "cluster_alg"
+    ]
+    workflows = []
+    for al in alignment:
+        for i, dr in enumerate(dimension_reduction):
+            if len(dimensions)==1:
+                dims = dimensions[0]
+            elif len(dimensions)==len(dimension_reduction):
+                dims = dimensions[i]
+            else:
+                raise ValueError(
+                    "Incorrect number of dimensions arguments"
+                    " supplied.Expected {} but found {}".format(
+                        len(dimension_reduction),
+                        len(dimensions),
+                    )
+                )
+            for dm in distance_metric:
+                for ca in cluster_alg:
+                    workflows.append([al, dr, dims, dm, ca])
+
+    workflows_df = pd.DataFrame(workflows, columns=workflow_labels)
+    if verbose:
+        print("workflow permutations:\n{}".format(workflows_df))
+    return workflows_df
+
+def none_to_empty_str(check_var):
+    if check_var is None:
+        return ""
+    else:
+        return str(check_var)
+
+def construct_object_pkl_locations(
+        processing_step: str,
+        directory: str,
+        alignment: str,
+        dimension_reduction: str,
+        dimensions: int|None,
+        distance_metric: str,
+        cluster_alg: str,
+    ):
+    # preserve workflow in filename
+    pkl_filename = "{}_{}_{}_{}_{}_{}.pkl".format(
+        alignment,
+        dimension_reduction,
+        none_to_empty_str(dimensions),
+        distance_metric,
+        cluster_alg,
+        processing_step,
+    )
+    pkl_path = os.path.join(directory, pkl_filename)
+    return pkl_path
+
+
+def determine_workflow_pkl_locations(
+        results_dir: str,
+        workflows: pd.DataFrame,
+    ):
+    pkl_files_dr = []
+    pkl_files_dm = []
+    pkl_files_ca = []
+    # note that pkl files are put in same dir as workflows.csv
+    for workflow_index in range(len(workflows)):
+        workflow = workflows.iloc[workflow_index]
+        # dimension reduction pkl (if any)
+        pkl_files_dr.append(
+            construct_object_pkl_locations(
+                "dr",
+                results_dir,
+                workflow["alignment"],
+                workflow["dimension_reduction"],
+                none_to_empty_str(workflow["dimensions"]),
+                workflow["distance_metric"],
+                workflow["cluster_alg"],
+            )
+        )
+        pkl_files_dm.append(
+            construct_object_pkl_locations(
+                "dm",
+                results_dir,
+                workflow["alignment"],
+                workflow["dimension_reduction"],
+                none_to_empty_str(workflow["dimensions"]),
+                workflow["distance_metric"],
+                workflow["cluster_alg"],
+            )
+        )
+        pkl_files_ca.append(
+            construct_object_pkl_locations(
+                "ca",
+                results_dir,
+                workflow["alignment"],
+                workflow["dimension_reduction"],
+                none_to_empty_str(workflow["dimensions"]),
+                workflow["distance_metric"],
+                workflow["cluster_alg"],
+            )
+        )
+    # add new column to df for each output object
+    print(pkl_files_dr)
+    print(pkl_files_dm)
+    print(pkl_files_ca)
+    workflows["dm"] = pkl_files_dr
+    workflows["dr"] = pkl_files_dm
+    workflows["ca"] = pkl_files_ca
+    return workflows
+
+class ensembleClustering(object):
+    """Class to take in args from cmd line and assemble a clustering workflow
+    up to the creation of clusters. Comparison is done in ensembleComparison
+    class.
+    Formed of calls to other classes and functions for each stage of the
+    processing.
+    Each CLI call performs a clustering workflow making use of ALL
+    permutations of the specified worflow steps. Call several times
+    via CLI to perform a specific workflow. Each workflow is tracked via csv
+    file which contains the workflow info and a link to the output clustering
+    of the embedded distance matrix (saved as a np.array pkl).
+
+    Args:
+        object (_type_): _description_
+    """
+    def __init__(
+            self,
+            trajectory: mdtraj.Trajectory,
+            results_dir: str,
+            workflows_filename: str,
+            distance_metric: list[str],
+            dimension_reduction: list[str],
+            dimensions: list[int|None],
+            cluster_alg: list[str],
+            verbose: bool,
+        ) -> None:
+        self.trajectory = trajectory
+        self.verbose = verbose
+        self.results_dir = results_dir
+        self.workflows_filename = os.path.join(
+            self.results_dir,
+            workflows_filename,
+        )
+
+        self.workflows = determine_workflow_permutations(
+            dimension_reduction,
+            dimensions,
+            distance_metric,
+            cluster_alg,
+            verbose=self.verbose,
+        )
+        # determine locations for pkl files to save/load the
+        # distance matrix objects
+        # determine locations for pkl files to save/load the
+        # dimensionality reduced objects
+        # determine locations for pkl files to save/load the
+        # cluster objects
+        self.workflows = determine_workflow_pkl_locations(
+            self.results_dir,
+            self.workflows,
+        )
+
+        if not os.path.isdir(results_dir):
+            os.makedirs(results_dir)
+        # save the workflows csv from df to file
+        self.workflows.to_csv(self.workflows_filename)
+    
+    def run_all_workflows(self):
+        for workflow_index in range(len(self.workflows)):
+            workflow = self.workflows.iloc[workflow_index]
+            self.run_workflow(workflow)
+
+    def run_workflow(self, workflow):
+        """
+        if workflow["alignment"] is not None:
+            self.run_alignment(workflow["alignment"])
+        """
+
+        workflow_output = self.trajectory.xyz
+
+        if workflow["dimension_reduction"] is not None:
+            workflow_output = self.run_dimensionality_reduction(
+                dimensionality_reduction=workflow["dimension_reduction"],
+            )
+            # save as pkl
+            print(workflow_output)
+            print(workflow["dr"])
+            with open(workflow["dr"], "wb") as f:
+                pickle.dump(workflow_output, f)
+
+        if workflow["distance_metric"] is not None:
+            workflow_output = self.run_distance_metric(
+                workflow["distance_metric"],
+                workflow_output,
+            )
+            # save as pkl
+            with open(workflow["dm"], "wb") as f:
+                pickle.dump(workflow_output, f)
+
+        if workflow["cluster_alg"] is not None:
+            workflow_output = self.run_cluster_alg(
+                workflow["cluster_alg"],
+                workflow_output,
+            )
+            # save as pkl
+            with open(workflow["ca"], "wb") as f:
+                pickle.dump(workflow_output, f)
+    
+    def run_alignment(self, alignment)->None:
+        ran_alignment=False
+        if alignment=="superpose":
+            # superposition aligns the trajectory on
+            # the first frame of the trajectory
+            self.trajectory = self.trajectory.superpose(
+                self.trajectory,
+                0,
+            )
+            ran_alignment=True
+        assert(ran_alignment)==True
+        return
+
+    def run_dimensionality_reduction(self, dimensionality_reduction):
+        ran_dimensionality_reduction = False
+        if dimensionality_reduction=="pca":
+            transformed_coords = mdtraj_apply_pca(
+                self.trajectory.xyz.reshape(
+                    self.trajectory.n_frames,
+                    self.trajectory.n_atoms * 3,
+                ),
+                0.85,
+                self.verbose,
+            )
+            # normalise
+            transformed_coords/=np.sqrt(self.trajectory.n_atoms)
+            ran_dimensionality_reduction=True
+        assert ran_dimensionality_reduction==True
+        return transformed_coords
+        
+    def run_distance_metric(self, distance_metric, coords) -> np.ndarray:
+        ran_distance_metric=False
+        if distance_metric=="rmsd":
+            # create the distance matrix
+            # distance_matrix = mdtraj_pairwise_rmsd(self.trajectory)
+            # instead of rmsd on mdtraj.Trajectory, instead use pdist
+            # as pca dimensions are not guaranteed applicable to
+            # mdtraj.Trajectory
+            distance_matrix = pdist(coords)
+            if self.verbose:
+                print(
+                    "Distance matrix shape: {}".format(
+                        distance_matrix.shape
+                    )
+                )
+
+            ran_distance_metric=True
+        assert(ran_distance_metric)==True
+        return distance_matrix
+
+    def run_cluster_alg(self, cluster_alg, distance_matrix):
+        ran_cluster_alg = False
+        if cluster_alg=="kmeans":
+            pass
+        if cluster_alg=="ward":
+            cluster_info = scipy.cluster.hierarchy.linkage(
+                distance_matrix,
+                method="ward",
+            )
+            ran_cluster_alg = True
+        assert ran_cluster_alg==True
+        return cluster_info
+
+def pilot_study(args):
+    """Pilot study to establish sw library interfaces
+    for aligning, distance metric, embedding, clustering 
+    trajectory loading: mdtraj 
+    aligning: mdtraj rmsd (or np pdist)
+    embedding: 2D pca sklearn
+    clustering: k-means sklearn
+    """
 
     # using mdtraj to compute RMSD clustering of traj
     # and subsequently pairwise distance clustering of traj???
     # load traj
     traj = mdtraj_load_traj(args)
 
+    # align first
+    traj.superpose(traj, 0)
+
+    # init ensembleClustering
+    # determine_workflow_permutations is called
+    # determine_workflow_pkl_locations is also called
+    ensemble_clustering = ensembleClustering(
+        trajectory=traj,
+        results_dir=args.output_dir,
+        workflows_filename = args.workflows_filename,
+        distance_metric = args.distance_metric,
+        dimension_reduction = args.dimension_reduction,
+        dimensions = args.dimensions,
+        cluster_alg = args.cluster_alg,
+        verbose = args.verbose,
+    )
+
+    # run all workflows
+    # this should run all the workflows and save pkl objects
+    # at the dimension reduction, distance matrix and cluster stages
+    ensemble_clustering.run_all_workflows()
+
+
+
+
+    # do dimension reduction
+
+
+    """
     # get pairwise rmsd and plot
     pairwise_rmsd = mdtraj_pairwise_rmsd(traj)
     print("Max pairwise rmsd: %f nm" % np.max(pairwise_rmsd))
     plot_mdtraj_pairwise_rmsd(args, pairwise_rmsd)
 
-    # cluster with average linkage using RMSD distance metric as an example
-    # Clustering only accepts reduced form. Squareform's checks are too
-    # stringent
-    linkage = avg_linkage_cluster(pairwise_rmsd, args.verbose)
-
-    # plot dendrogram of avg linkage clustering
-    plot_rmsd_dendrogram(args, linkage)
-
     # get 2d pca of mdtraj rmsd
-    # align first
-    traj.superpose(traj, 0)
     reduced_cartesian = mdtraj_apply_pca(
-        args,
         traj.xyz.reshape(traj.n_frames, traj.n_atoms * 3),
         2,
+        args.verbose,
     )
     # plot 2d pca of mdtraj rmsd
     mdtraj_plot_2d_pca(
@@ -395,25 +797,36 @@ def main(args):
         reduced_cartesian,
         traj,
     )
+    """
 
-    # now also look at using pairwise distances as a distance metric
-    traj.superpose(traj, 0)
-    pairwise_distances = mdtraj_pairwise_distances(
-        args,
-        traj,
-        10000,
-    )
-    # apply 2d pca
-    reduced_distances = mdtraj_apply_pca(
-        args,
-        pairwise_distances,
-        2,
-    )
-    mdtraj_plot_2d_pca(
-        args,
-        reduced_distances,
-        traj,
-    )
+def pilot_study_compare_ensembles(args):
+    """Pilot study to establish sw library interfaces for
+    2 slightly different clustering workflows and perform
+    the comparison by calculating metrics. To compare a
+    latent space representation, do equivalent. A latent
+    space is simply equivalent to a distance metric
+    """
+    pass
+
+def load_universe(args):
+    # load the trajectory as an mda.Universe
+    conformations = mda_load_universe(args)
+    return conformations
+
+def avg_linkage_clustering(args, distance_metric: np.ndarray):
+    # cluster with average linkage using RMSD distance metric as an example
+    # Clustering only accepts reduced form. Squareform's checks are too
+    # stringent
+    linkage = avg_linkage_cluster(distance_metric, args.verbose)
+
+    # plot dendrogram of avg linkage clustering
+    plot_rmsd_dendrogram(args, linkage)
+
+def main(args):
+    """Load in conformations (pdb) and compute heterogeneity
+    related metrics and (optimal) clustering"""
+    pilot_study(args)
+    
     """
     labels are generic in the plot function for now
     TODO improve plot label customisation
@@ -447,15 +860,17 @@ def main(args):
     # https://userguide.mdanalysis.org/1.1.1/examples/analysis/
     # alignment_and_rms/aligning_trajectory.html#Aligning-a-trajectory
     # -with-AlignTraj
-    distancematrix = mda_distancematrix(conformations)
+    ## distancematrix = mda_distancematrix(conformations)
     # plot the distancematrix
     # default metric is rmsd
     # looks like there is no
     # dimension reduction (that is implemented in diffusionmap instead)
+    """
     plot_mda_distancematrix(
         args,
         distancematrix.dist_matrix,
     )
+    """
 
     # TODO calc rmsf?
 
@@ -472,6 +887,7 @@ def main(args):
     # use dimenstionality reduction method to cluster
     # using a range of different PCA dimensions
     # set up PCA dimension reduction algs
+    """
     pc2 = clm.KMeans(
         2,
     )
@@ -548,6 +964,7 @@ def main(args):
     if args.pdf:
         plt.savefig(pca_figname + ".pdf")
     plt.clf()
+    """
 
     # TODO apply elbow for optimal number of clusters (sklearn inertia)
 
