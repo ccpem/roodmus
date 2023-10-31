@@ -44,6 +44,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import argparse
 import os
 import pickle
+import logging
 
 from itertools import combinations
 
@@ -69,6 +70,9 @@ import scipy.cluster.hierarchy
 from scipy.spatial.distance import squareform, pdist
 from sklearn.decomposition import PCA
 
+# setup file to write warning and logs to
+logging.basicConfig(filename="het_metrics.log",level=logging.DEBUG)
+logging.captureWarnings(True)
 
 def add_arguments(parser: argparse.ArgumentParser):
     """Parse arguments for performing one or more clustering workflows
@@ -195,6 +199,16 @@ def add_arguments(parser: argparse.ArgumentParser):
         " for all. Else an error will be raised.",
         nargs="+",
         type=int,
+        default=[None],
+    )
+
+    parser.add_argument(
+        "--variance_coverage",
+        help="Used in the same way as the --dimensions argument, here"
+        " dimensions are reduced based on the variance of the dataset"
+        " which is explained (whenever possible)",
+        nargs="+",
+        type=float,
         default=[None],
     )
 
@@ -444,9 +458,64 @@ class ensembleComparison(object):
     def __init__(self) -> None:
         pass
 
+def plot_2d_embedding(
+    embedding_array: np.ndarray,
+    filename: str,
+    metric: str,
+    dpi: int=300,
+    pdf: bool=False,
+) -> None:
+    assert embedding_array.shape[1]==2
+    conformation = np.arange(embedding_array.shape[0])
+    plt.scatter(
+        embedding_array[:, 0],
+        embedding_array[:, 1],
+        marker="o",
+        c=conformation,
+    )
+    plt.xlabel("z0")
+    plt.ylabel("z1")
+    plt.colorbar(label=r"{}".format(metric))
+    if filename[-4:]==".png":
+        figname=filename
+    else:
+        figname = filename+".png"
+    plt.savefig(figname, dpi=dpi)
+    if pdf:
+        plt.savefig(
+            figname.replace(".png", ".pdf"),
+        )
+    plt.clf()
+
+def plot_distancematrix(
+        distance_matrix: np.ndarray,
+        filename: str,
+        metric: str,
+        dpi: int=300,
+        pdf: bool=False,
+    )->None:
+    square_matrix = squareform(distance_matrix)
+    if filename[-4:]==".png":
+        dist_matrix_fpath = filename
+    else:
+        dist_matrix_fpath = filename+".png"
+    plt.imshow(
+        square_matrix,
+        cmap="viridis",
+    )
+    plt.xlabel("Conformation #")
+    plt.ylabel("Conformation #")
+    plt.colorbar(label=r"{} ($\AA$)".format(metric))
+    plt.savefig(dist_matrix_fpath, dpi=dpi)
+    if pdf:
+        plt.savefig(
+            dist_matrix_fpath.replace(".png", ".pdf"),
+        )
+    plt.clf()
+
 def determine_workflow_permutations(
         dimension_reduction: list[str],
-        dimensions: list[int|None],
+        dimensions: list[int|float|None],
         distance_metric: list[str],
         cluster_alg: list[str],
         alignment: list[str] = ["superpose"],
@@ -457,7 +526,7 @@ def determine_workflow_permutations(
     Args:
         distance_metric (list[str]): list of distance metrics
         dimension_reduction (list[str]): _description_
-        dimensions (list[int]): _description_
+        dimensions (list[int|float]): _description_
         cluster_alg (list[str]): _description_
         alignment (list[str], optional): _description_. Defaults to ["superpose"].
 
@@ -473,22 +542,11 @@ def determine_workflow_permutations(
     ]
     workflows = []
     for al in alignment:
-        for i, dr in enumerate(dimension_reduction):
-            if len(dimensions)==1:
-                dims = dimensions[0]
-            elif len(dimensions)==len(dimension_reduction):
-                dims = dimensions[i]
-            else:
-                raise ValueError(
-                    "Incorrect number of dimensions arguments"
-                    " supplied.Expected {} but found {}".format(
-                        len(dimension_reduction),
-                        len(dimensions),
-                    )
-                )
-            for dm in distance_metric:
-                for ca in cluster_alg:
-                    workflows.append([al, dr, dims, dm, ca])
+        for dr in dimension_reduction:
+            for dims in dimensions:
+                for dm in distance_metric:
+                    for ca in cluster_alg:
+                        workflows.append([al, dr, dims, dm, ca])
 
     workflows_df = pd.DataFrame(workflows, columns=workflow_labels)
     if verbose:
@@ -506,7 +564,7 @@ def construct_object_pkl_locations(
         directory: str,
         alignment: str,
         dimension_reduction: str,
-        dimensions: int|None,
+        dimensions: int|float|None,
         distance_metric: str,
         cluster_alg: str,
     ):
@@ -598,11 +656,15 @@ class ensembleClustering(object):
             workflows_filename: str,
             distance_metric: list[str],
             dimension_reduction: list[str],
-            dimensions: list[int|None],
+            dimensions: list[int|float|None],
             cluster_alg: list[str],
-            verbose: bool,
+            dpi: int=300,
+            pdf: bool=False,
+            verbose: bool = False,
         ) -> None:
         self.trajectory = trajectory
+        self.dpi = dpi
+        self.pdf = pdf
         self.verbose = verbose
         self.results_dir = results_dir
         self.workflows_filename = os.path.join(
@@ -649,10 +711,26 @@ class ensembleClustering(object):
         if workflow["dimension_reduction"] is not None:
             workflow_output = self.run_dimensionality_reduction(
                 dimensionality_reduction=workflow["dimension_reduction"],
+                dimensions=workflow["dimensions"]
             )
             # save as pkl
-            print(workflow_output)
-            print(workflow["dr"])
+            if self.verbose:
+                print("Dimensions reduced to {}".format(
+                    workflow_output.shape
+                    )
+                )
+            
+            # if it's easily to visualise embedding
+            # in 2d, make a plot
+            if workflow_output.shape[1]==2:
+                plot_2d_embedding(
+                    workflow_output,
+                    workflow["dr"].replace(".pkl", ".png"),
+                    workflow["dimension_reduction"],
+                    dpi=self.dpi,
+                    pdf=self.pdf,
+                )
+
             with open(workflow["dr"], "wb") as f:
                 pickle.dump(workflow_output, f)
 
@@ -662,6 +740,21 @@ class ensembleClustering(object):
                 workflow_output,
             )
             # save as pkl
+            if self.verbose:
+                print("Distance metric has shape: {}".format(
+                    workflow_output.shape
+                    )
+                )
+            
+            # visualise the distance metric
+            plot_distancematrix(
+                workflow_output,
+                workflow["dm"].replace(".pkl", ".png"),
+                metric = workflow["distance_metric"],
+                dpi=self.dpi,
+                pdf=self.pdf,
+            )
+
             with open(workflow["dm"], "wb") as f:
                 pickle.dump(workflow_output, f)
 
@@ -687,7 +780,11 @@ class ensembleClustering(object):
         assert(ran_alignment)==True
         return
 
-    def run_dimensionality_reduction(self, dimensionality_reduction):
+    def run_dimensionality_reduction(
+            self,
+            dimensionality_reduction,
+            dimensions,
+        ):
         ran_dimensionality_reduction = False
         if dimensionality_reduction=="pca":
             transformed_coords = mdtraj_apply_pca(
@@ -695,7 +792,7 @@ class ensembleClustering(object):
                     self.trajectory.n_frames,
                     self.trajectory.n_atoms * 3,
                 ),
-                0.85,
+                dimensions,
                 self.verbose,
             )
             # normalise
@@ -746,10 +843,27 @@ def pilot_study(args):
     clustering: k-means sklearn
     """
 
+    # can only use one of dimsions or variance_coverage
+    # ensure by default that dimensions is used
+    if (
+        args.dimensions!=[None]
+        ) and (
+         args.variance_coverage!=[None]
+    ):
+        raise ValueError(
+            "Must use only one of --dimensions or --variance_coverage"
+        )
+    dimensions = args.dimensions
+    if args.variance_coverage is not [None]:
+        dimensions = args.variance_coverage
+    
+
     # using mdtraj to compute RMSD clustering of traj
     # and subsequently pairwise distance clustering of traj???
     # load traj
     traj = mdtraj_load_traj(args)
+    # select the non-hydrogen/helium atoms
+    traj = traj.atom_slice(traj.topology.__select("mass>2.0"))
 
     # align first
     traj.superpose(traj, 0)
@@ -763,7 +877,7 @@ def pilot_study(args):
         workflows_filename = args.workflows_filename,
         distance_metric = args.distance_metric,
         dimension_reduction = args.dimension_reduction,
-        dimensions = args.dimensions,
+        dimensions = dimensions,
         cluster_alg = args.cluster_alg,
         verbose = args.verbose,
     )
