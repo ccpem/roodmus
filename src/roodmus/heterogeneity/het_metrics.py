@@ -69,6 +69,7 @@ import scipy.cluster.hierarchy
 # from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform, pdist
 from sklearn.decomposition import PCA
+from sklearn.cluster import AgglomerativeClustering
 
 # setup file to write warning and logs to
 logging.basicConfig(filename="het_metrics.log",level=logging.DEBUG)
@@ -218,9 +219,18 @@ def add_arguments(parser: argparse.ArgumentParser):
         help="Algorithm to use for clustering of (optionally dimension"
         " reduced) distance metric.",
         nargs="+",
-        choices=["kmeans", "ward"],
+        choices=["kmeans", "ward", "hier_avg", "hier_complete", "hier_single"],
         type=str,
         default=["kmeans"],
+    )
+
+    # nclusters
+    parser.add_argument(
+        "--n_clusters",
+        help="Number of clusters to use in clustering",
+        nargs="+",
+        type=int,
+        default=[2],
     )
 
     parser.add_argument("--pdf", help="save plot as pdf", action="store_true")
@@ -352,16 +362,11 @@ def plot_rmsd_dendrogram(
 
 
 def mdtraj_apply_pca(
-    vector_1_3: np.ndarray,
     n_components: int = 2,
-    verbose: bool = False,
-) -> np.ndarray:
+) -> PCA:
     # get pca ou of mdtraj inputs
     pca1 = PCA(n_components=n_components)
-    reduced_cartesian = pca1.fit_transform(vector_1_3)
-    if verbose:
-        print(reduced_cartesian.shape)
-    return reduced_cartesian
+    return pca1
 
 
 def mdtraj_plot_2d_pca(
@@ -460,21 +465,23 @@ class ensembleComparison(object):
 
 def plot_2d_embedding(
     embedding_array: np.ndarray,
+    color_scatter: np.ndarray,
     filename: str,
     metric: str,
+    xlabel: str="z0",
+    ylabel: str="z1",
     dpi: int=300,
     pdf: bool=False,
 ) -> None:
     assert embedding_array.shape[1]==2
-    conformation = np.arange(embedding_array.shape[0])
     plt.scatter(
         embedding_array[:, 0],
         embedding_array[:, 1],
         marker="o",
-        c=conformation,
+        c=color_scatter,
     )
-    plt.xlabel("z0")
-    plt.ylabel("z1")
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
     plt.colorbar(label=r"{}".format(metric))
     if filename[-4:]==".png":
         figname=filename
@@ -518,6 +525,7 @@ def determine_workflow_permutations(
         dimensions: list[int|float|None],
         distance_metric: list[str],
         cluster_alg: list[str],
+        clusters: list[int],
         alignment: list[str] = ["superpose"],
         verbose: bool=False,
     )->pd.DataFrame:
@@ -528,6 +536,7 @@ def determine_workflow_permutations(
         dimension_reduction (list[str]): _description_
         dimensions (list[int|float]): _description_
         cluster_alg (list[str]): _description_
+        cluster_alg (list[int]): _description_
         alignment (list[str], optional): _description_. Defaults to ["superpose"].
 
     Returns:
@@ -538,7 +547,8 @@ def determine_workflow_permutations(
         "dimension_reduction",
         "dimensions",
         "distance_metric",
-        "cluster_alg"
+        "cluster_alg",
+        "clusters",
     ]
     workflows = []
     for al in alignment:
@@ -546,7 +556,8 @@ def determine_workflow_permutations(
             for dims in dimensions:
                 for dm in distance_metric:
                     for ca in cluster_alg:
-                        workflows.append([al, dr, dims, dm, ca])
+                        for cn in clusters:
+                            workflows.append([al, dr, dims, dm, ca, cn])
 
     workflows_df = pd.DataFrame(workflows, columns=workflow_labels)
     if verbose:
@@ -567,14 +578,16 @@ def construct_object_pkl_locations(
         dimensions: int|float|None,
         distance_metric: str,
         cluster_alg: str,
+        clusters: str,
     ):
     # preserve workflow in filename
-    pkl_filename = "{}_{}_{}_{}_{}_{}.pkl".format(
+    pkl_filename = "{}_{}_{}_{}_{}_{}_{}.pkl".format(
         alignment,
         dimension_reduction,
         none_to_empty_str(dimensions),
         distance_metric,
         cluster_alg,
+        clusters,
         processing_step,
     )
     pkl_path = os.path.join(directory, pkl_filename)
@@ -601,6 +614,7 @@ def determine_workflow_pkl_locations(
                 none_to_empty_str(workflow["dimensions"]),
                 workflow["distance_metric"],
                 workflow["cluster_alg"],
+                workflow["clusters"],
             )
         )
         pkl_files_dm.append(
@@ -612,6 +626,7 @@ def determine_workflow_pkl_locations(
                 none_to_empty_str(workflow["dimensions"]),
                 workflow["distance_metric"],
                 workflow["cluster_alg"],
+                workflow["clusters"],
             )
         )
         pkl_files_ca.append(
@@ -623,14 +638,15 @@ def determine_workflow_pkl_locations(
                 none_to_empty_str(workflow["dimensions"]),
                 workflow["distance_metric"],
                 workflow["cluster_alg"],
+                workflow["clusters"],
             )
         )
     # add new column to df for each output object
     print(pkl_files_dr)
     print(pkl_files_dm)
     print(pkl_files_ca)
-    workflows["dm"] = pkl_files_dr
-    workflows["dr"] = pkl_files_dm
+    workflows["dr"] = pkl_files_dr
+    workflows["dm"] = pkl_files_dm
     workflows["ca"] = pkl_files_ca
     return workflows
 
@@ -658,6 +674,7 @@ class ensembleClustering(object):
             dimension_reduction: list[str],
             dimensions: list[int|float|None],
             cluster_alg: list[str],
+            clusters: list[int],
             dpi: int=300,
             pdf: bool=False,
             verbose: bool = False,
@@ -677,6 +694,7 @@ class ensembleClustering(object):
             dimensions,
             distance_metric,
             cluster_alg,
+            clusters,
             verbose=self.verbose,
         )
         # determine locations for pkl files to save/load the
@@ -696,6 +714,11 @@ class ensembleClustering(object):
         self.workflows.to_csv(self.workflows_filename)
     
     def run_all_workflows(self):
+        self.last_dr = "",
+        self.last_dr_dims = "",
+        self.last_dm = "",
+        self.last_ca = "",
+        self.last_ca_nc = ""
         for workflow_index in range(len(self.workflows)):
             workflow = self.workflows.iloc[workflow_index]
             self.run_workflow(workflow)
@@ -705,50 +728,71 @@ class ensembleClustering(object):
         if workflow["alignment"] is not None:
             self.run_alignment(workflow["alignment"])
         """
+        upstream_changed = False
+        # set a default for transformed dimensions to use if dr is None
+        if (workflow["dimension_reduction"] is not None and (
+            workflow["dimension_reduction"]!=self.last_dr or
+            workflow["dimensions"]!=self.last_dr_dims
+        )):
+            upstream_changed = True
 
-        workflow_output = self.trajectory.xyz
-
-        if workflow["dimension_reduction"] is not None:
-            workflow_output = self.run_dimensionality_reduction(
+            self.dr, self.transformed_dimensions = self.run_dimensionality_reduction(
                 dimensionality_reduction=workflow["dimension_reduction"],
-                dimensions=workflow["dimensions"]
+                dimensions=workflow["dimensions"],
             )
             # save as pkl
             if self.verbose:
                 print("Dimensions reduced to {}".format(
-                    workflow_output.shape
+                    self.transformed_dimensions.shape
                     )
                 )
             
-            # if it's easily to visualise embedding
+            # visualise embedding
             # in 2d, make a plot
-            if workflow_output.shape[1]==2:
+            if self.transformed_dimensions.shape[-1]>1:
                 plot_2d_embedding(
-                    workflow_output,
+                    self.transformed_dimensions[:,0:2],
+                    np.arange(self.transformed_dimensions.shape[0]),
                     workflow["dr"].replace(".pkl", ".png"),
-                    workflow["dimension_reduction"],
+                    "conformation #",
                     dpi=self.dpi,
                     pdf=self.pdf,
                 )
 
             with open(workflow["dr"], "wb") as f:
-                pickle.dump(workflow_output, f)
+                pickle.dump(self.dr, f)
 
-        if workflow["distance_metric"] is not None:
-            workflow_output = self.run_distance_metric(
-                workflow["distance_metric"],
-                workflow_output,
-            )
+            self.last_dr = workflow["dimension_reduction"]
+            self.last_dr_dims = workflow["dimensions"]
+
+        if (workflow["distance_metric"] is not None
+            and workflow["distance_metric"]!=self.last_dm or
+            upstream_changed):
+            upstream_changed=True
+
+            if workflow["dimension_reduction"] is not None:
+                self.distance_metric = self.run_distance_metric(
+                    workflow["distance_metric"],
+                    self.transformed_dimensions,
+                )
+            else:
+                self.distance_metric = self.run_distance_metric(
+                    workflow["distance_metric"],
+                    self.trajectory.xyz.reshape(
+                        self.trajectory.n_frames,
+                        self.trajectory.n_atoms * 3,
+                    ),
+                )
             # save as pkl
             if self.verbose:
                 print("Distance metric has shape: {}".format(
-                    workflow_output.shape
+                    self.distance_metric.shape
                     )
                 )
             
             # visualise the distance metric
             plot_distancematrix(
-                workflow_output,
+                self.distance_metric,
                 workflow["dm"].replace(".pkl", ".png"),
                 metric = workflow["distance_metric"],
                 dpi=self.dpi,
@@ -756,16 +800,42 @@ class ensembleClustering(object):
             )
 
             with open(workflow["dm"], "wb") as f:
-                pickle.dump(workflow_output, f)
+                pickle.dump(self.distance_metric, f)
 
-        if workflow["cluster_alg"] is not None:
-            workflow_output = self.run_cluster_alg(
+            self.last_dm = workflow["distance_metric"]
+
+        if (workflow["cluster_alg"] is not None and
+            workflow["cluster_alg"]!=self.last_ca or
+            workflow["clusters"]!=self.last_ca_nc or
+            upstream_changed):
+            upstream_changed = True,
+
+            self.cluster_alg = self.run_cluster_alg(
                 workflow["cluster_alg"],
-                workflow_output,
+                self.distance_metric,
+                workflow["clusters"],
             )
+
+            # visualise the clusters using 2 principal component
+            # projection of reduced dimensions
+            # also visualise cluster index vs conformation index
+            # if dimensions were not reduced, only the latter
+            if workflow["dimension_reduction"] is not None:
+                plot_2d_embedding(
+                    self.transformed_dimensions[:,0:2],
+                    self.cluster_alg.labels_,
+                    workflow["ca"].replace(".pkl", ".png"),
+                    "cluster index",
+                    dpi=self.dpi,
+                    pdf=self.pdf,
+                )
+
             # save as pkl
             with open(workflow["ca"], "wb") as f:
-                pickle.dump(workflow_output, f)
+                pickle.dump(self.cluster_alg, f)
+
+            self.last_ca = workflow["cluster_alg"]
+            self.last_ca_nc = workflow["clusters"]
     
     def run_alignment(self, alignment)->None:
         ran_alignment=False
@@ -787,19 +857,29 @@ class ensembleClustering(object):
         ):
         ran_dimensionality_reduction = False
         if dimensionality_reduction=="pca":
-            transformed_coords = mdtraj_apply_pca(
+            pca = PCA(n_components=dimensions)
+
+            transformed_coords = pca.fit_transform(
                 self.trajectory.xyz.reshape(
                     self.trajectory.n_frames,
                     self.trajectory.n_atoms * 3,
                 ),
-                dimensions,
-                self.verbose,
             )
+            if self.verbose:
+                print(
+                    "PCA components variance explanation:\n{}".format(
+                        pca.explained_variance_ratio_
+                    )
+                )
+
             # normalise
             transformed_coords/=np.sqrt(self.trajectory.n_atoms)
             ran_dimensionality_reduction=True
+
+        # TODO add ICA
+
         assert ran_dimensionality_reduction==True
-        return transformed_coords
+        return pca, transformed_coords
         
     def run_distance_metric(self, distance_metric, coords) -> np.ndarray:
         ran_distance_metric=False
@@ -816,21 +896,82 @@ class ensembleClustering(object):
                         distance_matrix.shape
                     )
                 )
-
             ran_distance_metric=True
         assert(ran_distance_metric)==True
         return distance_matrix
 
-    def run_cluster_alg(self, cluster_alg, distance_matrix):
+    def run_cluster_alg(self, cluster_alg, distance_matrix, n_clusters):
         ran_cluster_alg = False
         if cluster_alg=="kmeans":
             pass
         if cluster_alg=="ward":
+            """
             cluster_info = scipy.cluster.hierarchy.linkage(
                 distance_matrix,
                 method="ward",
             )
+            """
+            cluster_info = AgglomerativeClustering(
+                n_clusters,
+                # linkage="ward",
+                metric="precomputed"
+            )
+            cluster_info.fit(
+                squareform(distance_matrix)
+            )
             ran_cluster_alg = True
+        
+        if cluster_alg=="hier_avg":
+            """
+            cluster_info = scipy.cluster.hierarchy.linkage(
+                distance_matrix,
+                method="ward",
+            )
+            """
+            cluster_info = AgglomerativeClustering(
+                n_clusters,
+                linkage="average",
+                metric="precomputed"
+            )
+            cluster_info.fit(
+                squareform(distance_matrix)
+            )
+            ran_cluster_alg = True
+    
+        if cluster_alg=="hier_complete":
+            """
+            cluster_info = scipy.cluster.hierarchy.linkage(
+                distance_matrix,
+                method="ward",
+            )
+            """
+            cluster_info = AgglomerativeClustering(
+                n_clusters,
+                linkage="complete",
+                metric="precomputed"
+            )
+            cluster_info.fit(
+                squareform(distance_matrix)
+            )
+            ran_cluster_alg = True
+    
+        if cluster_alg=="hier_avg":
+            """
+            cluster_info = scipy.cluster.hierarchy.linkage(
+                distance_matrix,
+                method="ward",
+            )
+            """
+            cluster_info = AgglomerativeClustering(
+                n_clusters,
+                linkage="single",
+                metric="precomputed"
+            )
+            cluster_info.fit(
+                squareform(distance_matrix)
+            )
+            ran_cluster_alg = True
+
         assert ran_cluster_alg==True
         return cluster_info
 
@@ -863,7 +1004,7 @@ def pilot_study(args):
     # load traj
     traj = mdtraj_load_traj(args)
     # select the non-hydrogen/helium atoms
-    traj = traj.atom_slice(traj.topology.__select("mass>2.0"))
+    traj = traj.atom_slice(traj.topology.select("mass>2.0"))
 
     # align first
     traj.superpose(traj, 0)
@@ -879,6 +1020,7 @@ def pilot_study(args):
         dimension_reduction = args.dimension_reduction,
         dimensions = dimensions,
         cluster_alg = args.cluster_alg,
+        clusters=args.n_clusters,
         verbose = args.verbose,
     )
 
