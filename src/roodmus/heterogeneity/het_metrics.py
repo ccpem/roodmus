@@ -67,7 +67,9 @@ import scipy.cluster.hierarchy
 
 # from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform, pdist
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA, IncrementalPCA, FastICA, KernelPCA
+from sklearn.manifold import Isomap, LocallyLinearEmbedding, SpectralEmbedding, MDS, TSNE
+import umap
 from sklearn.cluster import AgglomerativeClustering
 
 # setup file to write warning and logs to
@@ -179,7 +181,7 @@ def add_arguments(parser: argparse.ArgumentParser):
         help="Distance metric to use in workflow."
         " Defaults to RMSD.",
         nargs="+",
-        choices=["rmsd"],
+        choices=["", "rmsd"],
         type=str,
         default=["rmsd"],
     )
@@ -190,7 +192,7 @@ def add_arguments(parser: argparse.ArgumentParser):
         help="Dimensionality reduction technique to apply to distance"
         " metric",
         nargs="+",
-        choices=["", "pca"],
+        choices=["", "pca", "ipca", "ica", "kernelpca"],
         type=str,
         default=[""],
     )
@@ -901,9 +903,9 @@ class ensembleClustering(object):
         ):
         ran_dimensionality_reduction = False
         if dimensionality_reduction=="pca":
-            pca = PCA(n_components=dimensions)
+            dr_obj = PCA(n_components=dimensions)
 
-            transformed_coords = pca.fit_transform(
+            transformed_coords = dr_obj.fit_transform(
                 self.aligned.xyz.reshape(
                     self.aligned.n_frames,
                     self.aligned.n_atoms * 3,
@@ -912,7 +914,7 @@ class ensembleClustering(object):
             if self.verbose:
                 print(
                     "PCA components variance explanation:\n{}".format(
-                        pca.explained_variance_ratio_
+                        dr_obj.explained_variance_ratio_
                     )
                 )
 
@@ -920,10 +922,232 @@ class ensembleClustering(object):
             transformed_coords/=np.sqrt(self.aligned.n_atoms)
             ran_dimensionality_reduction=True
 
-        # TODO add ICA
+        # pca for larte datasets (memory efficient)
+        if dimensionality_reduction=="ipca":
+            assert isinstance(dimensions, int), "Dimensions must be int"
+            " to apply ipca"
+            dr_obj = IncrementalPCA(n_components=dimensions)
+
+            transformed_coords = dr_obj.fit_transform(
+                self.aligned.xyz.reshape(
+                    self.aligned.n_frames,
+                    self.aligned.n_atoms * 3,
+                ),
+            )
+            if self.verbose:
+                print(
+                    "IPCA components variance explanation:\n{}".format(
+                        dr_obj.explained_variance_ratio_
+                    )
+                )
+            # normalise
+            transformed_coords/=np.sqrt(self.aligned.n_atoms)
+            ran_dimensionality_reduction=True
+
+        # ICA (which autowhitens data as required)
+        if dimensionality_reduction=="ica":
+            assert isinstance(dimensions, int), "Dimensions must be int"
+            " to apply ica"
+            dr_obj = FastICA(n_components=dimensions)
+            transformed_coords = dr_obj.fit_transform(
+                self.aligned.xyz.reshape(
+                    self.aligned.n_frames,
+                    self.aligned.n_atoms * 3,
+                ),
+            )
+            # normalise
+            # TODO check if normalisation makes sense for ICA
+            transformed_coords/=np.sqrt(self.aligned.n_atoms)
+            ran_dimensionality_reduction=True
+
+        if dimensionality_reduction=="kernelpca":
+            assert isinstance(dimensions, int), "Dimensions must be int"
+            " to apply kernelpca"
+            dr_obj = KernelPCA(
+                n_components=dimensions,
+                eigen_solver="randomized",
+            )
+
+            transformed_coords = dr_obj.fit_transform(
+                self.aligned.xyz.reshape(
+                    self.aligned.n_frames,
+                    self.aligned.n_atoms * 3,
+                ),
+            )
+            # normalise
+            # TODO check if normalisation makes sense for KPCA
+            # transformed_coords/=np.sqrt(self.aligned.n_atoms)
+            ran_dimensionality_reduction=True
+
+        # TODO add UMAP embedding
+
+        # now onto manifold (non-linear dimension reduction techniques)
+        # isomap (tries to maintain geodesic distances)
+        if dimensionality_reduction=="isomap":
+            assert isinstance(dimensions, int), "Dimensions must be int"
+            " to apply isomap"
+            dr_obj = Isomap(n_components=dimensions)
+            transformed_coords = dr_obj.fit_transform(
+                self.aligned.xyz.reshape(
+                    self.aligned.n_frames,
+                    self.aligned.n_atoms * 3,
+                ),
+            )
+            # TODO normalise I think should not be done for non-linear
+            # embedding, but need to check
+            # transformed_coords/=np.sqrt(self.aligned.n_atoms)
+            ran_dimensionality_reduction=True
+
+        # Locally linear embedding (LLE) seeks a lower-dimensional projection
+        # of the data which preserves distances within local neighborhoods
+        if dimensionality_reduction=="lle":
+            assert isinstance(dimensions, int), "Dimensions must be int"
+            " to apply locally linear embedding"
+            dr_obj = LocallyLinearEmbedding(n_components=dimensions)
+            transformed_coords = dr_obj.fit_transform(
+                self.aligned.xyz.reshape(
+                    self.aligned.n_frames,
+                    self.aligned.n_atoms * 3,
+                ),
+            )
+            # TODO normalise I think should not be done for non-linear
+            # embedding, but need to check
+            # transformed_coords/=np.sqrt(self.aligned.n_atoms)
+            ran_dimensionality_reduction=True
+
+        if dimensionality_reduction=="mlle":
+            assert isinstance(dimensions, int), "Dimensions must be int"
+            " to apply modified locally linear embedding"
+            dr_obj = LocallyLinearEmbedding(
+                n_components=dimensions,
+                method="modified",
+            )
+            transformed_coords = dr_obj.fit_transform(
+                self.aligned.xyz.reshape(
+                    self.aligned.n_frames,
+                    self.aligned.n_atoms * 3,
+                ),
+            )
+            # TODO normalise I think should not be done for non-linear
+            # embedding, but need to check
+            # transformed_coords/=np.sqrt(self.aligned.n_atoms)
+            ran_dimensionality_reduction=True
+
+        if dimensionality_reduction=="hlle":
+            assert isinstance(dimensions, int), "Dimensions must be int"
+            " to apply modified locally linear embedding"
+            dr_obj = LocallyLinearEmbedding(
+                n_components=dimensions,
+                method="hessian",
+            )
+            transformed_coords = dr_obj.fit_transform(
+                self.aligned.xyz.reshape(
+                    self.aligned.n_frames,
+                    self.aligned.n_atoms * 3,
+                ),
+            )
+            # TODO normalise I think should not be done for non-linear
+            # embedding, but need to check
+            # transformed_coords/=np.sqrt(self.aligned.n_atoms)
+            ran_dimensionality_reduction=True
+
+        if dimensionality_reduction=="ltsa":
+            assert isinstance(dimensions, int), "Dimensions must be int"
+            " to apply modified locally linear embedding"
+            dr_obj = LocallyLinearEmbedding(
+                n_components=dimensions,
+                method="ltsa",
+            )
+            transformed_coords = dr_obj.fit_transform(
+                self.aligned.xyz.reshape(
+                    self.aligned.n_frames,
+                    self.aligned.n_atoms * 3,
+                ),
+            )
+            # TODO normalise I think should not be done for non-linear
+            # embedding, but need to check
+            # transformed_coords/=np.sqrt(self.aligned.n_atoms)
+            ran_dimensionality_reduction=True
+
+        # preserves local distance
+        if dimensionality_reduction=="spectral":
+            assert isinstance(dimensions, int), "Dimensions must be int"
+            " to apply modified locally linear embedding"
+            dr_obj = SpectralEmbedding(
+                n_components=dimensions,
+            )
+            transformed_coords = dr_obj.fit_transform(
+                self.aligned.xyz.reshape(
+                    self.aligned.n_frames,
+                    self.aligned.n_atoms * 3,
+                ),
+            )
+            # TODO normalise I think should not be done for non-linear
+            # embedding, but need to check
+            # transformed_coords/=np.sqrt(self.aligned.n_atoms)
+            ran_dimensionality_reduction=True
+
+        # mds is for analyzing similarity or dissimilarity data. It attempts
+        # to model similarity or dissimilarity data as distances in a
+        # geometric spaces. The data can be ratings of similarity between
+        # objects, interaction frequencies of molecules, or trade indices
+        # between countries.
+        if dimensionality_reduction=="mds_metric":
+            if dimensionality_reduction=="spectral":
+            assert isinstance(dimensions, int), "Dimensions must be int"
+            " to apply modified locally linear embedding"
+            dr_obj = MDS(
+                n_components=dimensions,
+            )
+            transformed_coords = dr_obj.fit_transform(
+                self.aligned.xyz.reshape(
+                    self.aligned.n_frames,
+                    self.aligned.n_atoms * 3,
+                ),
+            )
+            # TODO normalise I think should not be done for non-linear
+            # embedding, but need to check
+            # transformed_coords/=np.sqrt(self.aligned.n_atoms)
+            ran_dimensionality_reduction=True
+
+        if dimensionality_reduction=="mds_nonmetric":
+            if dimensionality_reduction=="spectral":
+            assert isinstance(dimensions, int), "Dimensions must be int"
+            " to apply modified locally linear embedding"
+            dr_obj = MDS(
+                n_components=dimensions,
+                metric=False,
+            )
+            transformed_coords = dr_obj.fit_transform(
+                self.aligned.xyz.reshape(
+                    self.aligned.n_frames,
+                    self.aligned.n_atoms * 3,
+                ),
+            )
+            # TODO normalise I think should not be done for non-linear
+            # embedding, but need to check
+            # transformed_coords/=np.sqrt(self.aligned.n_atoms)
+            ran_dimensionality_reduction=True
+
+        if dimensionality_reduction=="umap":
+            assert isinstance(dimensions, int), "Dimensions must be int"
+            " to apply modified locally linear embedding"
+            dr_obj = umap.UMAP(
+                n_components=dimensions,
+            )
+            transformed_coords = dr_obj.fit_transform(
+                self.aligned.xyz.reshape(
+                    self.aligned.n_frames,
+                    self.aligned.n_atoms * 3,
+                ),
+            )
+            # TODO normalise I think should not be done for non-linear
+            # embedding, but need to check
+            # transformed_coords/=np.sqrt(self.aligned.n_atoms)
+            ran_dimensionality_reduction=True
 
         assert ran_dimensionality_reduction==True
-        return pca, transformed_coords
+        return dr_obj, transformed_coords
         
     def run_distance_metric(self, distance_metric, coords) -> np.ndarray:
         ran_distance_metric=False
@@ -1015,6 +1239,16 @@ class ensembleClustering(object):
                 squareform(distance_matrix)
             )
             ran_cluster_alg = True
+
+        # TODO add GMM
+        # https://scikit-learn.org/stable/modules/mixture.html
+        # init with kmeans++
+
+        # variational bayesian GMM has tricky hyperpararmaters, so skipping
+
+        # 
+
+
 
         assert ran_cluster_alg==True
         return cluster_info
