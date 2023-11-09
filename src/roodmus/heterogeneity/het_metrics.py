@@ -192,7 +192,23 @@ def add_arguments(parser: argparse.ArgumentParser):
         help="Dimensionality reduction technique to apply to distance"
         " metric",
         nargs="+",
-        choices=["", "pca", "ipca", "ica", "kernelpca"],
+        choices=[
+            "",
+            "pca",
+            "ipca",
+            "ica",
+            "kernelpca",
+            "isomap",
+            "lle",
+            "mlle",
+            "hlle",
+            "ltsa",
+            "spectral",
+            "mds_metric",
+            "mds_nonmetric",
+            "tsne",
+            "umap",
+        ],
         type=str,
         default=[""],
     )
@@ -226,7 +242,22 @@ def add_arguments(parser: argparse.ArgumentParser):
         help="Algorithm to use for clustering of (optionally dimension"
         " reduced) distance metric.",
         nargs="+",
-        choices=["kmeans", "ward", "hier_avg", "hier_complete", "hier_single"],
+        choices=[
+            "kmeans",
+            "mbkmeans",
+            "affinity_euclid",
+            "affinity_precomputed",
+            "meanshift",
+            "spectral",
+            "spectral_precomputed",
+            "ward",
+            "hier_avg",
+            "hier_complete",
+            "hier_single",
+            "dbscan",
+            "hdbscan",
+            "optics",
+        ],
         type=str,
         default=["kmeans"],
     )
@@ -979,8 +1010,6 @@ class ensembleClustering(object):
             # transformed_coords/=np.sqrt(self.aligned.n_atoms)
             ran_dimensionality_reduction=True
 
-        # TODO add UMAP embedding
-
         # now onto manifold (non-linear dimension reduction techniques)
         # isomap (tries to maintain geodesic distances)
         if dimensionality_reduction=="isomap":
@@ -1093,7 +1122,6 @@ class ensembleClustering(object):
         # objects, interaction frequencies of molecules, or trade indices
         # between countries.
         if dimensionality_reduction=="mds_metric":
-            if dimensionality_reduction=="spectral":
             assert isinstance(dimensions, int), "Dimensions must be int"
             " to apply modified locally linear embedding"
             dr_obj = MDS(
@@ -1111,12 +1139,32 @@ class ensembleClustering(object):
             ran_dimensionality_reduction=True
 
         if dimensionality_reduction=="mds_nonmetric":
-            if dimensionality_reduction=="spectral":
             assert isinstance(dimensions, int), "Dimensions must be int"
             " to apply modified locally linear embedding"
             dr_obj = MDS(
                 n_components=dimensions,
                 metric=False,
+            )
+            transformed_coords = dr_obj.fit_transform(
+                self.aligned.xyz.reshape(
+                    self.aligned.n_frames,
+                    self.aligned.n_atoms * 3,
+                ),
+            )
+            # TODO normalise I think should not be done for non-linear
+            # embedding, but need to check
+            # transformed_coords/=np.sqrt(self.aligned.n_atoms)
+            ran_dimensionality_reduction=True
+
+        # While Isomap, LLE and variants are best suited to unfold a single
+        # continuous low dimensional manifold, t-SNE will focus on the local
+        # structure of the data and will tend to extract clustered local groups of samples
+        # optimisation can be tricky, only using default hyperparams atm
+        if dimensionality_reduction=="tsne":
+            assert isinstance(dimensions, int), "Dimensions must be int"
+            " to apply modified locally linear embedding"
+            dr_obj = TSNE(
+                n_components=dimensions,
             )
             transformed_coords = dr_obj.fit_transform(
                 self.aligned.xyz.reshape(
@@ -1172,6 +1220,11 @@ class ensembleClustering(object):
         ran_cluster_alg = False
         if cluster_alg=="kmeans":
             pass
+
+        if cluster_alg=="mbkmeans":
+            pass
+
+        if 
         if cluster_alg=="ward":
             """
             cluster_info = scipy.cluster.hierarchy.linkage(
