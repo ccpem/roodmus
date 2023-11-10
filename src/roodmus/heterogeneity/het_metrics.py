@@ -275,7 +275,7 @@ def add_arguments(parser: argparse.ArgumentParser):
 
     # alignment alg
     parser.add_argument(
-        "alignment",
+        "--alignment",
         help="Alignment algorithm to use. Defaults to mdtraj.superpose()",
         nargs="+",
         choices=["", "superpose"],
@@ -825,7 +825,7 @@ class ensembleClustering(object):
             plot_2d_embedding(
                 self.transformed_dimensions[:,0:2],
                 np.arange(self.transformed_dimensions.shape[0]),
-                workflow["pkl"].replace(".pkl", "dr.png"),
+                workflow["pkl"].replace(".pkl", "_dr.png"),
                 "conformation #",
                 dpi=self.dpi,
                 pdf=self.pdf,
@@ -872,7 +872,7 @@ class ensembleClustering(object):
             self.last_dm!=""):
                 plot_distancematrix(
                     self.distance_metric,
-                    workflow["dm"].replace(".pkl", ".png"),
+                    workflow["pkl"].replace(".pkl", "_dm.png"),
                     metric = workflow["distance_metric"],
                     dpi=self.dpi,
                     pdf=self.pdf,
@@ -908,7 +908,7 @@ class ensembleClustering(object):
                 plot_2d_embedding(
                     self.transformed_dimensions[:,0:2],
                     self.cluster_alg.labels_,
-                    workflow["ca"].replace(".pkl", ".png"),
+                    workflow["pkl"].replace(".pkl", "_ca.png"),
                     "cluster index",
                     dpi=self.dpi,
                     pdf=self.pdf,
