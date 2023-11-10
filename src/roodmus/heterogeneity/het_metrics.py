@@ -180,7 +180,7 @@ def add_arguments(parser: argparse.ArgumentParser):
     parser.add_argument(
         "--distance_metric",
         help="Distance metric to use in workflow."
-        " Defaults to RMSD.",
+        " Defaults to none.",
         nargs="+",
         choices=["", "approx_rmsd", "rmsd"],
         type=str,
@@ -191,7 +191,7 @@ def add_arguments(parser: argparse.ArgumentParser):
     parser.add_argument(
         "--dimension_reduction",
         help="Dimensionality reduction technique to apply to distance"
-        " metric",
+        " metric. Defaults to none",
         nargs="+",
         choices=[
             "",
@@ -276,7 +276,7 @@ def add_arguments(parser: argparse.ArgumentParser):
     # alignment alg
     parser.add_argument(
         "alignment",
-        help="Alignment algorithm to use",
+        help="Alignment algorithm to use. Defaults to mdtraj.superpose()",
         nargs="+",
         choices=["", "superpose"],
         type=str,
