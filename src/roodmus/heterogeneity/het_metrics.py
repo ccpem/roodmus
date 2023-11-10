@@ -258,7 +258,7 @@ def add_arguments(parser: argparse.ArgumentParser):
             "dbscan",
             "hdbscan",
             "optics",
-            "gmm",
+            # "gmm",
         ],
         type=str,
         default=["kmeans"],
@@ -913,10 +913,6 @@ class ensembleClustering(object):
                     dpi=self.dpi,
                     pdf=self.pdf,
                 )
-
-            # save as pkl
-            with open(workflow["ca"], "wb") as f:
-                pickle.dump(self.cluster_alg, f)
 
             self.last_ca = workflow["cluster_alg"]
             self.last_ca_nc = workflow["clusters"]
