@@ -283,6 +283,13 @@ def add_arguments(parser: argparse.ArgumentParser):
         default=["superpose"],
     )
 
+    # store output pkl files
+    parser.add_argument(
+        "--nopkl",
+        help="Disable saving of pkl files containing workflow outputs",
+        action="store_true",
+    )
+
     parser.add_argument("--pdf", help="save plot as pdf", action="store_true")
 
     return parser
@@ -726,11 +733,13 @@ class ensembleClustering(object):
             dpi: int=300,
             pdf: bool=False,
             overwrite: str=False,
+            nopkl: bool=False,
             verbose: bool = False,
         ) -> None:
         self.trajectory = trajectory
         self.dpi = dpi
         self.pdf = pdf
+        self.nopkl = nopkl
         self.verbose = verbose
         self.overwrite = overwrite
         self.results_dir = results_dir
@@ -835,7 +844,8 @@ class ensembleClustering(object):
         wf.dimensions = workflow["dimensions"]
 
         # save workflow after each step
-        save_workflow(wf, self.overwrite)
+        if ~self.nopkl:
+            save_workflow(wf, self.overwrite)
 
         # ---------------
 
@@ -883,7 +893,8 @@ class ensembleClustering(object):
         # save workflow after each step
         # already asserted that either file doesnt exist
         # or that overwrite is asserted
-        save_workflow(wf, overwrite=True)
+        if ~self.nopkl:
+            save_workflow(wf, overwrite=True)
 
         # ---------------
 
@@ -922,7 +933,8 @@ class ensembleClustering(object):
         # save workflow after each step
         # already asserted that either file doesnt exist
         # or that overwrite is asserted
-        save_workflow(wf, overwrite=True)
+        if ~self.nopkl:
+            save_workflow(wf, overwrite=True)
     
     def run_alignment(self, alignment)->mdtraj.Trajectory:
         if alignment=="":
@@ -1476,6 +1488,7 @@ def pilot_study(args):
         cluster_alg = args.cluster_alg,
         clusters=args.n_clusters,
         overwrite=args.overwrite,
+        pickle=args.nopkl,
         verbose = args.verbose,
     )
 
