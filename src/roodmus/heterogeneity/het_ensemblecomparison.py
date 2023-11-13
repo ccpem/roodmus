@@ -23,15 +23,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import argparse
-import os
 import pickle
 
-import matplotlib.pyplot as plt
-
-import pandas as pd
 import numpy as np
-from scipy.spatial.distance import jensenshannon, directed_hausdorff
+
+# import os
+# import pandas as pd
+# import matplotlib.pyplot as plt
+# from scipy.spatial.distance import jensenshannon, directed_hausdorff
+
 # look for appropriate clustering metrics (not necessarily required)
+
 
 def add_arguments(parser: argparse.ArgumentParser):
     """Parse arguments
@@ -50,7 +52,7 @@ def add_arguments(parser: argparse.ArgumentParser):
         " Provide at least 2 twice so similarity can be calculated!",
         nargs="+",
         type=str,
-        default = [""],
+        default=[""],
     )
 
     parser.add_argument(
@@ -77,11 +79,10 @@ def add_arguments(parser: argparse.ArgumentParser):
         required=False,
     )
 
-
-
     return parser
 
-def js_analysis(clusters: list[str], output_file :str)->None:
+
+def js_analysis(clusters: list, output_file: str) -> None:
     # load cluster objects and grab the predicted labels
     predictions = []
     for clustering in clusters:
@@ -90,30 +91,42 @@ def js_analysis(clusters: list[str], output_file :str)->None:
     # extract the cluster alg info from pkl filename
 
     # convert to np.ndarray
-    predictions = np.asarray(predictions, dtype=int)
+    predictions_matrix = np.asarray(predictions, dtype=int)
 
     # create a csv to relate clustering alg indices to clustering alg
     # save a pairwise np array of js coeffs. Indices can be interpreted
-    # from csv relating index to clustering alg 
+    # from csv relating index to clustering alg
 
     # compute js
-    compute_js()
+    compute_js(predictions_matrix)
 
     # save csv with the pairwise comparison
 
-def compute_js(clusters: np.ndarray, )->np.ndarray:
+
+def compute_js(
+    clusters: np.ndarray,
+) -> np.ndarray:
     # base will default to scipy.stats.entropy base
     # which is e according to https://docs.scipy.org/doc/scipy/reference/
     # generated/scipy.stats.entropy.html
-    # which should limit range from 0 to ln(2) (0-0.69314718)
-    pass
 
-def compute_hd(clusters: np.ndarray, )->np.ndarray:
+    # or maybe https://docs.scipy.org/doc/scipy/reference/generated/
+    # scipy.spatial.distance.jensenshannon.html
+    # which should limit range from 0 to ln(2) (0-0.69314718)
+    print("note implemetned {}".format(clusters))
+    return np.ndarray((-1, -1))
+
+
+def compute_hd(
+    clusters: np.ndarray,
+) -> np.ndarray:
     # base will default to https://docs.scipy.org/doc/scipy/reference/
     # generated/scipy.spatial.distance.directed_hausdorff.html#scipy.spatial.
     # distance.directed_hausdorff
     # which is not symmetric!!!
-    pass
+    print("note implemetned {}".format(clusters))
+    return np.ndarray((-1, -1))
+
 
 def main(args):
     """Load in pkl files and compare similarity via jensen-shannon
@@ -123,8 +136,8 @@ def main(args):
     """
 
     # check that at least 2 cluster pkls were provided
-    assert len(args.clusters)>=2
-    
+    assert len(args.clusters) >= 2
+
     if args.js:
         # compute js between all the provided pkls
         compute_js()
@@ -133,6 +146,7 @@ def main(args):
         compute_hd()
 
     # save results as a human readable csv or np array
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)

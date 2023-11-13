@@ -39,6 +39,7 @@ import roodmus.analysis.plot_frames
 import roodmus.analysis.plot_classes
 import roodmus.analysis.extract_particles
 import roodmus.analysis.plot_alignment
+import roodmus.heterogeneity.het_metrics
 
 # import analysis.analyse_alignment
 
@@ -76,6 +77,7 @@ def main():
         roodmus.analysis.plot_classes,
         roodmus.analysis.plot_alignment,
         roodmus.analysis.extract_particles,
+        roodmus.heterogeneity.het_metrics,
     ]
 
     module_helptext = [
@@ -92,6 +94,8 @@ def main():
         + " ground-truth orientation values used in Parakeet data generation.",
         "Extract a stack of particles from a set of simulated micrographs"
         + " using the ground-truth positions.",
+        "Sandbox for computing dimension reduction and/or distance metrics"
+        + " and/or clustering on conformations extracted from MD simulations",
     ]
 
     for helptext, module in zip(module_helptext, modules):
