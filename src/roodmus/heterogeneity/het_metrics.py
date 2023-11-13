@@ -242,7 +242,7 @@ def add_arguments(parser: argparse.ArgumentParser):
         " for all. Else an error will be raised.",
         nargs="+",
         type=int,
-        default=[None],
+        default=[2],
     )
 
     parser.add_argument(
@@ -913,10 +913,7 @@ class ensembleClustering(object):
 
             # visualise the distance metric
             # if a distance metric was computed
-            if (
-                self.distance_metric.shape[0] == self.distance_metric.shape[1]
-                and self.last_dm != ""
-            ):
+            if self.last_dm != "":
                 plot_distancematrix(
                     self.distance_metric,
                     workflow["pkl"].replace(".pkl", "_dm.png"),
@@ -1016,8 +1013,10 @@ class ensembleClustering(object):
 
         # pca for large datasets (memory efficient)
         if dimensionality_reduction == "ipca":
+            """
             assert isinstance(dimensions, int), "Dimensions must be int"
             " to apply ipca"
+            """
             dr_obj = IncrementalPCA(n_components=dimensions)
 
             transformed_coords = dr_obj.fit_transform(
@@ -1037,8 +1036,10 @@ class ensembleClustering(object):
 
         # ICA (which autowhitens data as required)
         if dimensionality_reduction == "ica":
+            """
             assert isinstance(dimensions, int), "Dimensions must be int"
             " to apply ica"
+            """
             dr_obj = FastICA(n_components=dimensions)
             transformed_coords = dr_obj.fit_transform(
                 self.aligned.xyz.reshape(
@@ -1051,8 +1052,10 @@ class ensembleClustering(object):
             transformed_coords /= np.sqrt(self.aligned.n_atoms)
 
         if dimensionality_reduction == "kernelpca":
+            """
             assert isinstance(dimensions, int), "Dimensions must be int"
             " to apply kernelpca"
+            """
             dr_obj = KernelPCA(
                 n_components=dimensions,
                 eigen_solver="randomized",
@@ -1071,8 +1074,10 @@ class ensembleClustering(object):
         # now onto manifold (non-linear dimension reduction techniques)
         # isomap (tries to maintain geodesic distances)
         if dimensionality_reduction == "isomap":
+            """
             assert isinstance(dimensions, int), "Dimensions must be int"
             " to apply isomap"
+            """
             dr_obj = Isomap(n_components=dimensions)
             transformed_coords = dr_obj.fit_transform(
                 self.aligned.xyz.reshape(
@@ -1087,8 +1092,10 @@ class ensembleClustering(object):
         # Locally linear embedding (LLE) seeks a lower-dimensional projection
         # of the data which preserves distances within local neighborhoods
         if dimensionality_reduction == "lle":
+            """
             assert isinstance(dimensions, int), "Dimensions must be int"
             " to apply locally linear embedding"
+            """
             dr_obj = LocallyLinearEmbedding(n_components=dimensions)
             transformed_coords = dr_obj.fit_transform(
                 self.aligned.xyz.reshape(
@@ -1101,8 +1108,10 @@ class ensembleClustering(object):
             # transformed_coords/=np.sqrt(self.aligned.n_atoms)
 
         if dimensionality_reduction == "mlle":
+            """
             assert isinstance(dimensions, int), "Dimensions must be int"
             " to apply modified locally linear embedding"
+            """
             dr_obj = LocallyLinearEmbedding(
                 n_components=dimensions,
                 method="modified",
@@ -1118,8 +1127,10 @@ class ensembleClustering(object):
             # transformed_coords/=np.sqrt(self.aligned.n_atoms)
 
         if dimensionality_reduction == "hlle":
+            """
             assert isinstance(dimensions, int), "Dimensions must be int"
             " to apply modified locally linear embedding"
+            """
             dr_obj = LocallyLinearEmbedding(
                 n_components=dimensions,
                 method="hessian",
@@ -1135,8 +1146,10 @@ class ensembleClustering(object):
             # transformed_coords/=np.sqrt(self.aligned.n_atoms)
 
         if dimensionality_reduction == "ltsa":
+            """
             assert isinstance(dimensions, int), "Dimensions must be int"
             " to apply modified locally linear embedding"
+            """
             dr_obj = LocallyLinearEmbedding(
                 n_components=dimensions,
                 method="ltsa",
@@ -1153,8 +1166,10 @@ class ensembleClustering(object):
 
         # preserves local distance
         if dimensionality_reduction == "spectral":
+            """
             assert isinstance(dimensions, int), "Dimensions must be int"
             " to apply modified locally linear embedding"
+            """
             dr_obj = SpectralEmbedding(
                 n_components=dimensions,
             )
@@ -1174,8 +1189,10 @@ class ensembleClustering(object):
         # objects, interaction frequencies of molecules, or trade indices
         # between countries.
         if dimensionality_reduction == "mds_metric":
+            """
             assert isinstance(dimensions, int), "Dimensions must be int"
             " to apply modified locally linear embedding"
+            """
             dr_obj = MDS(
                 n_components=dimensions,
             )
@@ -1190,8 +1207,10 @@ class ensembleClustering(object):
             # transformed_coords/=np.sqrt(self.aligned.n_atoms)
 
         if dimensionality_reduction == "mds_nonmetric":
+            """
             assert isinstance(dimensions, int), "Dimensions must be int"
             " to apply modified locally linear embedding"
+            """
             dr_obj = MDS(
                 n_components=dimensions,
                 metric=False,
@@ -1212,8 +1231,10 @@ class ensembleClustering(object):
         # local groups of samples
         # optimisation can be tricky, only using default hyperparams atm
         if dimensionality_reduction == "tsne":
+            """
             assert isinstance(dimensions, int), "Dimensions must be int"
             " to apply modified locally linear embedding"
+            """
             dr_obj = TSNE(
                 n_components=dimensions,
             )
@@ -1228,8 +1249,10 @@ class ensembleClustering(object):
             # transformed_coords/=np.sqrt(self.aligned.n_atoms)
 
         if dimensionality_reduction == "umap":
+            """
             assert isinstance(dimensions, int), "Dimensions must be int"
             " to apply modified locally linear embedding"
+            """
             dr_obj = umap.UMAP(
                 n_components=dimensions,
             )
@@ -1307,10 +1330,10 @@ class ensembleClustering(object):
             )
             # using euclidean metric, distance metric MUST NOT
             # be precomputed
-            assert (
-                self.last_dm == ""
-            ), "To compute euclidean affinity propagation a distance"
-            " metric must not have been used!"
+            assert self.last_dm == "", (
+                "To compute euclidean affinity propagation a distance"
+                " metric must not have been used!"
+            )
             cluster_info = AffinityPropagation(affinity="euclidean")
             cluster_info.fit(distance_matrix)
 
@@ -1322,30 +1345,35 @@ class ensembleClustering(object):
             )
             # using precomputed metric, distance metric MUST NOT
             # be precomputed
-            assert (
-                self.last_dm != ""
-            ), "To compute precomputed affinity propagation a distance"
-            " metric must not have been used!"
+            assert self.last_dm != "", (
+                "To compute precomputed affinity propagation a distance"
+                " metric must not have been used!"
+            )
             cluster_info = AffinityPropagation(affinity="precomputed")
-            cluster_info.fit(distance_matrix)
+            if len(distance_matrix.shape) < 2:
+                cluster_info.fit(squareform(distance_matrix))
+            else:
+                cluster_info.fit(distance_matrix)
 
         if cluster_alg == "meanshift":
             print(
                 "When computing meanshift the n_clusters"
                 " is determined by the clustering algorithm!"
             )
-            assert self.last_dm == "", "To compute meanshift a distance"
-            " metric must not have been used!"
+            assert self.last_dm == "", (
+                "To compute meanshift a distance"
+                " metric must not have been used!"
+            )
             cluster_info = MeanShift()
             cluster_info.fit(distance_matrix)
 
         if cluster_alg == "spectral":
             # using spectral clustering, distance metric MUST NOT
             # be precomputed
-            assert (
-                self.last_dm == ""
-            ), "To compute spectral clustering a distance"
-            " metric must not have been used!"
+            assert self.last_dm == "", (
+                "To compute spectral clustering a distance"
+                " metric must not have been used!"
+            )
             cluster_info = SpectralClustering(
                 n_clusters=n_clusters,
                 affinity="nearest_neighbors",
@@ -1427,8 +1455,10 @@ class ensembleClustering(object):
             )
             # using dbscan, distance metric MUST NOT
             # be precomputed
-            assert self.last_dm == "", "To compute DBSCAN a distance"
-            " metric must not have been used!"
+            assert self.last_dm == "", (
+                "To compute DBSCAN a distance"
+                " metric must not have been used!"
+            )
             cluster_info = DBSCAN()
             cluster_info.fit(distance_matrix)
 
@@ -1439,8 +1469,10 @@ class ensembleClustering(object):
             )
             # using dbscan, distance metric MUST NOT
             # be precomputed
-            assert self.last_dm == "", "To compute HDBSCAN a distance"
-            " metric must not have been used!"
+            assert self.last_dm == "", (
+                "To compute HDBSCAN a distance"
+                " metric must not have been used!"
+            )
             cluster_info = HDBSCAN()
             cluster_info.fit(distance_matrix)
 
@@ -1451,8 +1483,10 @@ class ensembleClustering(object):
             )
             # using dbscan, distance metric MUST NOT
             # be precomputed
-            assert self.last_dm == "", "To compute OPTICS a distance"
-            " metric must not have been used!"
+            assert self.last_dm == "", (
+                "To compute OPTICS a distance"
+                " metric must not have been used!"
+            )
             cluster_info = OPTICS()
             cluster_info.fit(distance_matrix)
 
@@ -1514,7 +1548,7 @@ def pilot_study(args):
         cluster_alg=args.cluster_alg,
         clusters=args.n_clusters,
         overwrite=args.overwrite,
-        pickle=args.nopkl,
+        nopkl=args.nopkl,
         verbose=args.verbose,
     )
 
