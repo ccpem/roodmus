@@ -111,4 +111,4 @@ jobs:
     - name: publish-dist-to-test-pypi
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        repository-url: https://test.pypi.org/
+        repository-url: https://test.pypi.org/legacy/
