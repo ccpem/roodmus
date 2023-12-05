@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "roodmus"
-version = "0.0.22"
+version = "0.0.23"
 authors = [
   { name="Joel Greer", email="joel.greer@stfc.ac.uk" },
   { name="Maarten Joosten", email="m.j.joosten@tudelft.nl" },
@@ -188,8 +188,8 @@ dependencies = [
 roodmus = "roodmus.cli:main"
 
 [project.urls]
-"Homepage" = "https://github.com/pypa/sampleproject"
-"Bug Tracker" = "https://github.com/pypa/sampleproject/issues"
+"Homepage" = "https://github.com/ccpem/roodmus"
+"Bug Tracker" = "https://github.com/ccpem/roodmus/issues"
 
 [tool.licensecheck]
 using = "requirements:requirements.txt;requirements-dev.txt"
