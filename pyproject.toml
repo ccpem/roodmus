@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "roodmus"
-version = "0.0.21"
+dynamic = ["version"]
 authors = [
   { name="Joel Greer", email="joel.greer@stfc.ac.uk" },
   { name="Maarten Joosten", email="m.j.joosten@tudelft.nl" },
