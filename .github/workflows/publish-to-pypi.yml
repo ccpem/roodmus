@@ -90,7 +90,7 @@ jobs:
 
   publish-to-test-pypi:
     name: publish-to-test-pypi
-    if: startsWith('ref/head/main', 'ref/head/development', 'ref/tags/')
+    # if: startsWith('ref/head/main', 'ref/head/development', 'ref/tags/')
     needs:
     - build
     runs-on: ubuntu-latest
