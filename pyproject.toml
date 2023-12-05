@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "roodmus"
-version = "0.0.22"
+version = "0.0.25"
 authors = [
   { name="Joel Greer", email="joel.greer@stfc.ac.uk" },
   { name="Maarten Joosten", email="m.j.joosten@tudelft.nl" },
@@ -87,6 +87,7 @@ dependencies = [
   "jupyterlab-pygments==0.2.2",
   "jupyterlab-server==2.23.0",
   "kiwisolver==1.4.4",
+  "llvmlite==0.41.1",
   "locket==1.0.0",
   "lxml==4.9.2",
   "maptools==0.3.5",
@@ -104,6 +105,7 @@ dependencies = [
   "networkx==3.0",
   "nodeenv==1.7.0",
   "notebook-shim==0.2.3",
+  "numba==0.58.1",
   "numpy==1.23.0",
   "overrides==7.3.1",
   "packaging==23.0",
@@ -129,6 +131,7 @@ dependencies = [
   "pydantic==1.10.4",
   "pyee==8.2.2",
   "pygments==2.15.1",
+  "pynndescent==0.5.10",
   "pyparsing==3.0.9",
   "pypdb==2.2",
   "pyppeteer==1.0.2",
@@ -158,6 +161,7 @@ dependencies = [
   "soupsieve==2.3.2.post1",
   "stack-data==0.6.2",
   "starfile==0.4.11",
+  "tbb==2021.10.0",
   "tblib==1.7.0",
   "terminado==0.17.1",
   "threadpoolctl==3.1.0",
