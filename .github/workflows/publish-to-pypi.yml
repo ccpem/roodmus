@@ -97,7 +97,7 @@ jobs:
 
     environment:
       name: testing
-      url: https://test.pypi/org/p/roodmus
+      url: https://test.pypi.org/p/roodmus
 
     permissions:
       id-token: write
