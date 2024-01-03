@@ -1309,16 +1309,24 @@ class ensembleClustering(object):
         if cluster_alg == "kmeans":
             # kmeans requires original or reduced dims
             # and must not have had a distance metric applied
-            assert self.last_dm == "", "To compute kmeans a distance"
-            " metric must not have been used!"
+            assert self.last_dm == "", (
+                "To compute kmeans a distance "
+                + "metric must not have been used! {} was used".format(
+                    self.last_dm
+                )
+            )
             cluster_info = KMeans(n_clusters=n_clusters)
             cluster_info.fit(distance_matrix)
 
         if cluster_alg == "mbkmeans":
             # minibatch kmeans requires original or reduced dims
             # and must not have had a distance metric applied
-            assert self.last_dm == "", "To compute kmeans a distance"
-            " metric must not have been used!"
+            assert self.last_dm == "", (
+                "To compute kmeans a distance"
+                + " metric must not have been used! {} was used".format(
+                    self.last_dm
+                )
+            )
             cluster_info = MiniBatchKMeans(n_clusters=n_clusters)
             cluster_info.fit(distance_matrix)
 
@@ -1332,7 +1340,9 @@ class ensembleClustering(object):
             # be precomputed
             assert self.last_dm == "", (
                 "To compute euclidean affinity propagation a distance"
-                " metric must not have been used!"
+                " metric must not have been used! {} was used".format(
+                    self.last_dm
+                )
             )
             cluster_info = AffinityPropagation(affinity="euclidean")
             cluster_info.fit(distance_matrix)
@@ -1347,7 +1357,9 @@ class ensembleClustering(object):
             # be precomputed
             assert self.last_dm != "", (
                 "To compute precomputed affinity propagation a distance"
-                " metric must not have been used!"
+                " metric must not have been used! {} was used".format(
+                    self.last_dm
+                )
             )
             cluster_info = AffinityPropagation(affinity="precomputed")
             if len(distance_matrix.shape) < 2:
@@ -1362,7 +1374,9 @@ class ensembleClustering(object):
             )
             assert self.last_dm == "", (
                 "To compute meanshift a distance"
-                " metric must not have been used!"
+                " metric must not have been used! {} was used".format(
+                    self.last_dm
+                )
             )
             cluster_info = MeanShift()
             cluster_info.fit(distance_matrix)
@@ -1372,7 +1386,9 @@ class ensembleClustering(object):
             # be precomputed
             assert self.last_dm == "", (
                 "To compute spectral clustering a distance"
-                " metric must not have been used!"
+                " metric must not have been used! {} was used".format(
+                    self.last_dm
+                )
             )
             cluster_info = SpectralClustering(
                 n_clusters=n_clusters,
@@ -1457,7 +1473,9 @@ class ensembleClustering(object):
             # be precomputed
             assert self.last_dm == "", (
                 "To compute DBSCAN a distance"
-                " metric must not have been used!"
+                " metric must not have been used! {} was used".format(
+                    self.last_dm
+                )
             )
             cluster_info = DBSCAN()
             cluster_info.fit(distance_matrix)
@@ -1471,7 +1489,9 @@ class ensembleClustering(object):
             # be precomputed
             assert self.last_dm == "", (
                 "To compute HDBSCAN a distance"
-                " metric must not have been used!"
+                " metric must not have been used! {} was used".format(
+                    self.last_dm
+                )
             )
             cluster_info = HDBSCAN()
             cluster_info.fit(distance_matrix)
@@ -1485,7 +1505,9 @@ class ensembleClustering(object):
             # be precomputed
             assert self.last_dm == "", (
                 "To compute OPTICS a distance"
-                " metric must not have been used!"
+                " metric must not have been used! {} was used".format(
+                    self.last_dm
+                )
             )
             cluster_info = OPTICS()
             cluster_info.fit(distance_matrix)
@@ -1495,7 +1517,7 @@ class ensembleClustering(object):
         # init with kmeans++
         if cluster_alg == "gmm":
             assert self.last_dm == "", "To compute GMM a distance"
-            " metric must not have been used!"
+            " metric must not have been used! {} was used".format(self.last_dm)
             cluster_info = GaussianMixture(
                 n_components=n_clusters,
                 covariance_type="full",
