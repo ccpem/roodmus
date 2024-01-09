@@ -137,8 +137,8 @@ def plot_latent_space_scatter(
         )
         ax.set_xlabel(f"{varname}_{dim_1}")
         ax.set_ylabel(f"{varname}_{dim_2}")
-        # ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.0)
-        fig.colorbar()
+        ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.0)
+        # fig.colorbar()
         return fig, ax
 
 

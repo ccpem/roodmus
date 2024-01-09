@@ -1357,9 +1357,7 @@ class ensembleClustering(object):
             # be precomputed
             assert self.last_dm != "", (
                 "To compute precomputed affinity propagation a distance"
-                " metric must not have been used! {} was used".format(
-                    self.last_dm
-                )
+                " metric must have been used! {} was used".format(self.last_dm)
             )
             cluster_info = AffinityPropagation(affinity="precomputed")
             if len(distance_matrix.shape) < 2:
