@@ -26,6 +26,10 @@ import argparse
 import pickle
 
 import numpy as np
+import pandas as pd
+
+from roodmus.analysis.utils import load_data
+from roodmus.heterogeneity.het_metrics import get_pdb_list
 
 # import os
 # import pandas as pd
@@ -44,6 +48,25 @@ def add_arguments(parser: argparse.ArgumentParser):
     Returns:
         _type_: _description_
     """
+    parser.add_argument(
+        "--config_dir",
+        help="Directory with .mrc files and .yaml config files",
+        type=str,
+    )
+
+    parser.add_argument(
+        "--meta_file",
+        help=(
+            "Particle metadata file. Can be .star (RELION) or .cs (CryoSPARC)"
+        ),
+        type=str,
+    )
+
+    parser.add_argument(
+        "--conformations_dir",
+        help=("Directory with .pdb files of the conformations"),
+        type=str,
+    )
 
     parser.add_argument(
         "--clusters",
@@ -56,8 +79,21 @@ def add_arguments(parser: argparse.ArgumentParser):
     )
 
     parser.add_argument(
+        "--clusters_source",
+        "-ct",
+        help="Whether .pkl file contained clustered conformations from"
+        " MD trajectory or from reconstruction metadata. Use"
+        " `--clusters_source MD reco` for an MD and reconstruction-derived"
+        " .pkl file respectively. Provide 1 per .pkl file in the correct"
+        " order.",
+        nargs="+",
+        type=str,
+        default=[""],
+    )
+
+    parser.add_argument(
         "--js",
-        help="Compute jensen=shannon metric between ensembles",
+        help="Compute jensen-shannon metric between ensembles",
         action="store_true",
     )
 
@@ -77,6 +113,24 @@ def add_arguments(parser: argparse.ArgumentParser):
         type=str,
         default="het_metrics",
         required=False,
+    )
+
+    parser.add_argument(
+        "--digits",
+        help=(
+            "Number of digits (including leading zeros)"
+            " in the conformation filenames"
+        ),
+        type=int,
+        default=6,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--file_ext",
+        help="File extension of the conformation files. Default is .pdb",
+        type=str,
+        default=".pdb",
     )
 
     return parser
@@ -128,6 +182,17 @@ def compute_hd(
     return np.ndarray((-1, -1))
 
 
+def get_index_from_conformation_filename(
+    conformation_files: list[str], digits: int = 6, file_ext: str = ".pdb"
+) -> list[str]:
+    indices = []
+    slice_2 = -len(file_ext)
+    slice_1 = slice_2 - digits
+    for conf_file in conformation_files:
+        indices.append(conf_file[-slice_1:-slice_2])
+    return indices
+
+
 def main(args):
     """Load in pkl files and compare similarity via jensen-shannon
 
@@ -135,16 +200,110 @@ def main(args):
         args (_type_): _description_
     """
 
-    # check that at least 2 cluster pkls were provided
-    assert len(args.clusters) >= 2
+    # check that 2 cluster pkls were provided
+    assert len(args.clusters) == 2
+    # check the clusters sources are correctly provided for the pkl files
+    assert len(args.clusters_source) == len(args.clusters_source)
+    for source in args.clusters_source:
+        assert source == "MD" or source == "latent"
+
+    # extract the cluster indices from the pkl files
+    # easiest to use a dict for keeping track
+    cluster_indices: dict[str, pd.DataFrame] = {}
+
+    # get the conformation filenames
+    conformation_filenames = get_pdb_list(args.config_dir)
+
+    # TODO replace/update setting of these values
+    particle_diameter = 100  # approximate particle diameter in Angstroms
+    ugraph_shape = (
+        4000,
+        4000,
+    )
+    # above is shape of the micrograph in pixels. Only needs to be given
+    # if the metadata file is a .star file
+    ignore_missing_files = True
+    enable_tqdm = True
+
+    # use these values to grab and get closest pdb_index
+    if args.verbose:
+        print("Computing closest truth particle indices")
+    analysis = load_data(
+        args.meta_file,
+        args.config_dir,
+        particle_diameter,
+        ugraph_shape=ugraph_shape,
+        verbose=args.verbose,
+        enable_tqdm=enable_tqdm,
+        ignore_missing_files=ignore_missing_files,
+    )  # creates the class
+    df_picked = pd.DataFrame(analysis.results_picking)
+    df_truth = pd.DataFrame(analysis.results_truth)
+    _, df_picked = analysis.compute_precision(
+        df_picked,
+        df_truth,
+        verbose=args.verbose,
+    )
+
+    # open the pkls
+    for cluster_file, pkl_source in zip(args.clusters, args.clusters_source):
+        workflow = pickle.load(open(cluster_file, "rb"))
+        # MD-derived pkl files have clusterlabels ordered from first
+        # conformation to last conformation. May be subject to change
+        if pkl_source == "MD":
+            # this automatically sorts the conformations to be
+            # in the same order as the cluster indices array output
+            # by the het_metrics script by using the same loading func
+            conformation_indices = get_index_from_conformation_filename(
+                conformation_filenames,
+                digits=args.digits,
+                file_ext=args.file_ext,
+            )
+            # now we have str version of digits-length index
+            # which can be used to match to a conformation
+            cluster_indices[cluster_file] = pd.DataFrame(
+                [conformation_indices, workflow.ca_obj.labels_],
+                columns=["conformation_index", "cluster_index"],
+            )
+        # reconstruction metadata-derived pkl files have cluster labels
+        # ordered from first entry in metadata file to last, so need to
+        # reorder the labels to be from conformation 0 to conformation X
+        elif pkl_source == "latent":
+            # have the `closest_pdb` column filled which allows
+            # each label entry to have a pdb_index associated with it.
+            # This works because the cluster indices output by the
+            # latent_clustering script should be in the same
+            # order as the particles in the metadata file!
+
+            # so get the digits-length conformation indices as str as above
+            conformation_indices = get_index_from_conformation_filename(
+                df_picked["closest_pdb"].tolist(),
+                digits=args.digits,
+                file_ext=args.file_ext,
+            )
+            cluster_indices[cluster_file] = pd.DataFrame(
+                [conformation_indices, workflow.ca_obj.labels_],
+                columns=["conformation_index", "cluster_index"],
+            )
+
+        else:
+            raise ValueError(
+                "Mist use either `MD` or `latent` as the pkl_source values"
+            )
+
+    # now we have the conformation index and cluster index labels,
+    # load up all the conformations from conformations_dir into an
+    # MDAnalysis Universe and then create a sub-universe for each cluster
 
     if args.js:
         # compute js between all the provided pkls
         compute_js()
+
+    """
     if args.hd:
         # compute hausdorf (max distance) between all provided pkls
         compute_hd()
-
+    """
     # save results as a human readable csv or np array
 
 
