@@ -24,9 +24,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import argparse
 import pickle
+import os
 
 import numpy as np
 import pandas as pd
+from MDAnalysis.analysis.encore.clustering.ClusteringMethod import (
+    AffinityPropagationNative,
+)
+import MDAnalysis as mda
 
 from roodmus.analysis.utils import load_data
 from roodmus.heterogeneity.het_metrics import get_pdb_list
@@ -72,7 +77,8 @@ def add_arguments(parser: argparse.ArgumentParser):
         "--clusters",
         "-c",
         help=".pkl file containing clustered conformations."
-        " Provide at least 2 twice so similarity can be calculated!",
+        " Provide 2 pkls with clusters so similarity can be"
+        " calculated!",
         nargs="+",
         type=str,
         default=[""],
@@ -131,6 +137,73 @@ def add_arguments(parser: argparse.ArgumentParser):
         help="File extension of the conformation files. Default is .pdb",
         type=str,
         default=".pdb",
+    )
+
+    parser.add_argument(
+        "--timestep",
+        help="Time step between conformations (ps)."
+        " Default is 1 picosecond",
+        type=float,
+        default=1.0,
+    )
+
+    parser.add_argument(
+        "--time_offset",
+        help="Time offset for first conformation (ps)."
+        " Default is 0 picosecond",
+        type=float,
+        default=0.0,
+    )
+
+    parser.add_argument(
+        "--save_rmsd",
+        help="Save the RMSD matrix in npz format for future use",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--rmsd_precalc",
+        help="RMSD for these conformations has been precalculated for reuse."
+        " Takes precedence over recalculation of RMSD",
+        type=str,
+        default="",
+        required=False,
+    )
+
+    parser.add_argument(
+        "--preference",
+        help="Preference value to use for affinity propagation. Default is"
+        " -1. Rough range to explore is -100. to -1.",
+        type=float,
+        default=-1.0,
+    )
+
+    parser.add_argument(
+        "--estimate_error",
+        help="Estimate error on JS-divergence",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--bootstrapping_samples",
+        help="How many times to sample whilst bootstrapping JS-divergence"
+        " calculations (estimating error). Defaults to 10",
+        type=int,
+        default=10,
+    )
+
+    parser.add_argument(
+        "--ncores",
+        help="How many CPU cores to use for (RMSD) calculations",
+        type=int,
+        default=1,
+    )
+
+    parser.add_argument(
+        "--select",
+        help="choice of atoms to compute RMSD using. Default is name CA`",
+        type=str,
+        default="name CA",
     )
 
     return parser
@@ -288,13 +361,187 @@ def main(args):
 
         else:
             raise ValueError(
-                "Mist use either `MD` or `latent` as the pkl_source values"
+                "Must use either `MD` or `latent` as the pkl_source values"
             )
 
     # now we have the conformation index and cluster index labels,
     # load up all the conformations from conformations_dir into an
     # MDAnalysis Universe and then create a sub-universe for each cluster
+    # md_trajectory = mda_load_universe(args)
 
+    # extract the ensembles for each clustering workflow
+    ensembles: dict[str, dict[str, mda.Universe]] = {}
+    for cw, ci_df in cluster_indices.items():
+        cluster_conformations: dict[str, mda.Universe] = {}
+
+        # for each cluster index, get an mda.Universe
+        for cluster_index in np.unique(ci_df["cluster_index"]):
+            # grab the conformation indices corresponding to this cluster
+            select_conformations = ci_df.loc[
+                ci_df["cluster_index"] == cluster_index
+            ]
+
+            # need each ensemble to be a mda.Universe, so
+            # for clustering, extract the list of filenames of conformations
+            # (pdb files) which are each in ensemble/cluster. IT is assumed
+            # that they may be repeated any number of times from 1 to N
+            ensemble_conformations: list[str] = []
+            for conformation_index in select_conformations[
+                "conformation_index"
+            ].tolist():
+                conformation_file: list[str] = []
+                # grab the filename that this str(X).zfill(6) string is
+                # present in
+                for conformation_filename in conformation_filenames:
+                    if conformation_index in conformation_filename:
+                        conformation_file.append(conformation_filename)
+
+                # check that the indexing is correct
+                # as there should only be one entry which matches
+                if len(conformation_file != 1):
+                    print(
+                        "Matching string index to single conformation"
+                        " failed! \n{}\nare found for {}".format(
+                            conformation_file, conformation_index
+                        )
+                    )
+                assert len(conformation_file) == 1
+
+                # now that we have a len 1 list with the pdb file path,
+                # append the ensemble conformations
+                ensemble_conformations += conformation_file
+
+            # now we have the list of conformations for this ensemble/cluster
+            # we create an ensemble and add it to the cluster_conformations
+            # dictionary
+            # Do not sort the ensemble during this
+            cluster_conformations[cw][str(cluster_index)] = mda.Universe(
+                conformation_filenames[0],
+            )
+            # TODO check if these conformations need aligning before ces/dres
+
+        # add these ensembles to the ensembles dict
+        ensembles[cw] = cluster_conformations
+        # create a list of mda.Universes and a list of indices to keep track
+
+    # we now how a dict holding a dict for each clustering workflow
+    # The subdict holds one mda.Universe for each cluster index
+    # Therefore, we create a list of ALL ensembles and a dict which
+    # is the same as ensembles var except it holds index of list
+    # for each of mda.Universe
+    ensembles_indices: dict[str, dict[str, int]] = {}
+    ensembles_list = []
+    counter = 0
+    for k, v in ensembles:
+        cluster_list_indices: dict[str, int] = {}
+        for cluster_index, universe in v:
+            cluster_list_indices[str(cluster_index)] = counter
+            ensembles_list.append(universe)
+            counter += 1
+        ensembles_indices[k] = cluster_list_indices
+
+    # we now have a list of all ensembles/clusters (from all clustering
+    # workflows) and a way to map list entries back to source via indices
+    # So can now apply ces() after creating the directory for the results
+
+    # create output dir
+    if not os.path.isdir(args.output_dir):
+        os.path.makedirs(args.output_dir)
+        if args.verbose:
+            print("Created {}".format(args.output_dir))
+    # make the csv file with input/output tracking from pd.DataFrame
+    # track the pkl files and the type of clustering workflow
+    metadata = {}
+    for i, k in enumerate(ensembles):
+        # gives index i and key k
+        metadata["input_file_{}".format(i)] = [k]
+        metadata["input_file_{}_type".format(i)] = [args.file_ext[i]]
+
+    # get the rmsd input or output file path
+    if args.rmsd_precalc:
+        metadata["rmsd_calculation"] = [args.rmsd_precalc]
+    elif args.save_rmsd:
+        metadata["rmsd_calculation"] = [
+            os.path.join(args.output_dir, "rmsd.npz")
+        ]
+
+    # get the filepath of the class pkl which will be created to hold
+    # the heatmap which results from calculating the JS-divergence
+    # as well as the indexing details of the output np.array
+    # and the ces and details objects
+    metadata["JS-divergence"] = [
+        os.path.join(args.output_dir, "JS-divergence.pkl")
+    ]
+    # metadata dict is now complete! so save it to disk
+    pd.DataFrame.from_dict(metadata).to_csv(
+        os.path.join(args.output_dir, "JS-divergence-metadata.csv")
+    )
+
+    # Now we load or calc the RMSD matrix before using it as an input to
+    # CES()
+    # load up the rmsd if it was precalc'ed
+    if args.rmsd_precalc:
+        if args.verbose:
+            print(
+                "Loading rmsd matrix from: {}".format(
+                    metadata["rmsd_calculation"]
+                )
+            )
+        rmsd_matrix = mda.analysis.encore.get_distance_matrix(
+            mda.analysis.encore.utils.merge_universes(ensembles_list),
+            load_matrix=metadata["rmsd_calculation"],
+        )
+    # otherwise calculate it and (optionally) save to disk
+    else:
+        if args.save_rmsd:
+            if args.verbose:
+                print(
+                    "Calculating distance matrix and saving to {}".format(
+                        metadata["rmsd_calculation"]
+                    )
+                )
+            # calc the rmsd and save to disk
+            rmsd_matrix = mda.analysis.encore.get_distance_matrix(
+                mda.analysis.encore.utils.merge_universes(ensembles_list),
+                save_matrix=metadata["rmsd_calculation"],
+            )
+        else:
+            if args.verbose:
+                print("Calculating distance matrix but not saving it")
+            # calc the rmsd
+            rmsd_matrix = mda.analysis.encore.get_distance_matrix(
+                mda.analysis.encore.utils.merge_universes(ensembles_list),
+                save_matrix=metadata["rmsd_calculation"],
+            )
+
+    ces, details = mda.analysis.encore.similarity.ces(
+        select=args.select,
+        clustering_method=AffinityPropagationNative(
+            preference=args.preference,
+        ),
+        distance_matrix=rmsd_matrix,
+        estimate_error=args.estimate_error,
+        bootstrapping_samples=args.bootstrapping_samples,
+        ncores=args.ncores,
+    )
+
+    # TODO
+    # now need to add the following objects to the JS-divergence.pkl class
+    # ces
+    # details
+    # ensemble_list
+    # ensemble_indices
+    # then add utilities to the class which allows you to plot heatmaps
+    # for all vs all
+    # and for each clustering workflow vs each other clustering workflow
+
+    # use list of indices to create cluster workflow vs clustering
+    # workflow heatmap of JS-divergences
+
+    # save full heatmap and cw vs cw heatmaps to file along with
+    # output arrays
+
+    # TODO remove this
     if args.js:
         # compute js between all the provided pkls
         compute_js()
