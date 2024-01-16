@@ -32,6 +32,8 @@ from MDAnalysis.analysis.encore.clustering.ClusteringMethod import (
     AffinityPropagationNative,
 )
 import MDAnalysis as mda
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 from roodmus.analysis.utils import load_data
 from roodmus.heterogeneity.het_metrics import get_pdb_list
@@ -206,6 +208,23 @@ def add_arguments(parser: argparse.ArgumentParser):
         default="name CA",
     )
 
+    parser.add_argument(
+        "--dpi",
+        help="choose dots per inch in png plots, Default is 100",
+        type=int,
+        default=100,
+        required=False,
+    )
+
+    parser.add_argument("--pdf", help="save plot as pdf", action="store_true")
+
+    parser.add_argument(
+        "--pkl_universes",
+        help="Save the mda.Universes in the pkl file. WARNING:"
+        " may make pkl VERY large",
+        action="store_true",
+    )
+
     return parser
 
 
@@ -264,6 +283,133 @@ def get_index_from_conformation_filename(
     for conf_file in conformation_files:
         indices.append(conf_file[-slice_1:-slice_2])
     return indices
+
+
+class JSDivergence(object):
+    def __init__(
+        self,
+        pkl_filepath: str,
+        dpi: int = 300,
+        pdf: bool = True,
+    ) -> None:
+        """Class for holding the results which result from comparing two or
+        more clustering workflows for a given dataset
+
+        Args:
+            pkl_filepath (str): _description_
+        """
+        self.pkl_filepath = pkl_filepath
+        self.dpi = dpi
+        self.pdf = pdf
+
+        # CES details
+        self.ces: np.ndarray | None = None
+        self.ces_details: np.ndarray | None = None
+
+        # ensembles which are dict[dict[str, mda.Universe|int]]
+        self.ensembles_list: list[mda.Universe] | None = None
+        self.ensembles_indices: dict[str, dict[str, int]] | None = None
+
+    def plot_ces_results(self):
+        cw = []
+        cw_ensemble_index = []
+        ensembles_list_index = []
+
+        for k1, v1 in self.ensembles_indices.items():
+            for k2, v2 in v1.items():
+                cw.append(k1)
+                cw_ensemble_index.append(k2)
+                ensembles_list_index.append(v2)
+
+        # now we can rearrange the lists by the indices
+        # to get labels in the same order as the ces matrix indices
+        cw = [cw[i] for i in ensembles_list_index]
+        cw_ensemble_index = [
+            cw_ensemble_index[i] for i in ensembles_list_index
+        ]
+
+        # lets create labels that combine cw and ensemble index
+        combined_label = []
+        for cluster_workflow, ensemble_index in zip(cw, cw_ensemble_index):
+            combined_label.append(
+                cluster_workflow + "_ensemble_" + ensemble_index
+            )
+
+        # we now have labels to put on x,y axes (they are the same)
+        # so can sns.heatmap plot
+        plot_heatmap(
+            self.ces,
+            xlabels=combined_label,
+            ylabels=combined_label,
+            filename=os.path.join(
+                os.path.dirname(self.pkl_filepath),
+                "ces_jsd.png",
+            ),
+            dpi=self.dpi,
+            pdf=self.pdf,
+        )
+
+        # TODO alter heatmap to only compare one clustering alg to another
+        # this may be useful but not necessarily required
+        """
+        # loop through one side of ces array and ignore diagonal
+        for i in range(len(self.ces[0])):
+            for j in range(len(self.ces[1]-1)):
+                # use the i,j value(s) to grab the correct
+                # ces_jsd values
+                # and identify the correct cluster workflows which
+                # were compared to get it (both pkl file and cw index)
+        """
+
+    def save_jsd(
+        self,
+        overwrite: bool = False,
+    ):
+        if os.path.isfile(self.pkl_filepath):
+            assert overwrite, "{} exists. Instruct to overwrite if required!"
+        with open(self.pkl_filepath, "wb") as f:
+            pickle.dump(self, f)
+
+
+def plot_heatmap(
+    data: np.ndarray,
+    xlabels: list[str],
+    ylabels: list[str],
+    filename: str,
+    dpi: int = 300,
+    pdf: bool = True,
+):
+    """Plot a heatmap for a square numpy array. Must has 2 dimensions
+
+    Args:
+        data (np.ndarray): _description_
+        filename (str): _description_
+    """
+    assert len(data.shape) == 2
+
+    # plot the heatmap
+    sns.heatmap(
+        data,
+        xlabels=xlabels,
+        ylabels=ylabels,
+        annot=True,
+        linewidths=0.5,
+        cbar=True,
+        # vmin=0.,
+        # vmax=0.7,
+    )
+
+    # save to disk
+    if filename[-4:] == ".png":
+        figname = filename
+    else:
+        figname = filename + ".png"
+    plt.savefig(figname, dpi=dpi)
+    if pdf:
+        plt.savefig(
+            figname.replace(".png", ".pdf"),
+        )
+    plt.clf()
 
 
 def main(args):
@@ -417,6 +563,7 @@ def main(args):
             # Do not sort the ensemble during this
             cluster_conformations[cw][str(cluster_index)] = mda.Universe(
                 conformation_filenames[0],
+                ensemble_conformations,
             )
             # TODO check if these conformations need aligning before ces/dres
 
@@ -523,17 +670,28 @@ def main(args):
         estimate_error=args.estimate_error,
         bootstrapping_samples=args.bootstrapping_samples,
         ncores=args.ncores,
+        allow_collapsed_result=False,
     )
 
     # TODO
     # now need to add the following objects to the JS-divergence.pkl class
     # ces
     # details
-    # ensemble_list
-    # ensemble_indices
+    # ensembles_list
+    # ensembles_indices
     # then add utilities to the class which allows you to plot heatmaps
     # for all vs all
     # and for each clustering workflow vs each other clustering workflow
+    js_divergence = JSDivergence(
+        os.path.join(args.output_dir, "js_divergence.pkl"),
+        dpi=args.dpi,
+        pdf=args.pdf,
+    )
+    js_divergence.ces = ces
+    js_divergence.ces_details = details
+    if args.pkl_universes:
+        js_divergence.ensembles_list = ensembles_list
+    js_divergence.ensembles_indices = ensembles_indices
 
     # use list of indices to create cluster workflow vs clustering
     # workflow heatmap of JS-divergences
@@ -542,10 +700,11 @@ def main(args):
     # output arrays
 
     # TODO remove this
+    """
     if args.js:
         # compute js between all the provided pkls
         compute_js()
-
+    """
     """
     if args.hd:
         # compute hausdorf (max distance) between all provided pkls
