@@ -228,6 +228,10 @@ def add_arguments(parser: argparse.ArgumentParser):
     return parser
 
 
+def get_name():
+    return "het_ensemblecomparison"
+
+
 def js_analysis(clusters: list, output_file: str) -> None:
     # load cluster objects and grab the predicted labels
     predictions = []
