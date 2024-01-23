@@ -99,12 +99,14 @@ def add_arguments(parser: argparse.ArgumentParser):
         default=[""],
     )
 
+    # TODO remove this
     parser.add_argument(
         "--js",
         help="Compute jensen-shannon metric between ensembles",
         action="store_true",
     )
 
+    # TODO remove this
     parser.add_argument(
         "--hd",
         help="Compute hausdorff metric between ensembles",
@@ -225,6 +227,20 @@ def add_arguments(parser: argparse.ArgumentParser):
         action="store_true",
     )
 
+    parser.add_argument(
+        "--n_confs",
+        help="Limit to first <n_confs> conformations from conformations_dir",
+        type=int,
+        default=None,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--overwrite",
+        help="Overwrite previous pkl files with same filepath",
+        action="store_true",
+    )
+
     return parser
 
 
@@ -279,13 +295,23 @@ def compute_hd(
 
 
 def get_index_from_conformation_filename(
-    conformation_files: list[str], digits: int = 6, file_ext: str = ".pdb"
+    conformation_files: list[str],
+    digits: int = 6,
+    file_ext: str = ".pdb",
+    verbose: bool = False,
 ) -> list[str]:
     indices = []
     slice_2 = -len(file_ext)
     slice_1 = slice_2 - digits
     for conf_file in conformation_files:
-        indices.append(conf_file[-slice_1:-slice_2])
+        indices.append(conf_file[slice_1:slice_2])
+        if verbose:
+            print(
+                "{} becomes {}".format(
+                    conf_file,
+                    conf_file[slice_1:slice_2],
+                ),
+            )
     return indices
 
 
@@ -341,17 +367,33 @@ class JSDivergence(object):
 
         # we now have labels to put on x,y axes (they are the same)
         # so can sns.heatmap plot
-        plot_heatmap(
-            self.ces,
-            xlabels=combined_label,
-            ylabels=combined_label,
-            filename=os.path.join(
-                os.path.dirname(self.pkl_filepath),
-                "ces_jsd.png",
-            ),
-            dpi=self.dpi,
-            pdf=self.pdf,
-        )
+        # if we have a list, grab the np.ndarray inside (will be 1 long
+        # unless there were multiple ces clustering algs used)
+        if isinstance(self.ces, list):
+            for i, clustering_approach in enumerate(self.ces):
+                plot_heatmap(
+                    clustering_approach,
+                    xlabels=combined_label,
+                    ylabels=combined_label,
+                    filename=os.path.join(
+                        os.path.dirname(self.pkl_filepath),
+                        "ces_jsd_{}.png".format(i),
+                    ),
+                    dpi=self.dpi,
+                    pdf=self.pdf,
+                )
+        else:
+            plot_heatmap(
+                self.ces,
+                xlabels=combined_label,
+                ylabels=combined_label,
+                filename=os.path.join(
+                    os.path.dirname(self.pkl_filepath),
+                    "ces_jsd.png",
+                ),
+                dpi=self.dpi,
+                pdf=self.pdf,
+            )
 
         # TODO alter heatmap to only compare one clustering alg to another
         # this may be useful but not necessarily required
@@ -392,16 +434,18 @@ def plot_heatmap(
     assert len(data.shape) == 2
 
     # plot the heatmap
-    sns.heatmap(
+    ax = sns.heatmap(
         data,
-        xlabels=xlabels,
-        ylabels=ylabels,
+        xticklabels=xlabels,
+        yticklabels=ylabels,
         annot=True,
         linewidths=0.5,
         cbar=True,
         # vmin=0.,
         # vmax=0.7,
     )
+    ax.xaxis.tick_bottom()
+    ax.yaxis.tick_left()
 
     # save to disk
     if filename[-4:] == ".png":
@@ -435,7 +479,9 @@ def main(args):
     cluster_indices: dict[str, pd.DataFrame] = {}
 
     # get the conformation filenames
-    conformation_filenames = get_pdb_list(args.config_dir)
+    conformation_filenames = sorted(get_pdb_list(args.conformations_dir))
+    if args.n_confs:
+        conformation_filenames = conformation_filenames[: args.n_confs]
 
     # TODO replace/update setting of these values
     particle_diameter = 100  # approximate particle diameter in Angstroms
@@ -481,12 +527,28 @@ def main(args):
                 conformation_filenames,
                 digits=args.digits,
                 file_ext=args.file_ext,
+                verbose=args.verbose,
             )
+            if args.verbose:
+                print(
+                    "Conformation indices:\n{}\nThere are {} entries".format(
+                        conformation_indices,
+                        len(conformation_indices),
+                    )
+                )
+                print(
+                    "Cluster labels:\n{}\nThere are {} entries".format(
+                        workflow.ca_obj.labels_,
+                        len(workflow.ca_obj.labels_),
+                    )
+                )
             # now we have str version of digits-length index
             # which can be used to match to a conformation
             cluster_indices[cluster_file] = pd.DataFrame(
-                [conformation_indices, workflow.ca_obj.labels_],
-                columns=["conformation_index", "cluster_index"],
+                {
+                    "conformation_index": conformation_indices,
+                    "cluster_index": workflow.ca_obj.labels_,
+                }
             )
         # reconstruction metadata-derived pkl files have cluster labels
         # ordered from first entry in metadata file to last, so need to
@@ -503,10 +565,13 @@ def main(args):
                 df_picked["closest_pdb"].tolist(),
                 digits=args.digits,
                 file_ext=args.file_ext,
+                verbose=args.verbose,
             )
             cluster_indices[cluster_file] = pd.DataFrame(
-                [conformation_indices, workflow.ca_obj.labels_],
-                columns=["conformation_index", "cluster_index"],
+                {
+                    "conformation_index": conformation_indices,
+                    "cluster_index": workflow.ca_obj.labels_,
+                }
             )
 
         else:
@@ -548,7 +613,7 @@ def main(args):
 
                 # check that the indexing is correct
                 # as there should only be one entry which matches
-                if len(conformation_file != 1):
+                if len(conformation_file) != 1:
                     print(
                         "Matching string index to single conformation"
                         " failed! \n{}\nare found for {}".format(
@@ -565,11 +630,20 @@ def main(args):
             # we create an ensemble and add it to the cluster_conformations
             # dictionary
             # Do not sort the ensemble during this
-            cluster_conformations[cw][str(cluster_index)] = mda.Universe(
+            cluster_conformations[str(cluster_index)] = mda.Universe(
                 conformation_filenames[0],
                 ensemble_conformations,
             )
             # TODO check if these conformations need aligning before ces/dres
+            """
+            # AND HOW TO ALIGN MULTIPLE ENSEMBLES???
+            mda.analysis.align.AlignTraj(
+                cluster_conformations[cw][str(cluster_index)],
+                cluster_conformations[cw][str(cluster_index)],
+                select="name CA",
+                in_memory=True,
+            ).run()
+            """
 
         # add these ensembles to the ensembles dict
         ensembles[cw] = cluster_conformations
@@ -583,9 +657,9 @@ def main(args):
     ensembles_indices: dict[str, dict[str, int]] = {}
     ensembles_list = []
     counter = 0
-    for k, v in ensembles:
+    for k, v in ensembles.items():
         cluster_list_indices: dict[str, int] = {}
-        for cluster_index, universe in v:
+        for cluster_index, universe in v.items():
             cluster_list_indices[str(cluster_index)] = counter
             ensembles_list.append(universe)
             counter += 1
@@ -597,7 +671,7 @@ def main(args):
 
     # create output dir
     if not os.path.isdir(args.output_dir):
-        os.path.makedirs(args.output_dir)
+        os.makedirs(args.output_dir)
         if args.verbose:
             print("Created {}".format(args.output_dir))
     # make the csv file with input/output tracking from pd.DataFrame
@@ -610,11 +684,11 @@ def main(args):
 
     # get the rmsd input or output file path
     if args.rmsd_precalc:
-        metadata["rmsd_calculation"] = [args.rmsd_precalc]
+        metadata["rmsd_calculation"] = args.rmsd_precalc
     elif args.save_rmsd:
-        metadata["rmsd_calculation"] = [
-            os.path.join(args.output_dir, "rmsd.npz")
-        ]
+        metadata["rmsd_calculation"] = os.path.join(
+            args.output_dir, "rmsd.npz"
+        )
 
     # get the filepath of the class pkl which will be created to hold
     # the heatmap which results from calculating the JS-divergence
@@ -666,6 +740,7 @@ def main(args):
             )
 
     ces, details = mda.analysis.encore.similarity.ces(
+        ensembles_list,
         select=args.select,
         clustering_method=AffinityPropagationNative(
             preference=args.preference,
@@ -697,8 +772,11 @@ def main(args):
         js_divergence.ensembles_list = ensembles_list
     js_divergence.ensembles_indices = ensembles_indices
 
+    # save the object to file
+    js_divergence.save_jsd(args.overwrite)
     # use list of indices to create cluster workflow vs clustering
     # workflow heatmap of JS-divergences
+    js_divergence.plot_ces_results()
 
     # save full heatmap and cw vs cw heatmaps to file along with
     # output arrays

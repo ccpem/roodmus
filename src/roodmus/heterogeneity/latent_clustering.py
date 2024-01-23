@@ -906,8 +906,6 @@ def pilot_study_latent(args):
         latent_filetype=args.latent_filetype,
         results_dir=args.output_dir,
         workflows_filename=args.workflows_filename,
-        alignment=args.alignment,
-        distance_metric=args.distance_metric,
         dimension_reduction=args.dimension_reduction,
         dimensions=dimensions,
         cluster_alg=args.cluster_alg,
