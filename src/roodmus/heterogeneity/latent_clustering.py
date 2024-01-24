@@ -366,6 +366,9 @@ class latentClustering(object):
         # visualise embedding
         # in 2d, make a plot
         if self.transformed_dimensions.shape[-1] > 1:
+            # TODO figure out if
+            # np.arange(self.transformed_dimensions.shape[0]),
+            # can be replaced easily with an index from truth-mapped confs
             plot_2d_embedding(
                 self.transformed_dimensions[:, 0:2],
                 np.arange(self.transformed_dimensions.shape[0]),
