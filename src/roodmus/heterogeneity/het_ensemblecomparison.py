@@ -542,14 +542,6 @@ def main(args):
                         len(workflow.ca_obj.labels_),
                     )
                 )
-            # now we have str version of digits-length index
-            # which can be used to match to a conformation
-            cluster_indices[cluster_file] = pd.DataFrame(
-                {
-                    "conformation_index": conformation_indices,
-                    "cluster_index": workflow.ca_obj.labels_,
-                }
-            )
         # reconstruction metadata-derived pkl files have cluster labels
         # ordered from first entry in metadata file to last, so need to
         # reorder the labels to be from conformation 0 to conformation X
@@ -567,17 +559,68 @@ def main(args):
                 file_ext=args.file_ext,
                 verbose=args.verbose,
             )
-            cluster_indices[cluster_file] = pd.DataFrame(
-                {
-                    "conformation_index": conformation_indices,
-                    "cluster_index": workflow.ca_obj.labels_,
-                }
-            )
-
         else:
             raise ValueError(
                 "Must use either `MD` or `latent` as the pkl_source values"
             )
+
+        # we already optionally limited n_confs from the conformations_dir
+        # now we need to make sure that it is only these indices which
+        # we carry forward into calculation of JD-divergence values
+        # To do that, grab the indices of conformations which are present
+        # in the list conformation_filenames
+        keep = []
+        for this_index in conformation_indices:
+            present = False
+            for conf_filename in conformation_filenames:
+                if this_index in conf_filename:
+                    present = True
+            keep.append(present)
+        keep = np.array(keep, dtype=bool)
+        """
+        keep = np.isin(
+            np.array(conformation_indices, dtype=str),
+            np.array(conformation_filenames, dtype=str),
+        )
+        """
+        if args.verbose:
+            print(
+                "shape conformation_indices:{}\n{}\n\n".format(
+                    np.array(conformation_indices, dtype=str).shape,
+                    np.array(conformation_indices, dtype=str),
+                )
+            )
+            print(
+                "shape conformation_filenames:{}\n{}\n\n".format(
+                    np.array(conformation_filenames, dtype=str).shape,
+                    np.array(conformation_filenames, dtype=str),
+                )
+            )
+            print(
+                "labels.shape:{}\nlabels:{}\n\n".format(
+                    workflow.ca_obj.labels_.shape, workflow.ca_obj.labels_
+                )
+            )
+            print("shape keep:{}\n{}\n\n".format(keep.shape, keep))
+            print(
+                "kept clusters have indices with this subset:{} of {}".format(
+                    np.unique(workflow.ca_obj.labels_[keep]),
+                    np.unique(workflow.ca_obj.labels_),
+                )
+            )
+        conformation_indices_subset = np.array(
+            conformation_indices, dtype=str
+        )[keep].tolist()
+        cluster_index_subset = workflow.ca_obj.labels_[keep]
+
+        # create the pd dataframe
+        # if args.n_confs is not used, these are full sets, not subsets
+        cluster_indices[cluster_file] = pd.DataFrame(
+            {
+                "conformation_index": conformation_indices_subset,
+                "cluster_index": cluster_index_subset,
+            }
+        )
 
     # now we have the conformation index and cluster index labels,
     # load up all the conformations from conformations_dir into an
