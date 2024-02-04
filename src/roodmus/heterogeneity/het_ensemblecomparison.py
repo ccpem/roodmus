@@ -25,6 +25,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import argparse
 import pickle
 import os
+import random
 
 import numpy as np
 import pandas as pd
@@ -229,9 +230,25 @@ def add_arguments(parser: argparse.ArgumentParser):
 
     parser.add_argument(
         "--n_confs",
-        help="Limit to first <n_confs> conformations from conformations_dir",
+        help="Limit to <n_confs> conformations from conformations_dir",
         type=int,
         default=None,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--contiguous_confs",
+        help="Set the sampled conformations to be contiguous instead of"
+        " uniformly sampled in time",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--first_conf",
+        help="Set an index (used after alphanumeric sorting) to set first"
+        " conformation to be sampled from",
+        type=int,
+        default=0,
         required=False,
     )
 
@@ -239,6 +256,23 @@ def add_arguments(parser: argparse.ArgumentParser):
         "--overwrite",
         help="Overwrite previous pkl files with same filepath",
         action="store_true",
+    )
+
+    parser.add_argument(
+        "--ensemble_subset_size",
+        help="Ensemble subset size limit to use for bootstrapping of large"
+        " datasets.",
+        type=int,
+        default=1000,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--n_subsets",
+        help="Number of ensemble subsets to calculate JS divergence for",
+        type=int,
+        default=None,
+        required=False,
     )
 
     return parser
@@ -333,8 +367,11 @@ class JSDivergence(object):
         self.pdf = pdf
 
         # CES details
-        self.ces: np.ndarray | None = None
-        self.ces_details: np.ndarray | None = None
+        self.ces: list[np.ndarray] | None = None
+        self.ces_details: list[np.ndarray] | None = None
+
+        # as we have to use subset(s) of ensembles, keep track of settings
+        self.args: argparse.ArgumentParser | None = None
 
         # ensembles which are dict[dict[str, mda.Universe|int]]
         self.ensembles_list: list[mda.Universe] | None = None
@@ -369,31 +406,32 @@ class JSDivergence(object):
         # so can sns.heatmap plot
         # if we have a list, grab the np.ndarray inside (will be 1 long
         # unless there were multiple ces clustering algs used)
-        if isinstance(self.ces, list):
-            for i, clustering_approach in enumerate(self.ces):
+        for j, subset in enumerate(self.ces):
+            if isinstance(subset, list):
+                for i, clustering_approach in enumerate(subset):
+                    plot_heatmap(
+                        clustering_approach,
+                        xlabels=combined_label,
+                        ylabels=combined_label,
+                        filename=os.path.join(
+                            os.path.dirname(self.pkl_filepath),
+                            "ces_jsd_{}_subset_{}.png".format(i, j),
+                        ),
+                        dpi=self.dpi,
+                        pdf=self.pdf,
+                    )
+            else:
                 plot_heatmap(
-                    clustering_approach,
+                    subset,
                     xlabels=combined_label,
                     ylabels=combined_label,
                     filename=os.path.join(
                         os.path.dirname(self.pkl_filepath),
-                        "ces_jsd_{}.png".format(i),
+                        "ces_jsd_subset_{}.png".format(j),
                     ),
                     dpi=self.dpi,
                     pdf=self.pdf,
                 )
-        else:
-            plot_heatmap(
-                self.ces,
-                xlabels=combined_label,
-                ylabels=combined_label,
-                filename=os.path.join(
-                    os.path.dirname(self.pkl_filepath),
-                    "ces_jsd.png",
-                ),
-                dpi=self.dpi,
-                pdf=self.pdf,
-            )
 
         # TODO alter heatmap to only compare one clustering alg to another
         # this may be useful but not necessarily required
@@ -474,14 +512,37 @@ def main(args):
     for source in args.clusters_source:
         assert source == "MD" or source == "latent"
 
-    # extract the cluster indices from the pkl files
-    # easiest to use a dict for keeping track
-    cluster_indices: dict[str, pd.DataFrame] = {}
-
     # get the conformation filenames
     conformation_filenames = sorted(get_pdb_list(args.conformations_dir))
-    if args.n_confs:
-        conformation_filenames = conformation_filenames[: args.n_confs]
+    if args.n_confs and args.contiguous_confs:
+        if args.n_confs > len(conformation_filenames):
+            raise ValueError(
+                "Trying to sample {} confs from {} files!".format(
+                    args.n_confs, len(conformation_filenames)
+                )
+            )
+        conformation_filenames = conformation_filenames[
+            args.first_conf : args.first_conf + args.n_confs
+        ]
+    elif args.n_confs:
+        # get every nth sample depending on n_confs requested
+        if (len(conformation_filenames) - args.first_conf) < args.n_confs:
+            raise ValueError(
+                "Trying to sample {} confs from {} remaining! Error!".format(
+                    args.n_confs,
+                    len(conformation_filenames) - args.first_conf,
+                )
+            )
+        else:
+            sample_indices = np.arange(
+                args.first_conf,
+                len(conformation_filenames),
+                (len(conformation_filenames) - args.first_conf) / args.n_confs,
+            ).astype(int)
+            conformation_filenames = np.array(
+                conformation_filenames, dtype=str
+            )[sample_indices].tolist()
+    assert len(conformation_filenames) > 0
 
     # TODO replace/update setting of these values
     particle_diameter = 100  # approximate particle diameter in Angstroms
@@ -514,6 +575,9 @@ def main(args):
         verbose=args.verbose,
     )
 
+    # extract the cluster indices from the pkl files
+    # easiest to use a dict for keeping track
+    cluster_indices: dict[str, pd.DataFrame] = {}
     # open the pkls
     for cluster_file, pkl_source in zip(args.clusters, args.clusters_source):
         workflow = pickle.load(open(cluster_file, "rb"))
@@ -577,12 +641,7 @@ def main(args):
                     present = True
             keep.append(present)
         keep = np.array(keep, dtype=bool)
-        """
-        keep = np.isin(
-            np.array(conformation_indices, dtype=str),
-            np.array(conformation_filenames, dtype=str),
-        )
-        """
+
         if args.verbose:
             print(
                 "shape conformation_indices:{}\n{}\n\n".format(
@@ -628,6 +687,7 @@ def main(args):
     # md_trajectory = mda_load_universe(args)
 
     # extract the ensembles for each clustering workflow
+    """
     ensembles: dict[str, dict[str, mda.Universe]] = {}
     for cw, ci_df in cluster_indices.items():
         cluster_conformations: dict[str, mda.Universe] = {}
@@ -678,25 +738,26 @@ def main(args):
                 ensemble_conformations,
             )
             # TODO check if these conformations need aligning before ces/dres
-            """
             # AND HOW TO ALIGN MULTIPLE ENSEMBLES???
-            mda.analysis.align.AlignTraj(
-                cluster_conformations[cw][str(cluster_index)],
-                cluster_conformations[cw][str(cluster_index)],
-                select="name CA",
-                in_memory=True,
-            ).run()
-            """
-
+            # ANSW: THEY SHOULD BE ALGINED BY CES RMSD CALC!!!!
+            # mda.analysis.align.AlignTraj(
+            #     cluster_conformations[cw][str(cluster_index)],
+            #     cluster_conformations[cw][str(cluster_index)],
+            #     select="name CA",
+            #     in_memory=True,
+            # ).run()
         # add these ensembles to the ensembles dict
         ensembles[cw] = cluster_conformations
         # create a list of mda.Universes and a list of indices to keep track
+
+    """
 
     # we now how a dict holding a dict for each clustering workflow
     # The subdict holds one mda.Universe for each cluster index
     # Therefore, we create a list of ALL ensembles and a dict which
     # is the same as ensembles var except it holds index of list
     # for each of mda.Universe
+    """
     ensembles_indices: dict[str, dict[str, int]] = {}
     ensembles_list = []
     counter = 0
@@ -704,13 +765,132 @@ def main(args):
         cluster_list_indices: dict[str, int] = {}
         for cluster_index, universe in v.items():
             cluster_list_indices[str(cluster_index)] = counter
-            ensembles_list.append(universe)
+            # ensembles_list.append(universe)
             counter += 1
         ensembles_indices[k] = cluster_list_indices
+    """
 
-    # we now have a list of all ensembles/clusters (from all clustering
-    # workflows) and a way to map list entries back to source via indices
-    # So can now apply ces() after creating the directory for the results
+    ensembles_indices: dict[str, dict[str, int]] = {}
+    # ensembles_list = []
+    counter = 0
+    for cw, ci_df in cluster_indices.items():
+        cluster_list_indices: dict[str, int] = {}
+        for cluster_index in np.unique(ci_df["cluster_index"]):
+            cluster_list_indices[str(cluster_index)] = counter
+            counter += 1
+        ensembles_indices[cw] = cluster_list_indices
+
+    # now need to add the following objects to the JS-divergence.pkl class
+    # ces
+    # details
+    # ensembles_indices
+    js_divergence = JSDivergence(
+        os.path.join(args.output_dir, "js_divergence.pkl"),
+        dpi=args.dpi,
+        pdf=args.pdf,
+    )
+    js_divergence_ces = []
+    js_divergence_ces_details = []
+
+    # because of compute limits on RMSD calculations for all confs in all
+    # conformations there are 2 solutions.
+    # First is to calc RMSD between all conformations in the dataset and then
+    # to use arrangement of ensembles to fill in values for repeated
+    # comparisons. However, for a large number of unique conformations and
+    # a large enough molecule, this calculation is still prohibitively slow
+    # Second option (implemented) is to bootstrap the JS-divergence
+    # calculation between ensembles. Total of around 1000 conformations
+    # takes around 1 hr to compute JS-divergence (ie: RMSD and CES) for covid
+    # spike trimer. Therefore using ensemble_subset_size and n_subsets to
+    # determine number of conformations to extract from each ensemble and
+    # how many times to compare subsets
+
+    # loop through all the subsets to make, randomly select the subset of
+    # confs for each ensemble, calculate the CES JS-D and append to the pkl
+    # Number of ensembles is len(ensembles_list)
+    for subset_i in range(args.n_subsets):
+        subset_ensembles: dict[str, dict[str, mda.Universe]] = {}
+        for cw, ci_df in cluster_indices.items():
+            cluster_conformations: dict[str, mda.Universe] = {}
+
+            # for each cluster index, get an mda.Universe
+            for cluster_index in np.unique(ci_df["cluster_index"]):
+                # grab the conformation indices corresponding to this cluster
+                select_conformations = ci_df.loc[
+                    ci_df["cluster_index"] == cluster_index
+                ]
+
+                # this time randomly select a subset of the confs
+                subset_confs = random.sample(
+                    select_conformations["conformation_index"].tolist(),
+                    args.ensemble_subset_size,
+                )
+
+                # need each ensemble to be a mda.Universe, so
+                # for clustering, extract the list of filenames of
+                # conformations
+                # (pdb files) which are each in ensemble/cluster. IT is assume
+                # that they may be repeated any number of times from 1 to N
+                ensemble_conformations: list[str] = []
+                for conformation_index in subset_confs:
+                    conformation_file: list[str] = []
+                    # grab the filename that this str(X).zfill(6) string is
+                    # present in
+                    for conformation_filename in conformation_filenames:
+                        if conformation_index in conformation_filename:
+                            conformation_file.append(conformation_filename)
+
+                    # check that the indexing is correct
+                    # as there should only be one entry which matches
+                    if len(conformation_file) != 1:
+                        print(
+                            "Matching string index to single conformation"
+                            " failed! \n{}\nare found for {}".format(
+                                conformation_file, conformation_index
+                            )
+                        )
+                    assert len(conformation_file) == 1
+
+                    # now that we have a len 1 list with the pdb file path,
+                    # append the ensemble conformations
+                    ensemble_conformations += conformation_file
+
+                # now we have the list of conformations for this
+                # ensemble/cluster
+                # we create an ensemble and add it to the
+                # cluster_conformations dictionary
+                # Do not sort the ensemble during this
+                cluster_conformations[str(cluster_index)] = mda.Universe(
+                    conformation_filenames[0],
+                    ensemble_conformations,
+                )
+
+            subset_ensembles[cw] = cluster_conformations
+
+        # grab the subset
+        ensembles_list_subset = []
+        for k, v in subset_ensembles.items():
+            for cluster_index, universe in v.items():
+                ensembles_list_subset.append(universe)
+
+        # grab the JS-D
+        ces, details = mda.analysis.encore.similarity.ces(
+            ensembles_list_subset,
+            select=args.select,
+            clustering_method=AffinityPropagationNative(
+                preference=args.preference,
+            ),
+            # distance_matrix=rmsd_matrix,
+            estimate_error=args.estimate_error,
+            bootstrapping_samples=args.bootstrapping_samples,
+            ncores=args.ncores,
+            allow_collapsed_result=False,
+        )
+
+        js_divergence_ces.append(ces)
+        js_divergence_ces_details.append(details)
+
+        print("Completed subset {}".format(subset_i))
 
     # create output dir
     if not os.path.isdir(args.output_dir):
@@ -720,10 +900,10 @@ def main(args):
     # make the csv file with input/output tracking from pd.DataFrame
     # track the pkl files and the type of clustering workflow
     metadata = {}
-    for i, k in enumerate(ensembles):
+    for i, k in enumerate(ensembles_indices):
         # gives index i and key k
         metadata["input_file_{}".format(i)] = [k]
-        metadata["input_file_{}_type".format(i)] = [args.file_ext[i]]
+        metadata["input_file_{}_type".format(i)] = [args.clusters_source[i]]
 
     # get the rmsd input or output file path
     if args.rmsd_precalc:
@@ -745,6 +925,19 @@ def main(args):
         os.path.join(args.output_dir, "JS-divergence-metadata.csv")
     )
 
+    # if args.pkl_universes:
+    #     js_divergence.ensembles_list = ensembles_list
+    js_divergence.ensembles_indices = ensembles_indices
+    js_divergence.args = args
+    js_divergence.ces = js_divergence_ces
+    js_divergence.ces_details = js_divergence_ces_details
+    # save the object to file
+    js_divergence.save_jsd(args.overwrite)
+    # use list of indices to create cluster workflow vs clustering
+    # workflow heatmap of JS-divergences
+    js_divergence.plot_ces_results()
+
+    """
     # Now we load or calc the RMSD matrix before using it as an input to
     # CES()
     # load up the rmsd if it was precalc'ed
@@ -820,22 +1013,7 @@ def main(args):
     # use list of indices to create cluster workflow vs clustering
     # workflow heatmap of JS-divergences
     js_divergence.plot_ces_results()
-
-    # save full heatmap and cw vs cw heatmaps to file along with
-    # output arrays
-
-    # TODO remove this
     """
-    if args.js:
-        # compute js between all the provided pkls
-        compute_js()
-    """
-    """
-    if args.hd:
-        # compute hausdorf (max distance) between all provided pkls
-        compute_hd()
-    """
-    # save results as a human readable csv or np array
 
 
 if __name__ == "__main__":

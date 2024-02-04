@@ -124,9 +124,25 @@ def add_arguments(parser: argparse.ArgumentParser):
 
     parser.add_argument(
         "--n_confs",
-        help="Limit to first <n_confs> conformations",
+        help="Limit to <n_confs> conformations",
         type=int,
         default=None,
+        required=False,
+    )
+
+    parser.add_argument(
+        "--contiguous_confs",
+        help="Set the sampled conformations to be contiguous instead of"
+        " uniformly sampled in time",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--first_conf",
+        help="Set an index (used after alphanumeric sorting) to set first"
+        " conformation to be sampled from",
+        type=int,
+        default=0,
         required=False,
     )
 
@@ -334,8 +350,35 @@ def mda_load_universe(args) -> mda.Universe:
     # sort alphanumerically
     conf_files = sorted(conf_files)
     # limit number of conformations if desired
-    if args.n_confs:
-        conf_files = conf_files[: args.n_confs]
+    if args.n_confs and args.contiguous_confs:
+        if args.n_confs > len(conf_files):
+            raise ValueError(
+                "Trying to sample {} confs from {} files!".format(
+                    args.n_confs, len(conf_files)
+                )
+            )
+        conf_files = conf_files[
+            args.first_conf : args.first_conf + args.n_confs
+        ]
+    elif args.n_confs:
+        # get every nth sample depending on n_confs requested
+        if (len(conf_files) - args.first_conf) < args.n_confs:
+            raise ValueError(
+                "Trying to sample {} confs from {} remaining! Error!".format(
+                    args.n_confs,
+                    len(conf_files) - args.first_conf,
+                )
+            )
+        else:
+            sample_indices = np.arange(
+                args.first_conf,
+                len(conf_files),
+                (len(conf_files) - args.first_conf) / args.n_confs,
+            ).astype(int)
+            conf_files = np.array(conf_files, dtype=str)[
+                sample_indices
+            ].tolist()
+    assert len(conf_files) > 0
     # add the first pdb as a topology file
     topfile = conf_files[0]
     # turn list of pdbs into an mda.Universe
