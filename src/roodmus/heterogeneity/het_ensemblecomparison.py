@@ -369,6 +369,14 @@ class JSDivergence(object):
         # CES details
         self.ces: list[np.ndarray] | None = None
         self.ces_details: list[np.ndarray] | None = None
+        self.ces_avg: np.ndarray | None = None
+        self.ces_stddev: np.ndarray | None = None
+
+        # DRES details
+        self.dres: list[np.ndarray] | None = None
+        self.dres_details: list[np.ndarray] | None = None
+        self.dres_avg: np.ndarray | None = None
+        self.dres_stddev: np.ndarray | None = None
 
         # as we have to use subset(s) of ensembles, keep track of settings
         self.args: argparse.ArgumentParser | None = None
@@ -376,6 +384,18 @@ class JSDivergence(object):
         # ensembles which are dict[dict[str, mda.Universe|int]]
         self.ensembles_list: list[mda.Universe] | None = None
         self.ensembles_indices: dict[str, dict[str, int]] | None = None
+
+    def compute_ces_stats(self):
+        if self.ces:
+            self.ces_avg = np.average(np.array(self.ces, dtype=float), axis=0)
+            self.ces_stddev = np.std(np.array(self.ces, dtype=float), axis=0)
+
+    def compute_dres_stats(self):
+        if self.dres:
+            self.dres_avg = np.average(
+                np.array(self.dres, dtype=float), axis=0
+            )
+            self.dres_stddev = np.std(np.array(self.dres, dtype=float), axis=0)
 
     def plot_ces_results(self):
         cw = []
@@ -432,6 +452,122 @@ class JSDivergence(object):
                     dpi=self.dpi,
                     pdf=self.pdf,
                 )
+
+        # plot the dres avg and stddev heatmaps
+        plot_heatmap(
+            self.ces_avg,
+            xlabels=combined_label,
+            ylabels=combined_label,
+            filename=os.path.join(
+                os.path.dirname(self.pkl_filepath),
+                "ces_jsd_avg.png",
+            ),
+            dpi=self.dpi,
+            pdf=self.pdf,
+        )
+        plot_heatmap(
+            self.ces_stddev,
+            xlabels=combined_label,
+            ylabels=combined_label,
+            filename=os.path.join(
+                os.path.dirname(self.pkl_filepath),
+                "ces_jsd_stddev.png",
+            ),
+            dpi=self.dpi,
+            pdf=self.pdf,
+        )
+
+        # TODO alter heatmap to only compare one clustering alg to another
+        # this may be useful but not necessarily required
+        """
+        # loop through one side of ces array and ignore diagonal
+        for i in range(len(self.ces[0])):
+            for j in range(len(self.ces[1]-1)):
+                # use the i,j value(s) to grab the correct
+                # ces_jsd values
+                # and identify the correct cluster workflows which
+                # were compared to get it (both pkl file and cw index)
+        """
+
+    def plot_dres_results(self):
+        cw = []
+        cw_ensemble_index = []
+        ensembles_list_index = []
+
+        for k1, v1 in self.ensembles_indices.items():
+            for k2, v2 in v1.items():
+                cw.append(k1)
+                cw_ensemble_index.append(k2)
+                ensembles_list_index.append(v2)
+
+        # now we can rearrange the lists by the indices
+        # to get labels in the same order as the ces matrix indices
+        cw = [cw[i] for i in ensembles_list_index]
+        cw_ensemble_index = [
+            cw_ensemble_index[i] for i in ensembles_list_index
+        ]
+
+        # lets create labels that combine cw and ensemble index
+        combined_label = []
+        for cluster_workflow, ensemble_index in zip(cw, cw_ensemble_index):
+            combined_label.append(
+                cluster_workflow + "_ensemble_" + ensemble_index
+            )
+
+        # we now have labels to put on x,y axes (they are the same)
+        # so can sns.heatmap plot
+        # if we have a list, grab the np.ndarray inside (will be 1 long
+        # unless there were multiple dres clustering algs used)
+        for j, subset in enumerate(self.dres):
+            if isinstance(subset, list):
+                for i, clustering_approach in enumerate(subset):
+                    plot_heatmap(
+                        clustering_approach,
+                        xlabels=combined_label,
+                        ylabels=combined_label,
+                        filename=os.path.join(
+                            os.path.dirname(self.pkl_filepath),
+                            "dres_jsd_{}_subset_{}.png".format(i, j),
+                        ),
+                        dpi=self.dpi,
+                        pdf=self.pdf,
+                    )
+            else:
+                plot_heatmap(
+                    subset,
+                    xlabels=combined_label,
+                    ylabels=combined_label,
+                    filename=os.path.join(
+                        os.path.dirname(self.pkl_filepath),
+                        "dres_jsd_subset_{}.png".format(j),
+                    ),
+                    dpi=self.dpi,
+                    pdf=self.pdf,
+                )
+
+        # plot the dres avg and stddev heatmaps
+        plot_heatmap(
+            self.dres_avg,
+            xlabels=combined_label,
+            ylabels=combined_label,
+            filename=os.path.join(
+                os.path.dirname(self.pkl_filepath),
+                "dres_jsd_avg.png",
+            ),
+            dpi=self.dpi,
+            pdf=self.pdf,
+        )
+        plot_heatmap(
+            self.dres_stddev,
+            xlabels=combined_label,
+            ylabels=combined_label,
+            filename=os.path.join(
+                os.path.dirname(self.pkl_filepath),
+                "dres_jsd_stddev.png",
+            ),
+            dpi=self.dpi,
+            pdf=self.pdf,
+        )
 
         # TODO alter heatmap to only compare one clustering alg to another
         # this may be useful but not necessarily required
@@ -791,6 +927,8 @@ def main(args):
     )
     js_divergence_ces = []
     js_divergence_ces_details = []
+    js_divergence_dres = []
+    js_divergence_dres_details = []
 
     # because of compute limits on RMSD calculations for all confs in all
     # conformations there are 2 solutions.
@@ -874,7 +1012,7 @@ def main(args):
                 ensembles_list_subset.append(universe)
 
         # grab the JS-D
-        ces, details = mda.analysis.encore.similarity.ces(
+        ces, ces_details = mda.analysis.encore.similarity.ces(
             ensembles_list_subset,
             select=args.select,
             clustering_method=AffinityPropagationNative(
@@ -884,11 +1022,28 @@ def main(args):
             estimate_error=args.estimate_error,
             bootstrapping_samples=args.bootstrapping_samples,
             ncores=args.ncores,
+            calc_diagonal=True,
             allow_collapsed_result=False,
         )
 
         js_divergence_ces.append(ces)
-        js_divergence_ces_details.append(details)
+        js_divergence_ces_details.append(ces_details)
+
+        dres, dres_details = mda.analysis.encore.similarity.dres(
+            ensembles_list_subset,
+            select=args.select,
+            # dimensionality_reduction_method=,
+            # distance_matrix=rmsd_matrix,
+            nsamples=len(ensembles_list_subset),
+            estimate_error=args.estimate_error,
+            bootstrapping_samples=args.bootstrapping_samples,
+            ncores=args.ncores,
+            calc_diagonal=True,
+            allow_collapsed_result=False,
+        )
+
+        js_divergence_dres.append(dres)
+        js_divergence_dres_details.append(dres_details)
 
         print("Completed subset {}".format(subset_i))
 
@@ -931,11 +1086,16 @@ def main(args):
     js_divergence.args = args
     js_divergence.ces = js_divergence_ces
     js_divergence.ces_details = js_divergence_ces_details
+    js_divergence.compute_ces_stats()
+    js_divergence.dres = js_divergence_dres
+    js_divergence.dres_details = js_divergence_dres_details
+    js_divergence.compute_dres_stats()
     # save the object to file
     js_divergence.save_jsd(args.overwrite)
     # use list of indices to create cluster workflow vs clustering
     # workflow heatmap of JS-divergences
     js_divergence.plot_ces_results()
+    js_divergence.plot_dres_results()
 
     """
     # Now we load or calc the RMSD matrix before using it as an input to
