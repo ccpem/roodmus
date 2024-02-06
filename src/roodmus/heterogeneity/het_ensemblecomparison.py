@@ -454,28 +454,56 @@ class JSDivergence(object):
                 )
 
         # plot the dres avg and stddev heatmaps
-        plot_heatmap(
-            self.ces_avg,
-            xlabels=combined_label,
-            ylabels=combined_label,
-            filename=os.path.join(
-                os.path.dirname(self.pkl_filepath),
-                "ces_jsd_avg.png",
-            ),
-            dpi=self.dpi,
-            pdf=self.pdf,
-        )
-        plot_heatmap(
-            self.ces_stddev,
-            xlabels=combined_label,
-            ylabels=combined_label,
-            filename=os.path.join(
-                os.path.dirname(self.pkl_filepath),
-                "ces_jsd_stddev.png",
-            ),
-            dpi=self.dpi,
-            pdf=self.pdf,
-        )
+        if self.ces_avg:
+            if isinstance(self.ces_avg, list):
+                plot_heatmap(
+                    self.ces_avg[0],
+                    xlabels=combined_label,
+                    ylabels=combined_label,
+                    filename=os.path.join(
+                        os.path.dirname(self.pkl_filepath),
+                        "ces_jsd_avg.png",
+                    ),
+                    dpi=self.dpi,
+                    pdf=self.pdf,
+                )
+            else:
+                plot_heatmap(
+                    self.ces_avg,
+                    xlabels=combined_label,
+                    ylabels=combined_label,
+                    filename=os.path.join(
+                        os.path.dirname(self.pkl_filepath),
+                        "ces_jsd_avg.png",
+                    ),
+                    dpi=self.dpi,
+                    pdf=self.pdf,
+                )
+        if self.ces_stddev:
+            if isinstance(self.ces_stddev, list):
+                plot_heatmap(
+                    self.ces_stddev[0],
+                    xlabels=combined_label,
+                    ylabels=combined_label,
+                    filename=os.path.join(
+                        os.path.dirname(self.pkl_filepath),
+                        "ces_jsd_stddev.png",
+                    ),
+                    dpi=self.dpi,
+                    pdf=self.pdf,
+                )
+            else:
+                plot_heatmap(
+                    self.ces_stddev,
+                    xlabels=combined_label,
+                    ylabels=combined_label,
+                    filename=os.path.join(
+                        os.path.dirname(self.pkl_filepath),
+                        "ces_jsd_stddev.png",
+                    ),
+                    dpi=self.dpi,
+                    pdf=self.pdf,
+                )
 
         # TODO alter heatmap to only compare one clustering alg to another
         # this may be useful but not necessarily required
@@ -544,30 +572,57 @@ class JSDivergence(object):
                     dpi=self.dpi,
                     pdf=self.pdf,
                 )
-
-        # plot the dres avg and stddev heatmaps
-        plot_heatmap(
-            self.dres_avg,
-            xlabels=combined_label,
-            ylabels=combined_label,
-            filename=os.path.join(
-                os.path.dirname(self.pkl_filepath),
-                "dres_jsd_avg.png",
-            ),
-            dpi=self.dpi,
-            pdf=self.pdf,
-        )
-        plot_heatmap(
-            self.dres_stddev,
-            xlabels=combined_label,
-            ylabels=combined_label,
-            filename=os.path.join(
-                os.path.dirname(self.pkl_filepath),
-                "dres_jsd_stddev.png",
-            ),
-            dpi=self.dpi,
-            pdf=self.pdf,
-        )
+        if self.dres_avg:
+            # plot the dres avg and stddev heatmaps
+            if isinstance(self.dres_avg, list):
+                plot_heatmap(
+                    self.dres_avg[0],
+                    xlabels=combined_label,
+                    ylabels=combined_label,
+                    filename=os.path.join(
+                        os.path.dirname(self.pkl_filepath),
+                        "dres_jsd_avg.png",
+                    ),
+                    dpi=self.dpi,
+                    pdf=self.pdf,
+                )
+            else:
+                plot_heatmap(
+                    self.dres_avg,
+                    xlabels=combined_label,
+                    ylabels=combined_label,
+                    filename=os.path.join(
+                        os.path.dirname(self.pkl_filepath),
+                        "dres_jsd_avg.png",
+                    ),
+                    dpi=self.dpi,
+                    pdf=self.pdf,
+                )
+        if self.dres_details:
+            if isinstance(self.dres_stddev):
+                plot_heatmap(
+                    self.dres_stddev[0],
+                    xlabels=combined_label,
+                    ylabels=combined_label,
+                    filename=os.path.join(
+                        os.path.dirname(self.pkl_filepath),
+                        "dres_jsd_stddev.png",
+                    ),
+                    dpi=self.dpi,
+                    pdf=self.pdf,
+                )
+            else:
+                plot_heatmap(
+                    self.dres_stddev,
+                    xlabels=combined_label,
+                    ylabels=combined_label,
+                    filename=os.path.join(
+                        os.path.dirname(self.pkl_filepath),
+                        "dres_jsd_stddev.png",
+                    ),
+                    dpi=self.dpi,
+                    pdf=self.pdf,
+                )
 
         # TODO alter heatmap to only compare one clustering alg to another
         # this may be useful but not necessarily required
