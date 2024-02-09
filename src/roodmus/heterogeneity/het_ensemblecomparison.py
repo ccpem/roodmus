@@ -454,7 +454,7 @@ class JSDivergence(object):
                 )
 
         # plot the dres avg and stddev heatmaps
-        if self.ces_avg:
+        if self.ces_avg is not None:
             if isinstance(self.ces_avg, list):
                 plot_heatmap(
                     self.ces_avg[0],
@@ -479,7 +479,7 @@ class JSDivergence(object):
                     dpi=self.dpi,
                     pdf=self.pdf,
                 )
-        if self.ces_stddev:
+        if self.ces_stddev is not None:
             if isinstance(self.ces_stddev, list):
                 plot_heatmap(
                     self.ces_stddev[0],
@@ -572,7 +572,7 @@ class JSDivergence(object):
                     dpi=self.dpi,
                     pdf=self.pdf,
                 )
-        if self.dres_avg:
+        if self.dres_avg is not None:
             # plot the dres avg and stddev heatmaps
             if isinstance(self.dres_avg, list):
                 plot_heatmap(
@@ -598,7 +598,7 @@ class JSDivergence(object):
                     dpi=self.dpi,
                     pdf=self.pdf,
                 )
-        if self.dres_details:
+        if self.dres_details is not None:
             if isinstance(self.dres_stddev):
                 plot_heatmap(
                     self.dres_stddev[0],
