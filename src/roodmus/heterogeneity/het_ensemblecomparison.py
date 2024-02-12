@@ -387,15 +387,21 @@ class JSDivergence(object):
 
     def compute_ces_stats(self):
         if self.ces:
-            self.ces_avg = np.average(np.array(self.ces, dtype=float), axis=0)
-            self.ces_stddev = np.std(np.array(self.ces, dtype=float), axis=0)
+            self.ces_avg = np.average(
+                np.array(self.ces, dtype=float), axis=0
+            ).tolist()
+            self.ces_stddev = np.std(
+                np.array(self.ces, dtype=float), axis=0
+            ).tolist()
 
     def compute_dres_stats(self):
         if self.dres:
             self.dres_avg = np.average(
                 np.array(self.dres, dtype=float), axis=0
-            )
-            self.dres_stddev = np.std(np.array(self.dres, dtype=float), axis=0)
+            ).tolist()
+            self.dres_stddev = np.std(
+                np.array(self.dres, dtype=float), axis=0
+            ).tolist()
 
     def plot_ces_results(self):
         cw = []
