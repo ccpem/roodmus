@@ -24,6 +24,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 
 
 class orientation_generator(object):
@@ -71,3 +72,65 @@ class orientation_generator(object):
                 for pose in poses:
                     f.write(",".join([str(e) for e in pose]) + "\n")
         return poses
+    
+
+    @classmethod
+    def generate_preferred_orientation(
+        self, n: int = 1, maxtilt: float = 30, maxtries: int = 1000
+    ):
+        """
+        This generator samples random orientations from SO(3), converts them
+        to ZYZ (intrinsic) Euler angles and then checks if the tilt angle is
+        within a certain range. If not, the orientation is discarded and a new
+        one is sampled. This is repeated until n orientations are found or
+        maxtries is reached. In the latter case, a warning is raised and the 
+        orientation is set to the last one found.
+
+        Parameters
+        ----------
+        n : int
+            Number of orientations to generate
+        maxtilt : float
+            Maximum tilt angle in degrees
+        maxtries : int
+            Maximum number of tries to generate an orientation before giving up
+
+        Returns
+        -------
+        list
+            List of n orientations as rotation vectors  
+        """
+
+        def _sample_rotation_vector():
+            """
+            Sampling a unit vector uniformly on a sphere and a rotation angle uniformly on [0, 2pi]
+            """
+            u = np.random.uniform(0, 1)
+            v = np.random.uniform(0, 1)
+            theta = 2 * np.pi * u
+            phi = np.arccos(2 * v - 1)
+            x = np.sin(phi) * np.cos(theta)
+            y = np.sin(phi) * np.sin(theta)
+            z = np.cos(phi)
+            psi = np.random.uniform(0, 2 * np.pi)
+            r = np.array([x, y, z]) * psi
+            return r
+        
+        poses = []
+        for _ in range(n):
+            tries = 0
+            while tries <= maxtries:
+                r = _sample_rotation_vector()
+                Rr = R.from_rotvec(r)
+                euler = Rr.as_euler("ZYZ", degrees=True)
+                if np.abs(euler[1]) <= maxtilt:
+                    # convert euler back to rotation vector
+                    rvec = R.from_euler("ZYZ", euler, degrees=True).as_rotvec()
+                    poses.append(rvec.tolist())
+                    break
+                tries += 1
+
+            if tries > maxtries:
+                print(f"Warning: maximum number of tries ({maxtries}) reached. Returning last orientation found.")
+                poses.append(rvec)
+        return poses 

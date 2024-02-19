@@ -100,13 +100,23 @@ def add_arguments(
         action="store_true",
     )
     run_parakeet_parser.add_argument(
+        "--positions",
+        help="how to generate the positions \
+            for each particle. Default is uniform \
+            based on Parakeet's algorithm",
+        type=str,
+        choices=["uniform"],
+        default="uniform",
+    )
+    run_parakeet_parser.add_argument(
         "--orientations",
         help="how to generate the orientations \
             for each particle. Default is random \
-            through Parakeet",
+            sampling from SO(3)",
         type=lambda s: parse_orientation(s),
-        default="parakeet",
+        default="uniform",
     )
+
     run_parakeet_parser.add_argument(
         "--verbose",
         help="Turn on verbose output",
@@ -1001,14 +1011,14 @@ def get_name():
 
 
 def parse_orientation(s):
-    if s.lower() in ["parakeet", "inplane"]:
+    if s.lower() in ["uniform", "inplane"]:
         return s.lower()
-    elif "discrete_tilt" in s:
+    elif "maxtilt_" in s:
         return s.lower()
     else:
         raise ValueError(
             f"Orientation must be 'parakeet', 'inplane' \
-                or 'discrete_tilt_*'."
+                or maxtilt_* "
             f" Got {s}"
         )
 
@@ -1168,7 +1178,10 @@ def main(args):
         )
         # add the molecules to the configuration
         config.add_molecules(
-            chosen_frames, n_instances, orientation_method=args.orientations
+            chosen_frames,
+            n_instances,
+            orientation_method=args.orientations,
+            positions_method=args.positions,
         )
 
         # run parakeet

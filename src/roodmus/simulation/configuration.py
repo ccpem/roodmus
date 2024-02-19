@@ -30,10 +30,7 @@ import yaml
 
 from parakeet import config
 from roodmus.simulation.orientation_generator import orientation_generator
-
-"""
-from run_parakeet.orientation_generator import orientation_generator
-"""
+from roodmus.simulation.position_generator import position_generator
 
 
 class Configuration(object):
@@ -283,7 +280,8 @@ class Configuration(object):
         self,
         frames: list[str],
         instances: list[int],
-        orientation_method: str = "parakeet",
+        orientation_method: str = "uniform",
+        position_method: str = "uniform",
     ):
         """Add molecules to the configuration file.
 
@@ -294,10 +292,30 @@ class Configuration(object):
             orientation_generator (str, optional): Orientation generator
         """
         for frame, instance in zip(frames, instances):
-            if orientation_method == "parakeet":
+
+            # determine the method for generating the positions
+            # for each particle in the micrograph
+            if position_method == "uniform":
+                position = position_generator.generate_uniform(
+                    n=instance,
+                    
+                )
+
+            else:
+                raise ValueError(
+                    f"Position generator {position_generator} not supported"
+                )
+
+
+            # determine the method for generating the orientions
+            # for each particle in the micrograph
+
+            if orientation_method == "uniform":
                 # default behaviour
-                # let's parakeet generate the orientations
-                self._add_molecule(frame, n=instance)
+                # samples random rotation vectors
+                orientation = orientation_generator.generate_uniform(
+                    n=instance
+                )
 
             elif orientation_method == "inplane":
                 # pre-defines orientations
@@ -306,24 +324,21 @@ class Configuration(object):
                 orientation = orientation_generator.generate_inplane(
                     n=instance
                 )
-                self._add_molecule(frame, n=None, orientation=orientation)
-
-            elif "discrete_tilt" in orientation_method:
-                # pre-defines orientations
-                # samples elevation angles from a discrete set
-                # samples azimuthal and in-plane rotations from a
-                # continuous uniform distribution
-                k = int(orientation_method.split("_")[-1])
-                orientation = orientation_generator.generate_discrete_tilt(
-                    n=instance, k=k, save_to_file=self.verbose
+            
+            elif "maxtilt" in orientation_method:
+                # randomly generates orientations up to a maximum tilt
+                # angle
+                maxtilt = float(orientation_method.split("_")[-1])
+                orientation = orientation_generator.generate_preferred_orientation(
+                    n=instance, maxtilt=maxtilt
                 )
-                self._add_molecule(frame, n=None, orientation=orientation)
 
             else:
                 raise ValueError(
                     f"Orientation generator {orientation_generator} \
                         not supported"
                 )
+            self._add_molecule(frame, n=None, orientation=orientation)
 
         self._save_config()
 
