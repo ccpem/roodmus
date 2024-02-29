@@ -32,6 +32,7 @@ import pkg_resources
 from pathlib import Path
 
 import roodmus.simulation.run_parakeet
+import roodmus.simulation.write_starfile
 import roodmus.trajectory.conformations_sampling
 import roodmus.analysis.plot_ctf
 import roodmus.analysis.plot_picking
@@ -71,6 +72,7 @@ def main():
     modules = [
         roodmus.trajectory.conformations_sampling,
         roodmus.simulation.run_parakeet,
+        roodmus.simulation.write_starfile,
         roodmus.analysis.plot_ctf,
         roodmus.analysis.plot_picking,
         roodmus.analysis.plot_frames,

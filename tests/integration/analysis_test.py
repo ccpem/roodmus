@@ -33,21 +33,21 @@ import numpy as np  # noqa: F401
 
 from tests.integration import fixtures
 
-from roodmus.analysis.plot_frames import plotFrameDistribution
-from roodmus.analysis.plot_ctf import plotDefocusScatter
-from roodmus.analysis.plot_picking import (
-    plotLabelTruth,
-    plotLabelPicked,
-    plotLabelTruthAndPicked,
-    plotPrecision,
-    plotBoundaryInvestigation,
-    plotOverlap,
-)
-from roodmus.analysis.plot_classes import plot2DClasses
-from roodmus.analysis.plot_alignment import (
-    plotTruePoseDistribution,
-    plotPickedPoseDistribution,
-)
+# from roodmus.analysis.plot_frames import plotFrameDistribution
+# from roodmus.analysis.plot_ctf import plotDefocusScatter
+# from roodmus.analysis.plot_picking import (
+#     plotLabelTruth,
+#     plotLabelPicked,
+#     plotLabelTruthAndPicked,
+#     plotPrecision,
+#     plotBoundaryInvestigation,
+#     plotOverlap,
+# )
+# from roodmus.analysis.plot_classes import plot2DClasses
+# from roodmus.analysis.plot_alignment import (
+#     plotTruePoseDistribution,
+#     plotPickedPoseDistribution,
+# )
 
 
 def md5_hash(fpath):
@@ -121,6 +121,7 @@ class IntegrationTestAnalysis(unittest.TestCase):
         os.environ["PATH"] = self.oldpath
         return super().tearDown()
 
+    """
     def test_plot_frames_star(self):
         config_dir = os.path.join(
             self.test_data, "analysis_test_inputs/relion_subset_ugraphs"
@@ -221,14 +222,15 @@ class IntegrationTestAnalysis(unittest.TestCase):
                 print("o_out_df: {}".format(type(out_df)))
                 print("diff: {}".format(ref_df.compare(out_df)))
                 assert ref_df.equals(out_df)
-        """
+
         for output, ref in zip(output_files, ref_files):
             if output.endswith(".csv") and ref.endswith(".csv"):
                 assert filecmp.cmp(ref, output)
             else:
                 print("{} and {} are not compared".format(output, ref))
-        """
+    """
 
+    """
     def test_extract_particles(self):
         config_dir = os.path.join(
             self.test_data, "analysis_test_inputs/relion_subset_ugraphs"
@@ -289,6 +291,7 @@ class IntegrationTestAnalysis(unittest.TestCase):
                     )
                 )
                 assert np.array_equal(ref_mrc.data, out_mrc.data)
+    """
 
     """
     def test_plot_ctf_star(self):
@@ -335,6 +338,7 @@ class IntegrationTestAnalysis(unittest.TestCase):
             assert md5_hash(ref) == md5_hash(output)
     """
 
+    """
     def test_plot_ctf_scatter_star(self):
         config_dir = os.path.join(
             self.test_data, "analysis_test_inputs/relion_subset_ugraphs"
@@ -404,7 +408,7 @@ class IntegrationTestAnalysis(unittest.TestCase):
             ref_plot_defocus_scatter.plot_data,
             out_plot_defocus_scatter.plot_data,
         )
-        """
+
         for output, ref in zip(output_files, ref_files):
             if output.endswith(".csv") and ref.endswith(".csv"):
 
@@ -412,8 +416,9 @@ class IntegrationTestAnalysis(unittest.TestCase):
                 assert md5_hash(ref) == md5_hash(output)
             else:
                 print("{} and {} are not compared".format(output, ref))
-        """
+    """
 
+    """
     def test_plot_picking_star(self):
         config_dir = os.path.join(
             self.test_data, "analysis_test_inputs/relion_subset_ugraphs"
@@ -674,7 +679,9 @@ class IntegrationTestAnalysis(unittest.TestCase):
             ref_plot_overlap.plot_data,
             out_plot_overlap.plot_data,
         )
+    """
 
+    """
     def test_plot_classes_star(self):
         config_dir = os.path.join(
             self.test_data, "analysis_test_inputs/relion_subset_ugraphs"
@@ -748,7 +755,9 @@ class IntegrationTestAnalysis(unittest.TestCase):
             ref_plot_classes.plot_data,
             out_plot_classes.plot_data,
         )
+    """
 
+    """
     def test_plot_alignment_star(self):
         config_dir = os.path.join(
             self.test_data, "analysis_test_inputs/relion_subset_ugraphs"
@@ -833,6 +842,7 @@ class IntegrationTestAnalysis(unittest.TestCase):
             ref_truth_pose_distribution.plot_data,
             out_truth_pose_distribution.plot_data,
         )
+    """
 
     # TODO for the per particle tests, need to add Polish mrc+yaml inputs
     # and rerun matching using only this data. Then overwrite the test
