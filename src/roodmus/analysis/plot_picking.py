@@ -2670,12 +2670,12 @@ class plotOverlap(plotDataFrame):
                     )
                     self._save_plot(fig, ax, outfilename)
 
-                fig, ax = self.plot_overlap_investigation(
+                fig, ax = plot_overlap_investigation(
                     self.plot_data["plot_overlap"]["df_overlap"],
                     None,
                     self.job_types,
                 )  # plot all
-                outfilename = os.path.join(args.plot_dir, "overlap.png")
+                outfilename = os.path.join(self.plot_dir, "overlap.png")
                 self._save_plot(fig, ax, outfilename)
         else:
             raise TypeError("plot_overlap is not a pd.DataFrame!")

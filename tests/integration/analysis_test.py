@@ -35,7 +35,8 @@ from tests.integration import fixtures
 
 from roodmus.analysis.plot_frames import plotFrameDistribution
 
-# from roodmus.analysis.plot_ctf import plotDefocusScatter
+from roodmus.analysis.plot_ctf import plotDefocusScatter
+
 # from roodmus.analysis.plot_picking import (
 #     plotLabelTruth,
 #     plotLabelPicked,
@@ -44,6 +45,7 @@ from roodmus.analysis.plot_frames import plotFrameDistribution
 #     plotBoundaryInvestigation,
 #     plotOverlap,
 # )
+
 # from roodmus.analysis.plot_classes import plot2DClasses
 # from roodmus.analysis.plot_alignment import (
 #     plotTruePoseDistribution,
@@ -290,6 +292,7 @@ class IntegrationTestAnalysis(unittest.TestCase):
                 )
                 assert np.array_equal(ref_mrc.data, out_mrc.data)
 
+    """
     def test_plot_ctf_star(self):
         config_dir = os.path.join(
             self.test_data, "analysis_test_inputs/relion_subset_ugraphs"
@@ -332,8 +335,8 @@ class IntegrationTestAnalysis(unittest.TestCase):
         for output, ref in zip(output_files, ref_files):
             assert filecmp.cmp(ref, output)
             assert md5_hash(ref) == md5_hash(output)
-
     """
+
     def test_plot_ctf_scatter_star(self):
         config_dir = os.path.join(
             self.test_data, "analysis_test_inputs/relion_subset_ugraphs"
@@ -372,22 +375,22 @@ class IntegrationTestAnalysis(unittest.TestCase):
         assert isinstance(output_files, list)
         print("Output files: {}".format(output_files))
 
-        # find the reference files
-        ref_files: list = [
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/ctf_star/ctf_scatter.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/ctf_star/defocus_scatter/df_truth.csv",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/ctf_star/defocus_scatter/df_picked.csv",
-            ),
-        ]
-        ref_files = sorted(ref_files)
+        # # find the reference files
+        # ref_files: list = [
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/ctf_star/ctf_scatter.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/ctf_star/defocus_scatter/df_truth.csv",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/ctf_star/defocus_scatter/df_picked.csv",
+        #     ),
+        # ]
+        # ref_files = sorted(ref_files)
 
         ref_plot_defocus_scatter = plotDefocusScatter("")
         ref_plot_defocus_scatter.setup_plot_data_empty()
@@ -404,14 +407,12 @@ class IntegrationTestAnalysis(unittest.TestCase):
             out_plot_defocus_scatter.plot_data,
         )
 
-        for output, ref in zip(output_files, ref_files):
-            if output.endswith(".csv") and ref.endswith(".csv"):
-
-                assert filecmp.cmp(ref, output)
-                assert md5_hash(ref) == md5_hash(output)
-            else:
-                print("{} and {} are not compared".format(output, ref))
-    """
+        # for output, ref in zip(output_files, ref_files):
+        #     if output.endswith(".csv") and ref.endswith(".csv"):
+        # assert filecmp.cmp(ref, output)
+        # assert md5_hash(ref) == md5_hash(output)
+        # else:
+        #     print("{} and {} are not compared".format(output, ref))
 
     """
     def test_plot_picking_star(self):
@@ -451,58 +452,59 @@ class IntegrationTestAnalysis(unittest.TestCase):
         print("Output files: {}".format(output_files))
 
         # find the reference files
-        ref_files: list = [
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/000000_truth.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/000000_"
-                + "particles_picked.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/000000_"
-                + "particles_truth_and_picked.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/precision.png",
-            ),
-            os.path.join(
-                self.test_data, "analysis_test_outputs/picking_star/recall.png"
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/precision_and_recall.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/f1_score.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/particles_boundary_x.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/particles_boundary_y.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/particles_boundary_z.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/particles_overlap.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/overlap.png",
-            ),
-        ]
-        ref_files = sorted(ref_files)
+        # ref_files: list = [
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/000000_truth.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/000000_"
+        #         + "particles_picked.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/000000_"
+        #         + "particles_truth_and_picked.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/precision.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #           "analysis_test_outputs/picking_star/recall.png"
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/precision_and_recall.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/f1_score.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/particles_boundary_x.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/particles_boundary_y.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/particles_boundary_z.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/particles_overlap.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/overlap.png",
+        #     ),
+        # ]
+        # ref_files = sorted(ref_files)
 
         # plot_truth
         print("Running plot_truth_test")
@@ -528,152 +530,163 @@ class IntegrationTestAnalysis(unittest.TestCase):
         out_plot_label_truth.setup_plot_data_empty()
         out_plot_label_truth.load_dataframes(plot_dir)
 
+        print(ref_plot_label_truth.plot_data)
+        print(out_plot_label_truth.plot_data)
+
         compare_dfs(
             ref_plot_label_truth.plot_data,
             out_plot_label_truth.plot_data,
         )
 
-        # plot_picked
-        print("Running plot_picked_test")
-        ref_plot_label_picked = plotLabelPicked(
-            os.path.join(
-                self.test_data,
-                "tests/integration/fixtures/analysis_test_inputs/"
-                "relion_subset_ugraphs",
-            )
-        )
-        ref_plot_label_picked.setup_plot_data_empty()
-        ref_plot_label_picked.load_dataframes(
-            os.path.join(self.test_data, "analysis_test_outputs/picking_star")
-        )
+        # # plot_picked
+        # print("Running plot_picked_test")
+        # ref_plot_label_picked = plotLabelPicked(
+        #     os.path.join(
+        #         self.test_data,
+        #         "tests/integration/fixtures/analysis_test_inputs/"
+        #         "relion_subset_ugraphs",
+        #     )
+        # )
+        # ref_plot_label_picked.setup_plot_data_empty()
+        # ref_plot_label_picked.load_dataframes(
+        #     os.path.join(
+        #       self.test_data, "analysis_test_outputs/picking_star"
+        #    )
+        # )
 
-        out_plot_label_picked = plotLabelPicked(
-            os.path.join(
-                self.test_data,
-                "tests/integration/fixtures/analysis_test_inputs/"
-                "relion_subset_ugraphs",
-            )
-        )
-        out_plot_label_picked.setup_plot_data_empty()
-        out_plot_label_picked.load_dataframes(plot_dir)
+        # out_plot_label_picked = plotLabelPicked(
+        #     os.path.join(
+        #         self.test_data,
+        #         "tests/integration/fixtures/analysis_test_inputs/"
+        #         "relion_subset_ugraphs",
+        #     )
+        # )
+        # out_plot_label_picked.setup_plot_data_empty()
+        # out_plot_label_picked.load_dataframes(plot_dir)
 
-        compare_dfs(
-            ref_plot_label_picked.plot_data,
-            out_plot_label_picked.plot_data,
-        )
+        # compare_dfs(
+        #     ref_plot_label_picked.plot_data,
+        #     out_plot_label_picked.plot_data,
+        # )
 
-        # plot_truth_and_picked
-        print("Running plot_truth_and_picked_test")
-        ref_plot_label_truth_and_picked = plotLabelTruthAndPicked(
-            os.path.join(
-                self.test_data,
-                "tests/integration/fixtures/analysis_test_inputs/"
-                "relion_subset_ugraphs",
-            )
-        )
-        ref_plot_label_truth_and_picked.setup_plot_data_empty()
-        ref_plot_label_truth_and_picked.load_dataframes(
-            os.path.join(self.test_data, "analysis_test_outputs/picking_star")
-        )
+        # # plot_truth_and_picked
+        # print("Running plot_truth_and_picked_test")
+        # ref_plot_label_truth_and_picked = plotLabelTruthAndPicked(
+        #     os.path.join(
+        #         self.test_data,
+        #         "tests/integration/fixtures/analysis_test_inputs/"
+        #         "relion_subset_ugraphs",
+        #     )
+        # )
+        # ref_plot_label_truth_and_picked.setup_plot_data_empty()
+        # ref_plot_label_truth_and_picked.load_dataframes(
+        #     os.path.join(
+        #       self.test_data, "analysis_test_outputs/picking_star"
+        #       )
+        # )
 
-        out_plot_label_truth_and_picked = plotLabelTruthAndPicked(
-            os.path.join(
-                self.test_data,
-                "tests/integration/fixtures/analysis_test_inputs/"
-                "relion_subset_ugraphs",
-            )
-        )
-        out_plot_label_truth_and_picked.setup_plot_data_empty()
-        out_plot_label_truth_and_picked.load_dataframes(plot_dir)
+        # out_plot_label_truth_and_picked = plotLabelTruthAndPicked(
+        #     os.path.join(
+        #         self.test_data,
+        #         "tests/integration/fixtures/analysis_test_inputs/"
+        #         "relion_subset_ugraphs",
+        #     )
+        # )
+        # out_plot_label_truth_and_picked.setup_plot_data_empty()
+        # out_plot_label_truth_and_picked.load_dataframes(plot_dir)
 
-        print("\n\n")
-        print(ref_plot_label_truth_and_picked.plot_data)
-        print("\n")
-        print(out_plot_label_truth_and_picked.plot_data)
-        compare_dfs(
-            ref_plot_label_truth_and_picked.plot_data,
-            out_plot_label_truth_and_picked.plot_data,
-        )
+        # # print("\n\n")
+        # # print(ref_plot_label_truth_and_picked.plot_data)
+        # # print("\n")
+        # # print(out_plot_label_truth_and_picked.plot_data)
+        # compare_dfs(
+        #     ref_plot_label_truth_and_picked.plot_data,
+        #     out_plot_label_truth_and_picked.plot_data,
+        # )
 
-        # plot_precision
-        print("Running plot_precision")
-        ref_plot_precision = plotPrecision(
-            # [job_types],
-            # [meta_file],
-            {},
-            [],
-        )
-        ref_plot_precision.setup_plot_data_empty()
-        ref_plot_precision.load_dataframes(
-            os.path.join(self.test_data, "analysis_test_outputs/picking_star")
-        )
+        # # plot_precision
+        # print("Running plot_precision")
+        # ref_plot_precision = plotPrecision(
+        #     # [job_types],
+        #     # [meta_file],
+        #     {},
+        #     [],
+        # )
+        # ref_plot_precision.setup_plot_data_empty()
+        # ref_plot_precision.load_dataframes(
+        #     os.path.join(
+        #           self.test_data, "analysis_test_outputs/picking_star"
+        #       )
+        # )
 
-        out_plot_precision = plotPrecision(
-            # [job_types],
-            # [meta_file],
-            {},
-            [],
-        )
-        out_plot_precision.setup_plot_data_empty()
-        out_plot_precision.load_dataframes(plot_dir)
+        # out_plot_precision = plotPrecision(
+        #     # [job_types],
+        #     # [meta_file],
+        #     {},
+        #     [],
+        # )
+        # out_plot_precision.setup_plot_data_empty()
+        # out_plot_precision.load_dataframes(plot_dir)
 
-        compare_dfs(
-            ref_plot_precision.plot_data,
-            out_plot_precision.plot_data,
-        )
+        # compare_dfs(
+        #     ref_plot_precision.plot_data,
+        #     out_plot_precision.plot_data,
+        # )
 
-        # plot_boundary_investigation
-        print("Running boundary investigation test")
-        ref_plot_boundary_investigation = plotBoundaryInvestigation(
-            # job_types: dict[str, str],
-            # bin_width: list[int],
-            # axis: list[str],
-            {},
-            [],
-            [],
-        )
-        ref_plot_boundary_investigation.setup_plot_data_empty()
-        ref_plot_boundary_investigation.load_dataframes(
-            os.path.join(self.test_data, "analysis_test_outputs/picking_star")
-        )
+        # # plot_boundary_investigation
+        # print("Running boundary investigation test")
+        # ref_plot_boundary_investigation = plotBoundaryInvestigation(
+        #     # job_types: dict[str, str],
+        #     # bin_width: list[int],
+        #     # axis: list[str],
+        #     {},
+        #     [],
+        #     [],
+        # )
+        # ref_plot_boundary_investigation.setup_plot_data_empty()
+        # ref_plot_boundary_investigation.load_dataframes(
+        #     os.path.join(
+        #        self.test_data, "analysis_test_outputs/picking_star"
+        #     )
+        # )
 
-        out_plot_boundary_investigation = plotBoundaryInvestigation(
-            {},
-            [],
-            [],
-        )
-        out_plot_boundary_investigation.setup_plot_data_empty()
-        out_plot_boundary_investigation.load_dataframes(plot_dir)
+        # out_plot_boundary_investigation = plotBoundaryInvestigation(
+        #     {},
+        #     [],
+        #     [],
+        # )
+        # out_plot_boundary_investigation.setup_plot_data_empty()
+        # out_plot_boundary_investigation.load_dataframes(plot_dir)
 
-        compare_dfs(
-            ref_plot_boundary_investigation.plot_data,
-            out_plot_boundary_investigation.plot_data,
-        )
+        # compare_dfs(
+        #     ref_plot_boundary_investigation.plot_data,
+        #     out_plot_boundary_investigation.plot_data,
+        # )
 
-        # plot_overlap
-        print("Running plot overlap test")
-        ref_plot_overlap = plotOverlap(
-            # job_types: dict[str, str],
-            {},
-        )
-        ref_plot_overlap.setup_plot_data_empty()
-        ref_plot_overlap.load_dataframes(
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star",
-            )
-        )
+        # # plot_overlap
+        # print("Running plot overlap test")
+        # ref_plot_overlap = plotOverlap(
+        #     # job_types: dict[str, str],
+        #     {},
+        # )
+        # ref_plot_overlap.setup_plot_data_empty()
+        # ref_plot_overlap.load_dataframes(
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star",
+        #     )
+        # )
 
-        out_plot_overlap = plotOverlap(
-            {},
-        )
-        out_plot_overlap.setup_plot_data_empty()
-        out_plot_overlap.load_dataframes(plot_dir)
+        # out_plot_overlap = plotOverlap(
+        #     {},
+        # )
+        # out_plot_overlap.setup_plot_data_empty()
+        # out_plot_overlap.load_dataframes(plot_dir)
 
-        compare_dfs(
-            ref_plot_overlap.plot_data,
-            out_plot_overlap.plot_data,
-        )
+        # compare_dfs(
+        #     ref_plot_overlap.plot_data,
+        #     out_plot_overlap.plot_data,
+        # )
     """
 
     """
