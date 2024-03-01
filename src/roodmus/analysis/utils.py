@@ -564,7 +564,9 @@ class load_data(object):
                 ignore_missing_files=ignore_missing_files,
             )
         else:
-            self.load_all_ground_truth()
+            self.load_all_ground_truth(
+                enable_tqdm=enable_tqdm, verbose=verbose
+            )
 
     def add_data(
         self,
@@ -721,7 +723,12 @@ class load_data(object):
                 )
         return
 
-    def load_all_ground_truth(self, return_pose: bool = False):
+    def load_all_ground_truth(
+        self,
+        return_pose: bool = False,
+        enable_tqdm: bool = False,
+        verbose: bool = False,
+    ):
         """Load truth data from all yaml configuration files in the case
         that no reconstruction metadata is provided.
 
@@ -744,7 +751,7 @@ class load_data(object):
             progressbar = tqdm(
                 total=len(ugraphs_to_load),
                 desc="loading micrographs",
-                disable=not self.enable_tqdm,
+                disable=not enable_tqdm,
             )
             for ugraph_path in ugraphs_to_load:
                 if not os.path.isfile(
@@ -763,7 +770,7 @@ class load_data(object):
                 # adds the values to the truth results,
                 # returns the number of particles added
                 num_particles = self._extract_from_config(
-                    config, self.verbose, return_pose
+                    config, verbose, return_pose
                 )
                 total_num_particles += num_particles
 
@@ -780,7 +787,7 @@ class load_data(object):
             # update the list of loaded micrographs
             self.ugraph_paths.extend(ugraphs_to_load)
 
-            if self.verbose:
+            if verbose:
                 print(
                     "Loaded ground-truth particle positions from config files"
                 )

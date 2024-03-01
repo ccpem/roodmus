@@ -34,7 +34,9 @@ import numpy as np  # noqa: F401
 from tests.integration import fixtures
 
 from roodmus.analysis.plot_frames import plotFrameDistribution
+
 from roodmus.analysis.plot_ctf import plotDefocusScatter
+
 from roodmus.analysis.plot_picking import (
     plotLabelTruth,
     plotLabelPicked,
@@ -43,6 +45,7 @@ from roodmus.analysis.plot_picking import (
     plotBoundaryInvestigation,
     plotOverlap,
 )
+
 from roodmus.analysis.plot_classes import plot2DClasses
 from roodmus.analysis.plot_alignment import (
     plotTruePoseDistribution,
@@ -89,12 +92,12 @@ def compare_dfs(
                 sorted(ref_df.keys()), sorted(out_df.keys())
             ):
                 assert ref_key == out_key
-            print("o_ref_df: {}".format(ref_df))
-            print("o_ref_df: {}".format(type(ref_df)))
+            # print("o_ref_df: {}".format(ref_df))
+            # print("o_ref_df: {}".format(type(ref_df)))
             # print("o_out_key: {}".format(o_out_key))
-            print("o_out_df: {}".format(out_df))
-            print("o_out_df: {}".format(type(out_df)))
-            print("diff: {}".format(ref_df.compare(out_df)))
+            # print("o_out_df: {}".format(out_df))
+            # print("o_out_df: {}".format(type(out_df)))
+            # print("diff: {}".format(ref_df.compare(out_df)))
             assert ref_df.equals(out_df)
 
 
@@ -202,32 +205,31 @@ class IntegrationTestAnalysis(unittest.TestCase):
             output_plot_frames.plot_data,
         )
 
-        for (ref_plot, ref_dfs), (out_plot, out_dfs) in zip(
-            ref_plot_frames.plot_data.items(),
-            output_plot_frames.plot_data.items(),
-        ):
-            for (_, ref_df), (_, out_df) in zip(
-                ref_dfs.items(), out_dfs.items()
-            ):
-                # print("o_ref_key: {}".format(o_ref_key))
-                if "metadata_filename" in ref_df.columns:
-                    ref_df = ref_df.drop(columns=["metadata_filename"])
-                if "metadata_filename" in out_df.columns:
-                    out_df = out_df.drop(columns=["metadata_filename"])
-                print("o_ref_df: {}".format(ref_df))
-                print("o_ref_df: {}".format(type(ref_df)))
-                # print("o_out_key: {}".format(o_out_key))
-                print("o_out_df: {}".format(out_df))
-                print("o_out_df: {}".format(type(out_df)))
-                print("diff: {}".format(ref_df.compare(out_df)))
-                assert ref_df.equals(out_df)
-        """
-        for output, ref in zip(output_files, ref_files):
-            if output.endswith(".csv") and ref.endswith(".csv"):
-                assert filecmp.cmp(ref, output)
-            else:
-                print("{} and {} are not compared".format(output, ref))
-        """
+        # for (ref_plot, ref_dfs), (out_plot, out_dfs) in zip(
+        #     ref_plot_frames.plot_data.items(),
+        #     output_plot_frames.plot_data.items(),
+        # ):
+        #     for (_, ref_df), (_, out_df) in zip(
+        #         ref_dfs.items(), out_dfs.items()
+        #     ):
+        #         # print("o_ref_key: {}".format(o_ref_key))
+        #         if "metadata_filename" in ref_df.columns:
+        #             ref_df = ref_df.drop(columns=["metadata_filename"])
+        #         if "metadata_filename" in out_df.columns:
+        #             out_df = out_df.drop(columns=["metadata_filename"])
+        #         print("o_ref_df: {}".format(ref_df))
+        #         print("o_ref_df: {}".format(type(ref_df)))
+        #         # print("o_out_key: {}".format(o_out_key))
+        #         print("o_out_df: {}".format(out_df))
+        #         print("o_out_df: {}".format(type(out_df)))
+        #         print("diff: {}".format(ref_df.compare(out_df)))
+        #         assert ref_df.equals(out_df)
+
+        # for output, ref in zip(output_files, ref_files):
+        #     if output.endswith(".csv") and ref.endswith(".csv"):
+        #         assert filecmp.cmp(ref, output)
+        #     else:
+        #         print("{} and {} are not compared".format(output, ref))
 
     def test_extract_particles(self):
         config_dir = os.path.join(
@@ -373,22 +375,22 @@ class IntegrationTestAnalysis(unittest.TestCase):
         assert isinstance(output_files, list)
         print("Output files: {}".format(output_files))
 
-        # find the reference files
-        ref_files: list = [
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/ctf_star/ctf_scatter.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/ctf_star/defocus_scatter/df_truth.csv",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/ctf_star/defocus_scatter/df_picked.csv",
-            ),
-        ]
-        ref_files = sorted(ref_files)
+        # # find the reference files
+        # ref_files: list = [
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/ctf_star/ctf_scatter.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/ctf_star/defocus_scatter/df_truth.csv",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/ctf_star/defocus_scatter/df_picked.csv",
+        #     ),
+        # ]
+        # ref_files = sorted(ref_files)
 
         ref_plot_defocus_scatter = plotDefocusScatter("")
         ref_plot_defocus_scatter.setup_plot_data_empty()
@@ -404,15 +406,13 @@ class IntegrationTestAnalysis(unittest.TestCase):
             ref_plot_defocus_scatter.plot_data,
             out_plot_defocus_scatter.plot_data,
         )
-        """
-        for output, ref in zip(output_files, ref_files):
-            if output.endswith(".csv") and ref.endswith(".csv"):
 
-                assert filecmp.cmp(ref, output)
-                assert md5_hash(ref) == md5_hash(output)
-            else:
-                print("{} and {} are not compared".format(output, ref))
-        """
+        # for output, ref in zip(output_files, ref_files):
+        #     if output.endswith(".csv") and ref.endswith(".csv"):
+        # assert filecmp.cmp(ref, output)
+        # assert md5_hash(ref) == md5_hash(output)
+        # else:
+        #     print("{} and {} are not compared".format(output, ref))
 
     def test_plot_picking_star(self):
         config_dir = os.path.join(
@@ -451,58 +451,59 @@ class IntegrationTestAnalysis(unittest.TestCase):
         print("Output files: {}".format(output_files))
 
         # find the reference files
-        ref_files: list = [
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/000000_truth.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/000000_"
-                + "particles_picked.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/000000_"
-                + "particles_truth_and_picked.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/precision.png",
-            ),
-            os.path.join(
-                self.test_data, "analysis_test_outputs/picking_star/recall.png"
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/precision_and_recall.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/f1_score.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/particles_boundary_x.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/particles_boundary_y.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/particles_boundary_z.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/particles_overlap.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/picking_star/overlap.png",
-            ),
-        ]
-        ref_files = sorted(ref_files)
+        # ref_files: list = [
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/000000_truth.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/000000_"
+        #         + "particles_picked.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/000000_"
+        #         + "particles_truth_and_picked.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/precision.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #           "analysis_test_outputs/picking_star/recall.png"
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/precision_and_recall.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/f1_score.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/particles_boundary_x.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/particles_boundary_y.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/particles_boundary_z.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/particles_overlap.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/picking_star/overlap.png",
+        #     ),
+        # ]
+        # ref_files = sorted(ref_files)
 
         # plot_truth
         print("Running plot_truth_test")
@@ -527,6 +528,9 @@ class IntegrationTestAnalysis(unittest.TestCase):
         )
         out_plot_label_truth.setup_plot_data_empty()
         out_plot_label_truth.load_dataframes(plot_dir)
+
+        print(ref_plot_label_truth.plot_data)
+        print(out_plot_label_truth.plot_data)
 
         compare_dfs(
             ref_plot_label_truth.plot_data,
@@ -586,10 +590,10 @@ class IntegrationTestAnalysis(unittest.TestCase):
         out_plot_label_truth_and_picked.setup_plot_data_empty()
         out_plot_label_truth_and_picked.load_dataframes(plot_dir)
 
-        print("\n\n")
-        print(ref_plot_label_truth_and_picked.plot_data)
-        print("\n")
-        print(out_plot_label_truth_and_picked.plot_data)
+        # print("\n\n")
+        # print(ref_plot_label_truth_and_picked.plot_data)
+        # print("\n")
+        # print(out_plot_label_truth_and_picked.plot_data)
         compare_dfs(
             ref_plot_label_truth_and_picked.plot_data,
             out_plot_label_truth_and_picked.plot_data,
@@ -758,12 +762,14 @@ class IntegrationTestAnalysis(unittest.TestCase):
             "analysis_test_inputs/relion_subset/Extract/job013/particles.star",
         )
         plot_dir = os.path.join(self.test_dir, "alignment_star")
+        job_types = "3DRefinement"
 
         system_cmd = (
             "roodmus plot_alignment"
             + " --config_dir {}".format(config_dir)
             + " --meta_file {}".format(meta_file)
             + " --plot_dir {}".format(plot_dir)
+            + " --job_types {}".format(job_types)
         )
         print("system cmd: {}".format(system_cmd))
         os.system(system_cmd)
@@ -778,20 +784,20 @@ class IntegrationTestAnalysis(unittest.TestCase):
         assert isinstance(output_files, list)
         print("Output files: {}".format(output_files))
 
-        # find the reference files
-        ref_files: list = [
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/alignment_star/particles_picked_"
-                + "pose_distribution.png",
-            ),
-            os.path.join(
-                self.test_data,
-                "analysis_test_outputs/alignment_star/true_pose_"
-                + "distribution.png",
-            ),
-        ]
-        ref_files = sorted(ref_files)
+        # # find the reference files
+        # ref_files: list = [
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/alignment_star/particles_picked_"
+        #         + "pose_distribution.png",
+        #     ),
+        #     os.path.join(
+        #         self.test_data,
+        #         "analysis_test_outputs/alignment_star/true_pose_"
+        #         + "distribution.png",
+        #     ),
+        # ]
+        # ref_files = sorted(ref_files)
 
         # plot_picked alignment
         print("Running picked plot_alignment test")

@@ -32,6 +32,7 @@ import pkg_resources
 from pathlib import Path
 
 import roodmus.simulation.run_parakeet
+import roodmus.simulation.write_starfile
 import roodmus.trajectory.conformations_sampling
 import roodmus.analysis.plot_ctf
 import roodmus.analysis.plot_picking
@@ -39,6 +40,7 @@ import roodmus.analysis.plot_frames
 import roodmus.analysis.plot_classes
 import roodmus.analysis.extract_particles
 import roodmus.analysis.plot_alignment
+import roodmus.heterogeneity.het_metrics
 
 # import analysis.analyse_alignment
 
@@ -70,12 +72,14 @@ def main():
     modules = [
         roodmus.trajectory.conformations_sampling,
         roodmus.simulation.run_parakeet,
+        roodmus.simulation.write_starfile,
         roodmus.analysis.plot_ctf,
         roodmus.analysis.plot_picking,
         roodmus.analysis.plot_frames,
         roodmus.analysis.plot_classes,
         roodmus.analysis.plot_alignment,
         roodmus.analysis.extract_particles,
+        roodmus.heterogeneity.het_metrics,
     ]
 
     module_helptext = [
@@ -92,6 +96,8 @@ def main():
         + " ground-truth orientation values used in Parakeet data generation.",
         "Extract a stack of particles from a set of simulated micrographs"
         + " using the ground-truth positions.",
+        "Sandbox for computing dimension reduction and/or distance metrics"
+        + " and/or clustering on conformations extracted from MD simulations",
     ]
 
     for helptext, module in zip(module_helptext, modules):
