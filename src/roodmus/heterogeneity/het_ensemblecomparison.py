@@ -32,6 +32,9 @@ import pandas as pd
 from MDAnalysis.analysis.encore.clustering.ClusteringMethod import (
     AffinityPropagationNative,
 )
+from MDAnalysis.analysis.encore.dimensionality_reduction.DimensionalityReductionMethod import (  # noqa: E501
+    StochasticProximityEmbeddingNative,
+)
 import MDAnalysis as mda
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -181,6 +184,14 @@ def add_arguments(parser: argparse.ArgumentParser):
         " -1. Rough range to explore is -100. to -1.",
         type=float,
         default=-1.0,
+    )
+
+    parser.add_argument(
+        "--dimensions",
+        help="Dimensionality to use for stochastic proximity embedding in"
+        " DRES. Defaults to 3",
+        type=int,
+        default=3,
     )
 
     parser.add_argument(
@@ -382,20 +393,26 @@ class JSDivergence(object):
         self.args: argparse.ArgumentParser | None = None
 
         # ensembles which are dict[dict[str, mda.Universe|int]]
-        self.ensembles_list: list[mda.Universe] | None = None
+        self.ensembles_list: list[mda.Universe] | None = []
         self.ensembles_indices: dict[str, dict[str, int]] | None = None
 
     def compute_ces_stats(self):
         if self.ces:
-            self.ces_avg = np.average(np.array(self.ces, dtype=float), axis=0)
-            self.ces_stddev = np.std(np.array(self.ces, dtype=float), axis=0)
+            self.ces_avg = np.average(
+                np.array(self.ces, dtype=float), axis=0
+            ).tolist()
+            self.ces_stddev = np.std(
+                np.array(self.ces, dtype=float), axis=0
+            ).tolist()
 
     def compute_dres_stats(self):
         if self.dres:
             self.dres_avg = np.average(
                 np.array(self.dres, dtype=float), axis=0
-            )
-            self.dres_stddev = np.std(np.array(self.dres, dtype=float), axis=0)
+            ).tolist()
+            self.dres_stddev = np.std(
+                np.array(self.dres, dtype=float), axis=0
+            ).tolist()
 
     def plot_ces_results(self):
         cw = []
@@ -1087,7 +1104,14 @@ def main(args):
         dres, dres_details = mda.analysis.encore.similarity.dres(
             ensembles_list_subset,
             select=args.select,
-            # dimensionality_reduction_method=,
+            dimensionality_reduction_method=StochasticProximityEmbeddingNative(
+                dimension=args.dimensions,
+                distance_cutoff=1.5,
+                min_lam=0.1,
+                max_lam=2.0,
+                ncycle=100,
+                nstep=10000,
+            ),
             # distance_matrix=rmsd_matrix,
             nsamples=len(ensembles_list_subset),
             estimate_error=args.estimate_error,
