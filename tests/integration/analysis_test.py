@@ -98,6 +98,14 @@ def compare_dfs(
             # print("o_out_df: {}".format(out_df))
             # print("o_out_df: {}".format(type(out_df)))
             # print("diff: {}".format(ref_df.compare(out_df)))
+
+            # in order to compare the dataframes, all columns
+            # containing floating point values should be
+            # rounded to avoid machine precision differences
+            # causing the comparison to fail
+            ref_df = ref_df.round(5)
+            out_df = out_df.round(5)
+
             assert ref_df.equals(out_df)
 
 
