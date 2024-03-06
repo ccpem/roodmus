@@ -41,6 +41,8 @@ import roodmus.analysis.plot_classes
 import roodmus.analysis.extract_particles
 import roodmus.analysis.plot_alignment
 import roodmus.heterogeneity.het_metrics
+import roodmus.heterogeneity.latent_clustering
+import roodmus.heterogeneity.het_ensemblecomparison
 
 # import analysis.analyse_alignment
 
@@ -80,6 +82,8 @@ def main():
         roodmus.analysis.plot_alignment,
         roodmus.analysis.extract_particles,
         roodmus.heterogeneity.het_metrics,
+        roodmus.heterogeneity.latent_clustering,
+        roodmus.heterogeneity.het_ensemblecomparison,
     ]
 
     module_helptext = [
@@ -98,6 +102,11 @@ def main():
         + " using the ground-truth positions.",
         "Sandbox for computing dimension reduction and/or distance metrics"
         + " and/or clustering on conformations extracted from MD simulations",
+        "Sandbox for computing dimension reduction and/or clustering on"
+        + " latent spaces (encoding heterogeneity)",
+        "Calculation of Jensen-Shannon divergence between ensembles"
+        + " identified through clustering of MD trajectory(ies)"
+        + " and/or clustering of latent spaces representing heterogeneity",
     ]
 
     for helptext, module in zip(module_helptext, modules):

@@ -31,6 +31,7 @@ import numpy as np
 from scipy.spatial import cKDTree
 from tqdm import tqdm
 import pandas as pd
+import pickle
 
 from pipeliner.starfile_handler import DataStarFile
 
@@ -212,9 +213,12 @@ class IO(object):
     @classmethod
     def get_latents_cs(self, latent_file: str):
         latents = np.load(latent_file)
-        print(latents.dtype.names)
-        print(f"number of latents: {len(latents)}")
-        return latents
+        ndim = len([r for r in latents.dtype.names if "value" in r])
+        latent = []
+        for i in range(ndim):
+            latent.append(latents[f"components_mode_{i}/value"])
+        latents = np.stack(latent, axis=1)
+        return latents, ndim
 
     # Loading .star files and parsing the ctf parameters,
     # the particle positions and orientations
@@ -396,7 +400,16 @@ class IO(object):
     # loading latent space coordinates from cryoDRGN
     @classmethod
     def get_latents_cryodrgn(self, latent_file: str):
-        pass  # TODO
+        with open(latent_file, "rb") as lf:
+            z = pickle.load(lf)
+            # this should be np.ndarray shape [n_particles, n_latent_dims]
+            ndim = z.shape[1]
+            # now get all entries in this row so we can add a column to df
+            latent = []
+            for i in range(ndim):
+                latent.append(z[:, i])
+            latents = np.stack(latent, axis=1)
+            return latents, ndim
 
 
 class geom(object):
