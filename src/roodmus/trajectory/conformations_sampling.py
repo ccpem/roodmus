@@ -74,15 +74,15 @@ def add_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         action="store_true",
     )
 
-    parser.add_argument(
-        "--sampling_method",
-        help=(
-            "Choose whether to sample a trajectory uniformly in time"
-            " (even_sampling) or by >rmsd threshold (waymark)"
-        ),
-        type=str,
-        default="even_sampling",
-    )
+    # parser.add_argument(
+    #     "--sampling_method",
+    #     help=(
+    #         "Choose whether to sample a trajectory uniformly in time"
+    #         " (even_sampling) or by >rmsd threshold (waymark)"
+    #     ),
+    #     type=str,
+    #     default="even_sampling",
+    # )
 
     parser.add_argument(
         "--n_conformations",
@@ -153,13 +153,13 @@ def add_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         required=False,
     )
 
-    parser.add_argument(
-        "--rmsd",
-        help="RMSD in nm to use for waymark sampling",
-        type=float,
-        default=0.3,
-        required=False,
-    )
+    # parser.add_argument(
+    #     "--rmsd",
+    #     help="RMSD in nm to use for waymark sampling",
+    #     type=float,
+    #     default=0.3,
+    #     required=False,
+    # )
 
     parser.add_argument(
         "--digits",
@@ -172,13 +172,13 @@ def add_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         required=False,
     )
 
-    parser.add_argument(
-        "--waymarking_plots",
-        help=("Directory to create and put waymarking plots into"),
-        type=str,
-        default="waymarking_plots",
-        required=False,
-    )
+    # parser.add_argument(
+    #     "--waymarking_plots",
+    #     help=("Directory to create and put waymarking plots into"),
+    #     type=str,
+    #     default="waymarking_plots",
+    #     required=False,
+    # )
     return parser
 
 
@@ -242,6 +242,18 @@ def load_traj(trajfile: str, topfile: str, verbose: bool) -> mdt.Trajectory:
     if verbose:
         print("mdt.load returns type: {}".format(type(t)))
     return t
+
+
+"""
+Waymarking is currently disabled. The function does not work
+when only a single trajectory file is used.
+The waymarking is also done incorrectly, with
+new conformations only being checked against the
+fist conformation, instead of all conformations
+in the ensemble
+
+We should redo waymarking entirely in the future
+"""
 
 
 def waymark(
@@ -748,6 +760,11 @@ def main(args):
         )
         return
 
+    # only available sampling method at this time is even sampling.
+    # waymarking has been disabled for now, as it is not correctly
+    # implemented
+    args.sampling_method = "even_sampling"
+
     if args.sampling_method == "even_sampling":
         # create function to get indices of N conformations to sample from
         # entire trajectory
@@ -773,6 +790,7 @@ def main(args):
             args.tqdm,
         )
 
+        """
     elif args.sampling_method == "waymark":
         # we want to get: Tuple[list[int], list[np.int64],
         # np.ndarray[np.int64,np.int64]]
@@ -831,6 +849,7 @@ def main(args):
         write_non_redundant_confs(
             non_redundant_confs, args.output_dir, args.digits
         )
+        """
 
     else:
         # method of sampling not recognised
