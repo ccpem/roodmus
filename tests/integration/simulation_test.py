@@ -60,7 +60,7 @@ def remove_ts_text_file(filename: str) -> str:
     # make the new_filename
     file_name_parts = which_file.split(".")
     saved_file = "".join(file_name_parts[:-1])
-    saved_file = saved_file + "_removed_line" + file_name_parts[-1]
+    saved_file = saved_file + "_removed_line" + "." + file_name_parts[-1]
     saved_file = os.path.join(which_dir, saved_file)
 
     # load text file into memory and remove first line
@@ -230,6 +230,8 @@ class IntegrationTest(unittest.TestCase):
         ref_file_no_ts = remove_ts_text_file(ref_file)
         output_mtf_file_no_ts = remove_ts_text_file(output_mtf_file)
         assert filecmp.cmp(ref_file_no_ts, output_mtf_file_no_ts)
+        os.remove(ref_file_no_ts)
+        os.remove(output_mtf_file_no_ts)
 
         # load the yaml files into pyyaml-created dicts and check that
         # at least the fields set above have the values expected
