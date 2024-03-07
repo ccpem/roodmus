@@ -24,6 +24,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import argparse
 import os
 
+# from typing import Tuple, Dict, Any
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -246,7 +248,7 @@ def plot_2Dclass_precision(
         ].sum() / (
             df_grouped.groupby("class2D").get_group(groupname)["TP"].size
         )
-        results["class2D"].append(int(groupname))
+        results["class2D"].append(groupname)
         results["precision"].append(precision)
         results["average defocus"].append(
             df_grouped.groupby("class2D")
@@ -254,6 +256,7 @@ def plot_2Dclass_precision(
             .mean()
         )
     df = pd.DataFrame(results)
+    df["class2D"] = df["class2D"].astype(int)
     fig, ax = plt.subplots(figsize=(7, 3.5))
     sns.barplot(x="class2D", y="precision", data=df, ax=ax, palette=palette)
     ax.set_xlabel("class2D", fontsize=12)
@@ -274,18 +277,29 @@ def plot_2Dclasses_frames(
     df_filtered = df_picked.groupby("metadata_filename").get_group(
         metadata_filename
     )
-    df_grouped = df_filtered.groupby(["class2D", "closest_pdb_index"])
+    # df_grouped = df_filtered.groupby(["class2D", "closest_pdb_index"])
     heatmap = np.zeros(
         (
             int(np.max(df_filtered["class2D"])) + 1,
             int(np.max(df_filtered["closest_pdb_index"])) + 1,
         )
     )
-    for class_id, pdb_id in df_grouped.groups.keys():
-        if int(class_id) > 0 and int(pdb_id) > 0:
-            num = df_grouped.get_group((class_id, pdb_id)).size
-            if num != np.nan:
-                heatmap[int(class_id), int(pdb_id)] += num
+    # class_id: float
+    # pdb_id: float
+    # df_grouped.groups: Dict[Tuple[float, float], pd.Index[Any]]
+    # for class_id, pdb_id in df_grouped.groups.keys():
+    #     if not np.isnan(class_id) and not np.isnan(pdb_id):
+
+    for class_id in df_filtered["class2D"].unique():
+        for pdb_id in df_filtered["closest_pdb_index"].unique():
+            if not np.isnan(class_id) and not np.isnan(pdb_id):
+                # num = df_grouped.get_group((class_id, pdb_id)).size
+                num = df_filtered[
+                    (df_filtered["class2D"] == class_id)
+                    & (df_filtered["closest_pdb_index"] == pdb_id)
+                ].size
+                if num != np.nan:
+                    heatmap[int(class_id), int(pdb_id)] += num
 
     # apply binning to the heatmap
     heatmap = zoom(heatmap, [1, 1 / bin_factor], order=0)
