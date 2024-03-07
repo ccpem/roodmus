@@ -77,7 +77,7 @@ def get_name():
     return "extract_particles"
 
 
-def get_num_molecules(metadata):
+def get_num_molecules(metadata: dict) -> int:
     num_molecules = 0
     for molecule in metadata["sample"]["molecules"]["local"]:
         if type(molecule["instances"]) == int:

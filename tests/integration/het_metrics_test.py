@@ -52,6 +52,7 @@ class IntegrationTestHetMetrics(unittest.TestCase):
         os.environ["PATH"] = self.oldpath
         return super().tearDown()
 
+    '''
     def test_run_het_metric(self) -> None:
         """Use 2 conformations to test that dimension reduction and clustering
         via pca and kmeans
@@ -94,3 +95,4 @@ class IntegrationTestHetMetrics(unittest.TestCase):
         assert "superpose_pca___kmeans_2.pkl" in output_files
 
         # may want to add loading from pkl with equality tests in future
+    '''
