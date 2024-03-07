@@ -2,7 +2,7 @@
 
 # -- Project information
 
-project = "Lumache"
+project = "Roodmus"
 copyright = "2023, Joel Greer(UKRI), Tom Burnley (UKRI),\
     Maarten Joosten (TU Delft), Arjen Jakobi (TU Delft)"
 author = "Joel Greer, Maarten Joosten, Tom Burnley, Arjen Jakobi"
