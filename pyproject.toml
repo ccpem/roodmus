@@ -194,8 +194,8 @@ dependencies = [
 roodmus = "roodmus.cli:main"
 
 [project.urls]
-"Homepage" = "https://github.com/pypa/sampleproject"
-"Bug Tracker" = "https://github.com/pypa/sampleproject/issues"
+"Homepage" = "https://github.com/ccpem/roodmus"
+"Bug Tracker" = "https://github.com/ccpem/roodmus/issues"
 
 [tool.licensecheck]
 using = "requirements:requirements.txt;requirements-dev.txt"
