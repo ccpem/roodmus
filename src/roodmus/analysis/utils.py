@@ -29,6 +29,7 @@ from typing import Tuple, Any, List
 import yaml
 import numpy as np
 from scipy.spatial import cKDTree
+from scipy.spatial.transform import Rotation as R
 from tqdm import tqdm
 import pandas as pd
 import pickle
@@ -59,7 +60,8 @@ class IO(object):
 
     @classmethod
     def get_ugraph_cs(self, metadata_cs: np.recarray) -> List[str]:
-        """Grab micrograph file paths from .cs data.
+        """Grab micrograph file paths from .cs data. if micrograph file
+        paths are not present in the metadata, return an empty list.
 
         Args:
             metadata_cs (np.recarray): .cs file metadata.
@@ -67,18 +69,16 @@ class IO(object):
         Returns:
             ugraph_paths (List[str]): micrograph file paths.
         """
-        ugraph_paths = metadata_cs["location/micrograph_path"].tolist()
 
-        # elif "blob/path" in metadata_cs.dtype.names:
-        #     ugraph_paths = metadata_cs["blob/path"]
-        # removed None from within the function to stop mypy errors
-        # else:
-        #     return None
+        if "location/micrograph_path" in metadata_cs.dtype.names:
+            ugraph_paths = metadata_cs["location/micrograph_path"].tolist()
+            ugraph_paths = [
+                os.path.basename(path).decode("utf-8").split("_")[-1]
+                for path in ugraph_paths
+            ]
+        else:
+            ugraph_paths = []
 
-        ugraph_paths = [
-            os.path.basename(path).decode("utf-8").split("_")[-1]
-            for path in ugraph_paths
-        ]
         return ugraph_paths
 
     @classmethod
@@ -164,13 +164,13 @@ class IO(object):
                 "alignments3D/pose"
             ]  # orientations as rodriques vectors
             # convert to euler angles
-            euler = np.array(
-                [geom.rot2euler(geom.expmap(p)) for p in pose],
-                dtype=float,
-            )
-            # euler = R.from_rotvec(pose).as_euler(
-            #     "zyx", degrees=False
-            # )  # convert to euler angles
+            # euler = np.array(
+            #     [geom.rot2euler(geom.expmap(p)) for p in pose],
+            #     dtype=float,
+            # )
+            euler = R.from_rotvec(pose).as_euler(
+                "ZYZ", degrees=False
+            )  # convert to euler angles
             if return_pose:
                 return euler, pose
             else:
@@ -205,7 +205,7 @@ class IO(object):
             np.ndarray: 2D class.
         """
         if "alignments2D/class" in metadata_cs.dtype.names:
-            class2d = metadata_cs["alignments2D/class"]
+            class2d = metadata_cs["alignments2D/class"].astype(int)
         else:
             class2d = None
         return class2d
@@ -359,10 +359,16 @@ class IO(object):
         )
         if not euler_phi:  # if empty
             euler_phi = [np.nan] * num_particles
+        else:
+            euler_phi = [np.deg2rad(float(r)) for r in euler_phi]
         if not euler_theta:
             euler_theta = [np.nan] * num_particles
+        else:
+            euler_theta = [np.deg2rad(float(r)) for r in euler_theta]
         if not euler_psi:
             euler_psi = [np.nan] * num_particles
+        else:
+            euler_psi = [np.deg2rad(float(r)) for r in euler_psi]
         euler = np.stack([euler_phi, euler_theta, euler_psi], axis=1)
         return euler
 
@@ -376,7 +382,12 @@ class IO(object):
         Returns:
             class2d (np.ndarray): 2D class data.
         """
-        class2d = metadata_star.column_as_list("particles", "_rlnClassNumber")
+        class2d = [
+            int(r)
+            for r in metadata_star.column_as_list(
+                "particles", "_rlnClassNumber"
+            )
+        ]
         if class2d:
             return np.array(class2d)
         else:
@@ -1017,7 +1028,7 @@ class load_data(object):
                 ugraph_filename = IO.get_ugraph_cs(m)
                 uid = IO.get_uid_cs(m)
                 tmp_results["uid"].extend(uid)
-                if ugraph_filename is None:
+                if not ugraph_filename:
                     num_particles = len(uid)
                     tmp_results["ugraph_filename"].extend(
                         [np.nan] * num_particles
@@ -1402,8 +1413,8 @@ class load_data(object):
                 position = instance["position"]
                 orientation = instance["orientation"]  # rotation vector
                 # convert to euler angles
-                euler = geom.rot2euler(geom.expmap(np.array(orientation)))
-                # euler = R.from_rotvec(orientation).as_euler("zyx")
+                # euler = geom.rot2euler(geom.expmap(np.array(orientation)))
+                euler = R.from_rotvec(orientation).as_euler("ZYZ")
                 if return_pose:
                     orientations_list.append(orientation)
                 else:

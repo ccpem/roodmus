@@ -2215,13 +2215,13 @@ def plot_precision(
     sm = plt.cm.ScalarMappable(
         cmap="RdYlBu",
         norm=plt.Normalize(
-            vmin=df_precision["defocus"].min(),
-            vmax=df_precision["defocus"].max(),
+            vmin=df_precision["defocus"].min() / 10000,
+            vmax=df_precision["defocus"].max() / 10000,
         ),
     )
     sm._A = []
     cbar = fig.colorbar(sm, ax=ax)
-    cbar.set_label("defocus (Å)", rotation=270, labelpad=20, fontsize=12)
+    cbar.set_label("defocus (\u03bcm)", rotation=270, labelpad=20, fontsize=12)
     # add labels
     ax.set_xlabel("")
     ax.set_ylabel("precision", fontsize=14)
@@ -2283,13 +2283,13 @@ def plot_recall(
     sm = plt.cm.ScalarMappable(
         cmap="RdYlBu",
         norm=plt.Normalize(
-            vmin=df_precision["defocus"].min(),
-            vmax=df_precision["defocus"].max(),
+            vmin=df_precision["defocus"].min() / 10000,
+            vmax=df_precision["defocus"].max() / 10000,
         ),
     )
     sm._A = []
     cbar = fig.colorbar(sm, ax=ax)
-    cbar.set_label("defocus (Å)", rotation=270, labelpad=20, fontsize=12)
+    cbar.set_label("defocus (\u03bcm)", rotation=270, labelpad=20, fontsize=12)
     # add labels
     ax.set_xlabel("")
     ax.set_ylabel("recall", fontsize=14)
