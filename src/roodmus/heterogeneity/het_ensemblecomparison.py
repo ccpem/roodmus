@@ -40,7 +40,10 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 from roodmus.analysis.utils import load_data
-from roodmus.heterogeneity.het_metrics import get_pdb_list
+from roodmus.heterogeneity.het_metrics import (
+    get_pdb_list,
+    select_confs,
+)
 
 # import os
 # import pandas as pd
@@ -398,21 +401,21 @@ class JSDivergence(object):
 
     def compute_ces_stats(self):
         if self.ces:
-            self.ces_avg = np.average(
-                np.array(self.ces, dtype=float), axis=0
-            ).tolist()
-            self.ces_stddev = np.std(
-                np.array(self.ces, dtype=float), axis=0
-            ).tolist()
+            self.ces_avg = np.array(
+                np.average(np.array(self.ces, dtype=float), axis=0)[0][:][:]
+            )
+            self.ces_stddev = np.array(
+                np.std(np.array(self.ces, dtype=float), axis=0)[0][:][:]
+            )
 
     def compute_dres_stats(self):
         if self.dres:
-            self.dres_avg = np.average(
-                np.array(self.dres, dtype=float), axis=0
-            ).tolist()
-            self.dres_stddev = np.std(
-                np.array(self.dres, dtype=float), axis=0
-            ).tolist()
+            self.dres_avg = np.array(
+                np.average(np.array(self.dres, dtype=float), axis=0)[0][:][:]
+            )
+            self.dres_stddev = np.array(
+                np.std(np.array(self.dres, dtype=float), axis=0)[0][:][:]
+            )
 
     def plot_ces_results(self):
         cw = []
@@ -721,36 +724,16 @@ def main(args):
         assert source == "MD" or source == "latent"
 
     # get the conformation filenames
-    conformation_filenames = sorted(get_pdb_list(args.conformations_dir))
-    if args.n_confs and args.contiguous_confs:
-        if args.n_confs > len(conformation_filenames):
-            raise ValueError(
-                "Trying to sample {} confs from {} files!".format(
-                    args.n_confs, len(conformation_filenames)
-                )
-            )
-        conformation_filenames = conformation_filenames[
-            args.first_conf : args.first_conf + args.n_confs
-        ]
-    elif args.n_confs:
-        # get every nth sample depending on n_confs requested
-        if (len(conformation_filenames) - args.first_conf) < args.n_confs:
-            raise ValueError(
-                "Trying to sample {} confs from {} remaining! Error!".format(
-                    args.n_confs,
-                    len(conformation_filenames) - args.first_conf,
-                )
-            )
-        else:
-            sample_indices = np.arange(
-                args.first_conf,
-                len(conformation_filenames),
-                (len(conformation_filenames) - args.first_conf) / args.n_confs,
-            ).astype(int)
-            conformation_filenames = np.array(
-                conformation_filenames, dtype=str
-            )[sample_indices].tolist()
-    assert len(conformation_filenames) > 0
+    conformation_filenames = get_pdb_list(
+        args.conformations_dir,
+        args.file_ext,
+    )
+    conformation_filenames = select_confs(
+        conformation_filenames,
+        args.n_confs,
+        args.first_conf,
+        args.contiguous_confs,
+    )
 
     # TODO replace/update setting of these values
     particle_diameter = 100  # approximate particle diameter in Angstroms
