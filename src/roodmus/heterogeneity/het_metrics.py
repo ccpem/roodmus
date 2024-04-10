@@ -261,16 +261,6 @@ def add_arguments(parser: argparse.ArgumentParser):
         default=[2],
     )
 
-    parser.add_argument(
-        "--variance_coverage",
-        help="Used in the same way as the --dimensions argument, here"
-        " dimensions are reduced based on the variance of the dataset"
-        " which is explained (whenever possible)",
-        nargs="+",
-        type=float,
-        default=[None],
-    )
-
     # clustering alg
     parser.add_argument(
         "--cluster_alg",
@@ -691,6 +681,14 @@ def determine_workflow_permutations(
         "cluster_alg",
         "clusters",
     ]
+    if verbose:
+        print("alignment: {}".format(alignment))
+        print("dimension_reduction: {}".format(dimension_reduction))
+        print("dimensions: {}".format(dimensions))
+        print("distance_metric: {}".format(distance_metric))
+        print("cluster_alg: {}".format(cluster_alg))
+        print("clusters: {}".format(clusters))
+
     workflows = []
     for al in alignment:
         for dr in dimension_reduction:
@@ -1594,17 +1592,6 @@ def pilot_study(args):
     embedding: 2D pca sklearn
     clustering: k-means sklearn
     """
-
-    # can only use one of dimsions or variance_coverage
-    # ensure by default that dimensions is used
-    if (args.dimensions != [None]) and (args.variance_coverage != [None]):
-        raise ValueError(
-            "Must use only one of --dimensions or --variance_coverage"
-        )
-    dimensions = args.dimensions
-    if args.variance_coverage is not [None]:
-        dimensions = args.variance_coverage
-
     # using mdtraj to compute RMSD clustering of traj
     # and subsequently pairwise distance clustering of traj???
     # load traj
@@ -1625,7 +1612,7 @@ def pilot_study(args):
         alignment=args.alignment,
         distance_metric=args.distance_metric,
         dimension_reduction=args.dimension_reduction,
-        dimensions=dimensions,
+        dimensions=args.dimensions,
         cluster_alg=args.cluster_alg,
         clusters=args.n_clusters,
         overwrite=args.overwrite,
