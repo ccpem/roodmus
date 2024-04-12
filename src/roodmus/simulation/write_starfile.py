@@ -85,7 +85,75 @@ def add_arguments(
         action="store_true",
         help="Enable progressbar",
     )
-
+    optics_args = write_starfile_parser.add_argument_group(
+        "Optics group arguments"
+    )
+    optics_args.add_argument(
+        "--optics_group_name",
+        type=str,
+        default="opticsGroup1",
+        help="Name of the optics group",
+    )
+    optics_args.add_argument(
+        "--optics_group",
+        type=int,
+        default=1,
+        help="Optics group number",
+    )
+    optics_args.add_argument(
+        "--mtf_filename",
+        type=str,
+        default="mtf_k3_300kV.star",
+        help="Filename of the modulation transfer function",
+    )
+    optics_args.add_argument(
+        "--micrograph_original_pixel_size",
+        type=float,
+        default=1.0,
+        help="Pixel size of the micrograph",
+    )
+    optics_args.add_argument(
+        "--voltage",
+        type=float,
+        default=300,
+        help="Voltage of the microscope",
+    )
+    optics_args.add_argument(
+        "--spherical_aberration",
+        type=float,
+        default=2.7,
+        help="Spherical aberration of the microscope",
+    )
+    optics_args.add_argument(
+        "--amplitude_contrast",
+        type=float,
+        default=0.1,
+        help="Amplitude contrast of the microscope",
+    )
+    optics_args.add_argument(
+        "--image_pixel_size",
+        type=float,
+        default=1.0,
+        help="Pixel size of the extracted particles",
+    )
+    optics_args.add_argument(
+        "--image_size",
+        type=int,
+        default=256,
+        help="Size of the extracted particles",
+    )
+    optics_args.add_argument(
+        "--image_dimensionality",
+        type=int,
+        default=2,
+        help="Dimensionality of the extracted particles",
+    )
+    optics_args.add_argument(
+        "--ctf_data_are_ctf_premultiplied",
+        type=int,
+        default=0,
+        help="Whether the CTF data is pre-multiplied",
+    )
     return write_starfile_parser
 
 
@@ -374,6 +442,41 @@ class particle_data_star(object):
             progressbar.update(1)
         progressbar.close()
 
+    def add_optics_group(
+        self,
+        optics_group_name: str = "opticsGroup1",
+        optics_group: int = 1,
+        mtf_filename: str = "mtf_k3_300kV.star",
+        micrograph_original_pixel_size: float = 1.0,
+        voltage: float = 300,
+        spherical_aberration: float = 2.7,
+        amplitude_contrast: float = 0.1,
+        image_pixel_size: float = 1.0,
+        image_size: int = 256,
+        image_dimensionality: int = 2,
+        ctf_data_are_ctf_premultiplied: int = 0,
+    ):
+        """
+        Add an optics group to the starfile.
+        """
+        self.optics = optics_star()
+        self.optics.add_optics_group(
+            optics_group_name,
+            optics_group,
+            mtf_filename,
+            micrograph_original_pixel_size,
+            voltage,
+            spherical_aberration,
+            amplitude_contrast,
+            image_pixel_size,
+            image_size,
+            image_dimensionality,
+            ctf_data_are_ctf_premultiplied,
+        )
+        self.cif_document.add_copied_block(
+            self.optics.get_optics_block(), pos=0
+        )
+
     def save_stafile(self):
         """
         Save the starfile to the output directory
@@ -387,6 +490,106 @@ class particle_data_star(object):
             "particles.star",
         )
         self.cif_document.write_file(starfile_name)
+
+
+class optics_star(object):
+    """
+    The structure of an optics starfile is as follows:
+    data_optics
+
+    loop_
+    _rlnOpticsGroupName #1
+    _rlnOpticsGroup #2
+    _rlnMtfFileName #3
+    _rlnMicrographOriginalPixelSize #4
+    _rlnVoltage #5
+    _rlnSphericalAberration #6
+    _rlnAmplitudeContrast #7
+    _rlnImagePixelSize #8
+    _rlnImageSize #9
+    _rlnImageDimensionality #10
+    _rlnCtfDataAreCtfPremultiplied #11
+    """
+
+    def __init__(self):
+        self.block = cif.Block("optics")
+        self.tags = [
+            "_rlnOpticsGroupName",
+            "_rlnOpticsGroup",
+            "_rlnMtfFileName",
+            "_rlnMicrographOriginalPixelSize",
+            "_rlnVoltage",
+            "_rlnSphericalAberration",
+            "_rlnAmplitudeContrast",
+            "_rlnImagePixelSize",
+            "_rlnImageSize",
+            "_rlnImageDimensionality",
+            "_rlnCtfDataAreCtfPremultiplied",
+        ]
+        self.loop = self.block.init_loop(prefix="", tags=self.tags)
+
+    def add_optics_group(
+        self,
+        optics_group_name: str = "opticsGroup1",
+        optics_group: int = 1,
+        mtf_filename: str = "mtf_k3_300kV.star",
+        micrograph_original_pixel_size: float = 1.0,
+        voltage: float = 300,
+        spherical_aberration: float = 2.7,
+        amplitude_contrast: float = 0.1,
+        image_pixel_size: float = 1.0,
+        image_size: int = 256,
+        image_dimensionality: int = 2,
+        ctf_data_are_ctf_premultiplied: int = 0,
+    ):
+        """
+        Add an optics group to the starfile.
+
+        Args:
+            optics_group_name (str):
+                name of the optics group
+            optics_group (int):
+                optics group number
+            mtf_filename (str):
+                filename of the modulation transfer function
+            micrograph_original_pixel_size (float):
+                pixel size of the micrograph
+            voltage (float):
+                voltage of the microscope
+            spherical_aberration (float):
+                spherical aberration of the microscope
+            amplitude_contrast (float):
+                amplitude contrast of the microscope
+            image_pixel_size (float):
+                pixel size of the image
+            image_size (int):
+                size of the image
+            image_dimensionality (int):
+                dimensionality of the image
+            ctf_data_are_ctf_premultiplied (int):
+                whether the CTF data is pre-multiplied
+        """
+
+        # all values must be converted to strings
+        # before adding them to the starfile
+        self.loop.add_row(
+            [
+                optics_group_name,
+                f"{optics_group:d}",
+                mtf_filename,
+                f"{micrograph_original_pixel_size:.2f}",
+                f"{voltage:.2f}",
+                f"{spherical_aberration:.2f}",
+                f"{amplitude_contrast:.2f}",
+                f"{image_pixel_size:.3f}",
+                f"{image_size:d}",
+                f"{image_dimensionality:d}",
+                f"{ctf_data_are_ctf_premultiplied:d}",
+            ]
+        )
+
+    def get_optics_block(self):
+        return self.block
 
 
 def main(args):
@@ -418,6 +621,19 @@ def main(args):
             args.tqdm,
         )
         starfile.parse_df(df_particles)
+        starfile.add_optics_group(
+            args.optics_group_name,
+            args.optics_group,
+            args.mtf_filename,
+            args.micrograph_original_pixel_size,
+            args.voltage,
+            args.spherical_aberration,
+            args.amplitude_contrast,
+            args.image_pixel_size,
+            args.image_size,
+            args.image_dimensionality,
+            args.ctf_data_are_ctf_premultiplied,
+        )
         starfile.save_stafile()
 
 
