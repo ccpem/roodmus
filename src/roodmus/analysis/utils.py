@@ -1508,7 +1508,7 @@ class load_data(object):
         Returns:
             np.ndarray: sparse distance matrix converted to non-sparse array.
         """
-        r = np.sqrt(
+        r = 4 * np.sqrt(
             np.power(float(image_shape[0]), 2)
             + np.power(float(image_shape[1]), 2)
         )
@@ -1519,7 +1519,7 @@ class load_data(object):
             .sparse_distance_matrix(cKDTree(truth_centres), r)
             .toarray()
         )
-        sdm[sdm < np.finfo(float).eps] = np.nan
+        # sdm[sdm < np.finfo(float).eps] = np.nan
         return sdm
 
     def _match_particles(
