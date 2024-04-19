@@ -1528,6 +1528,7 @@ class load_data(object):
         results_picking: pd.DataFrame,
         results_truth: pd.DataFrame,
         verbose: bool = False,
+        enable_tqdm: bool = False,
     ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame,]:
         """When picked and truth dfs are loaded, this can be used to create
         dataframes of matched picked particles, matched truth particles,
@@ -1596,7 +1597,7 @@ class load_data(object):
             progressbar = tqdm(
                 total=len(ugraph_ids),
                 desc="computing closest matches",
-                disable=not verbose,
+                disable=not enable_tqdm,
             )
             for ugraph in ugraph_ids:
                 # grab the positions from picked+truth to match
@@ -1642,12 +1643,14 @@ class load_data(object):
                             np.nanargmin(picked_particle)
                         )
                     else:
-                        print(
-                            "all nan slice in ugraph {} with picked particle"
-                            " index {} with entries: {}".format(
-                                ugraph, j, picked_particle
+                        if verbose:
+                            print(
+                                "all nan slice in ugraph {}"
+                                " with picked particle"
+                                " index {} with entries: {}".format(
+                                    ugraph, j, picked_particle
+                                )
                             )
-                        )
                         # no particle is matched to picked particle
                         # and we move on to next particle
                         continue
@@ -1686,13 +1689,14 @@ class load_data(object):
                         > 1
                     ]
                 )
-                print(
-                    "There are {} non-unique picked"
-                    " particles in ugraph {}!".format(
-                        non_unique_count,
-                        ugraph,
+                if verbose:
+                    print(
+                        "There are {} non-unique picked"
+                        " particles in ugraph {}!".format(
+                            non_unique_count,
+                            ugraph,
+                        )
                     )
-                )
                 if non_unique_count > 0:
                     print(
                         "This may cause problems with overwritten assns"
@@ -1714,13 +1718,13 @@ class load_data(object):
                         == 0
                     ]
                 )
-                if no_truth_match > 0:
+                if no_truth_match > 0 and verbose:
                     print(
                         "There are {} no-truth-match picked particles!".format(
                             no_truth_match
                         )
                     )
-                    if non_unique_count > 0:
+                    if non_unique_count > 0 and verbose:
                         print(
                             "This may cause problems with overwritten assns"
                             " in truth particles dict!"
@@ -1743,7 +1747,7 @@ class load_data(object):
                 unmatched_picked_dfs.append(ugraph_picked.iloc[p_unmatched])
 
                 # Extract the unmatched truth particles
-                t_list = np.arange(len(picked_pos_x), dtype=int).tolist()
+                t_list = np.arange(len(truth_pos_x), dtype=int).tolist()
                 t_unmatched = list(set(t_list).difference(t_match))
                 unmatched_truth_dfs.append(ugraph_truth.iloc[t_unmatched])
 
@@ -2213,8 +2217,13 @@ class load_data(object):
             p_match_in_ugraph = p_match_grouped.get_group(groupname)
             TP = len(p_match_in_ugraph)
 
-            p_unmatched_in_ugraph = p_unmatched_grouped.get_group(groupname)
-            FP = len(p_unmatched_in_ugraph)
+            if groupname in p_unmatched_grouped.groups.keys():
+                p_unmatched_in_ugraph = p_unmatched_grouped.get_group(
+                    groupname
+                )
+                FP = len(p_unmatched_in_ugraph)
+            else:
+                FP = 0
 
             """
             t_match_in_ugraph = t_match_grouped.get_group(
@@ -2222,8 +2231,13 @@ class load_data(object):
             )
             """
 
-            t_unmatched_in_ugraph = t_unmatched_grouped.get_group(groupname[1])
-            FN = len(t_unmatched_in_ugraph)
+            if groupname[1] in t_unmatched_grouped.groups.keys():
+                t_unmatched_in_ugraph = t_unmatched_grouped.get_group(
+                    groupname[1]
+                )
+                FN = len(t_unmatched_in_ugraph)
+            else:
+                FN = 0
 
             truth_particles_in_ugraph = df_truth_grouped.get_group(
                 groupname[1]
