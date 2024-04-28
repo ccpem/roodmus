@@ -12,7 +12,7 @@ WIP analysis tools:
 
 
 ## How to use Roodmus
-The aim of roodmus is to turn an MD trajectory into a set of micrographs that can serve as ground-truth for testing cryo-EM (heterogeneous) reconstruction methods. The core of the micrograph simulation is done using parakeet. The program consists of three modules: 
+The aim of roodmus is to turn an MD trajectory into a set of micrographs that can serve as ground-truth for testing cryo-EM (heterogeneous) reconstruction methods. The core of the micrograph simulation is done using Parakeet. The program consists of three modules: 
 
 ### 1. Sample pdb/mmcif models from trajectory dataset
 Given a directory of trajectory files (in for example .nc or .dcd format) and a topology file (for example a .pdb file), this module saves a selection of frames from the trajectory as .pdb files. The general command used to run this module is:
@@ -21,17 +21,16 @@ roodmus conformations_sampling --trajfiles_dir_path PATH/TO/DCD/FILES --topfile_
 ```
 Where N is the number of conformations to be samples from the trajectory. In case N is larger than the number of frames in the trajectory, N will be set equal to the number of frames.
 
-Sampling can be done either evenly or by waymarking. In case of even sampling, frames of the trajectory will be sampled at even intervals. In case of waymarking, a random starting point is selected and new frames are sampled if their rmsd with respect to the sampled frames is larger than a given threshold. The general command used to run conformation sampling in waymarking mode is:
+Sampling can be done in a configurable manner - frames of the trajectory can be sampled at even time intervals from the trajectory or from contiguous frames, from a given starting frame. The general command used to run conformation sampling in waymarking mode is:
 ```
-roodmus conformations_sampling --trajfiles_dir_path PATH/TO/DCD/FILES --topfile_path PATH/TO/TOPOLOGY.pdb --n_conformations N --output_dir_path PATH/TO/OUTPUT/DIR --rmsd Threshold --sampling_method waymark
+roodmus conformations_sampling --trajfiles_dir_path PATH/TO/DCD/FILES --topfile_path PATH/TO/TOPOLOGY.pdb --n_conformations N --output_dir_path PATH/TO/OUTPUT/DIR 
 ```
-Where Threshold is the rmsd threshold for sampling a new frame and SEED is the seed for the random starting point. The default value for Threshold is 0.3. More options are availble, see the help page for more information.
 
-Sampled conformations are saved as individual .pdb files in the output directory.
+Sampled conformations are saved as individual .pdb files in the output directory. More options are available as listed by `roodmus conformations_sampling --help`.
 
 
 ### 2. Generate SPA dataset using Parakeet python API:
-Given a directory containing (any) .pdb files, a desired number of images to simulate and a number of molecules per image, this module generates a configuration file to run parakeet and then executes the parakeet simulation. Each micrograph subsamples the .pdb files to the number of molecules to generate, if not enough .pdb files are available, multiple instances of the same file are used. The config file is saved as a .yaml file with the same name as the image it corresponds to. The general command for this module is:
+Given a directory containing (any) .pdb files, a desired number of images to simulate and a number of molecules per image, this module generates a configuration file to run parakeet and then executes the parakeet simulation. Each micrograph subsamples the .pdb files to the number of molecules to generate, if not enough .pdb files are available, multiple instances of files are used. The config file is saved as a .yaml file with the same name as the image it corresponds to. The general command for this module is:
 ```
 roodmus run_parakeet --pdb_dir PATH/TO/PDB/FILES --mrc_dir PATH/TO/OUTPUT/DIR -n N -m M --device "gpu or cpu" 
 ```
@@ -59,7 +58,7 @@ The second functionality is comparing picked particle positions and true particl
 ```
 roodmus plot_picking --config_dir PATH/TO/CONFIG/FILES --mrc_dir PATH/TO/MRC/FILES --metadata_file PATH/TO/METADATA/FILE.{star, cs} --job_types "particle picking" "2D classification" "..." --plot_dir PATH/TO/PLOT/DIR -N N --plot_types {label_truth, label_picked, label_truth_and_picked, precision, boundary, overlap} --particle_diamter D
 ```
-Where N is the number of micrographs to load and --mrc_dir is the directory containing .mrc micrograph files. Multiple metadata files can be loaded in at the same time. Each metadata file can be given a label using the job_types option. metadata files with the same label are grouped together. The labels are used as titles and axis labels in plots. D is the particle diamter in angstroms.
+Where N is the number of micrographs to load and --mrc_dir is the directory containing .mrc micrograph files. Multiple metadata files can be loaded in at the same time. Each metadata file can be given a label using the job_types option. Metadata files with the same label are grouped together. The labels are used as titles and axis labels in plots. D is the diameter (in angstroms) used for matching picked and truth particles.
 The 'label_truth' plot type plots the true particle positions on the micrograph for each metadata_file supplied. The 'label_picked' plot type plots the picked particle positions on the micrograph. The 'label_truth_and_picked' plot type plots both the true and picked particle positions on the micrograph. The 'precision' plot type plots the particle picking precision and recall for each job_type. Precision is defined as the number of picked particles closer than particle_diameter/2 to any true particle divided by the total number of picked particles. Recall is defined as the number of true particles with at least one picked particle closer than particle_diameter/2 divided by the total number of true particles.
 The 'boundary' plot type plots the distribution of particles in the micrographs in x-, y- and z-direction. The 'overlap' plot type plots the number of picked particles closer than r to any true particle for a range of r values.
 
@@ -73,10 +72,10 @@ roodmus {plot_picking, plot_ctf, plot_alignment, plot_2d_lasses, plot_frames} --
 ```
 
 # Licensing
-Need to figure out what kind of license we want and when/how we need to get it for the repo. May have to use the same licence as parakeet.
+Roodmus is GPLv3 licensed. Please see the `LICENSE` file for information on usage, reproduction or adaptation of the Roodmus codebase.
 
 # Parakeet Compatibility
-Code is currently tested with parakeet commit `024b86ebf55adf737c1b1116b8adbb59ee7db491`. Functionality is expected to be easily extended to the most recent version as of 9/3/23. This may required a small number of Parakeet config variables to be added/modified in the configuration class.
+Code is currently tested with parakeet tag [v0.4.3.dev1](https://github.com/rosalindfranklininstitute/parakeet/releases/tag/v0.4.3.dev1). Functionality is expected to be easily extended to the most recent version as of 9/3/23. This may required a small number of Parakeet config variables to be added/modified in the configuration class.
 
 # flow chart of current structure of Roodmus
 ![flowchart](docs/flowchart.png)
@@ -121,24 +120,3 @@ cd ccpem-pipeliner
 pip install -e .
 ```
 After doing so, an editable install of roodmus should be set up with all requisite packages.
-
-# Updating roodmus As A pip Package
-I do this via twine:
-`python3 -m pip install --upgrade twine`
-
-If there's any updates, you need to update the version number (configured in the pyproject.toml). Make sure it is suitable according to pep conventions! Currently updating this is manual.
-
-Build the updated package via:
-
-`python3 -m pip install --upgrade build`
-
-`python3 -m build`
-
-Once you've done that, you can publish the package via:
-`python3 -m twine upload --repository testpypi dist/*<version>*`
-
-To do this you'll need an account and token (instructions here: <https://packaging.python.org/en/latest/tutorials/packaging-projects/>)
-
-If you want to download the pip package from the remote repository (currently the pypi test repo) and install it, you can do this via:
-`python3 -m pip install --extra-index-url https://test.pypi.org/simple/  roodmus --no-cache-dir`
-You can also pip install it via the tar'ed dist package or the pip wheel (.whl file) found in the dist directory.
