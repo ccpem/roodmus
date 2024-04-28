@@ -161,9 +161,10 @@ def true_pose_distribution_plot(
     vmax: float | None = None,
 ):
     df_truth["euler_phi"] = df_truth["euler_phi"].astype(float)
-    df_truth["euler_theta"] = -(
-        df_truth["euler_theta"].astype(float) - np.pi / 2
-    )
+    df_truth["euler_theta"] = df_truth["euler_theta"].astype(float)
+    # df_truth["euler_theta"] = -(
+    #     df_truth["euler_theta"].astype(float) - np.pi / 2
+    # )
     df_truth["euler_psi"] = df_truth["euler_psi"].astype(float)
 
     grid = sns.jointplot(
@@ -194,7 +195,7 @@ def true_pose_distribution_plot(
     )
     grid.ax_joint.set_xticklabels(
         [
-            "\u03C0",
+            "-\u03C0",
             "-3/4\u03C0",
             "-\u03C0/2",
             "-\u03C0/4",
@@ -205,12 +206,12 @@ def true_pose_distribution_plot(
             "\u03C0",
         ]
     )
-    grid.ax_joint.set_yticks([-np.pi / 2, -np.pi / 4, 0, np.pi / 4, np.pi / 2])
+    grid.ax_joint.set_yticks([0, np.pi / 4, np.pi / 2, 3 / 4 * np.pi, np.pi])
     grid.ax_joint.set_yticklabels(
-        ["\u03C0/2", "\u03C0/4", "0", "\u03C0/4", "\u03C0/2"]
+        ["0", "\u03C0/4", "\u03C0/2", "3/4\u03C0", "\u03C0"]
     )
     grid.ax_joint.set_xlabel("Azimuth")
-    grid.ax_joint.set_ylabel("Elevation")
+    grid.ax_joint.set_ylabel("Tilt")
     # add new sublot to the right of the jointplot
     cbar_ax = grid.fig.add_axes([1, 0.15, 0.02, 0.7])
     # add colorbar to the new subplot
@@ -275,7 +276,11 @@ class plotPickedPoseDistribution(plotDataFrame):
                     "metadata_filename"
                 ].unique()
             ):
-                self.grid, self.vmin, self.vmax = picked_pose_distribution(
+                (
+                    self.grid,
+                    self.vmin,
+                    self.vmax,
+                ) = picked_pose_distribution_plot(
                     self.plot_data["plot_picked_pose_distribution"][
                         "df_picked"
                     ],
@@ -310,7 +315,7 @@ class plotPickedPoseDistribution(plotDataFrame):
             )
 
 
-def picked_pose_distribution(
+def picked_pose_distribution_plot(
     df_picked: pd.DataFrame,
     metadata_filename: str | List[str],
     vmin: float | None = None,
@@ -324,15 +329,15 @@ def picked_pose_distribution(
     )
 
     # change data type of column euler_phi to float
-    df_picked_grouped["euler_phi"] = df_picked_grouped["euler_phi"].astype(
-        float
-    )
-    df_picked_grouped["euler_theta"] = -(
-        df_picked_grouped["euler_theta"].astype(float) - np.pi / 2
-    )
-    df_picked_grouped["euler_psi"] = df_picked_grouped["euler_psi"].astype(
-        float
-    )
+    # df_picked_grouped["euler_phi"] = df_picked_grouped["euler_phi"].astype(
+    #     float
+    # )
+    # df_picked_grouped["euler_theta"] = -(
+    #     df_picked_grouped["euler_theta"].astype(float) - np.pi / 2
+    # )
+    # df_picked_grouped["euler_psi"] = df_picked_grouped["euler_psi"].astype(
+    #     float
+    # )
 
     # plot the alignment
     grid = sns.jointplot(
@@ -363,7 +368,7 @@ def picked_pose_distribution(
     )
     grid.ax_joint.set_xticklabels(
         [
-            "\u03C0",
+            "-\u03C0",
             "-3/4\u03C0",
             "-\u03C0/2",
             "-\u03C0/4",
@@ -374,12 +379,12 @@ def picked_pose_distribution(
             "\u03C0",
         ]
     )
-    grid.ax_joint.set_yticks([-np.pi / 2, -np.pi / 4, 0, np.pi / 4, np.pi / 2])
+    grid.ax_joint.set_yticks([0, np.pi / 4, np.pi / 2, 3 / 4 * np.pi, np.pi])
     grid.ax_joint.set_yticklabels(
-        ["-\u03C0/2", "-\u03C0/4", "0", "\u03C0/4", "\u03C0/2"]
+        ["0", "\u03C0/4", "\u03C0/2", "3/4\u03C0", "\u03C0"]
     )
     grid.ax_joint.set_xlabel("Azimuth")
-    grid.ax_joint.set_ylabel("Elevation")
+    grid.ax_joint.set_ylabel("Tilt")
     # add new sublot to the right of the jointplot
     cbar_ax = grid.fig.add_axes([1, 0.15, 0.02, 0.7])
     # add colorbar to the new subplot

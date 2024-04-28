@@ -348,3 +348,51 @@ class IntegrationTest(unittest.TestCase):
                 )
 
     # maybe should add filecmp for run_parakeet_output/ files????
+
+    def test_write_starfile(self) -> None:
+        """
+        Test that a correct .star file is generated
+        based on the input .csv dataframe file
+        """
+
+        # set up the args to pass to roodmus write_starfile
+        csv_file = os.path.join(
+            self.test_data,
+            "analysis_test_outputs",
+            "picking_star",
+            "label_truth",
+            "df_truth.csv",
+        )
+        output_dir = os.path.join(self.test_dir, "star_files")
+        os.makedirs(output_dir)
+
+        # run the write_starfile utility
+        system_cmd = (
+            "roodmus write_starfile"
+            + " --input_csv {}".format(csv_file)
+            + " --type coordinate_star"
+            + " --output_dir {}".format(output_dir)
+            + " --ugraph_dir {}".format(output_dir)
+            + " --pixel_size 1.0"
+        )
+        os.system(system_cmd)
+
+        # check that the groundtruth.star file has been generated
+        assert os.path.exists(
+            os.path.join(output_dir, "groundtruth.star")
+        ), "groundtruth.star not found in {}".format(output_dir)
+
+        # check that there are individual particle starfiles
+        # in the micrographs directory
+        assert os.path.exists(
+            os.path.join(output_dir, "micrographs")
+        ), "micrographs directory not found in {}".format(output_dir)
+        assert (
+            len(os.listdir(os.path.join(output_dir, "micrographs"))) > 0
+        ), "No files found in micrographs directory in {}".format(output_dir)
+
+        # a comparison with the contents of the groundtruth.star file
+        # is currently not possible, since the output directory is
+        # also used as the name for where to find the micrographs,
+        # and since this directory is created by the utility, the
+        # paths in the .star file will not match the reference file
