@@ -163,16 +163,6 @@ def add_arguments(parser: argparse.ArgumentParser):
         default=[2],
     )
 
-    parser.add_argument(
-        "--variance_coverage",
-        help="Used in the same way as the --dimensions argument, here"
-        " dimensions are reduced based on the variance of the dataset"
-        " which is explained (whenever possible)",
-        nargs="+",
-        type=float,
-        default=[None],
-    )
-
     # clustering alg
     parser.add_argument(
         "--cluster_alg",
@@ -891,16 +881,6 @@ class latentClustering(object):
 
 
 def pilot_study_latent(args):
-    # can only use one of dimsions or variance_coverage
-    # ensure by default that dimensions is used
-    if (args.dimensions != [None]) and (args.variance_coverage != [None]):
-        raise ValueError(
-            "Must use only one of --dimensions or --variance_coverage"
-        )
-    dimensions = args.dimensions
-    if args.variance_coverage is not [None]:
-        dimensions = args.variance_coverage
-
     # init latentClustering
     # determine_workflow_permutations is called
     # determine_workflow_pkl_locations is also called
@@ -910,7 +890,7 @@ def pilot_study_latent(args):
         results_dir=args.output_dir,
         workflows_filename=args.workflows_filename,
         dimension_reduction=args.dimension_reduction,
-        dimensions=dimensions,
+        dimensions=args.dimensions,
         cluster_alg=args.cluster_alg,
         clusters=args.n_clusters,
         overwrite=args.overwrite,

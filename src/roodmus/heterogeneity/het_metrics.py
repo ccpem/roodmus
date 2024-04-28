@@ -261,16 +261,6 @@ def add_arguments(parser: argparse.ArgumentParser):
         default=[2],
     )
 
-    parser.add_argument(
-        "--variance_coverage",
-        help="Used in the same way as the --dimensions argument, here"
-        " dimensions are reduced based on the variance of the dataset"
-        " which is explained (whenever possible)",
-        nargs="+",
-        type=float,
-        default=[None],
-    )
-
     # clustering alg
     parser.add_argument(
         "--cluster_alg",
@@ -341,6 +331,47 @@ def get_pdb_list(
     return glob.glob(confs_path)
 
 
+def select_confs(
+    conf_files: list[str],
+    n_confs: int,
+    first_conf: int = 0,
+    contiguous_confs: bool = False,
+) -> list[str]:
+    conf_files = sorted(conf_files)
+    # limit number of conformations if desired
+    if n_confs and contiguous_confs:
+        if n_confs > len(conf_files) - first_conf:
+            raise ValueError(
+                "Trying to sample {} confs from {} files starting at"
+                " index {}".format(
+                    n_confs,
+                    len(conf_files),
+                    first_conf,
+                )
+            )
+        conf_files = conf_files[first_conf : first_conf + n_confs]
+    elif n_confs:
+        # get every nth sample depending on n_confs requested
+        if (len(conf_files) - first_conf) < n_confs:
+            raise ValueError(
+                "Trying to sample {} confs from {} remaining! Error!".format(
+                    n_confs,
+                    len(conf_files) - first_conf,
+                )
+            )
+        else:
+            sample_indices = np.arange(
+                first_conf,
+                len(conf_files),
+                (len(conf_files) - first_conf) / n_confs,
+            ).astype(int)
+            conf_files = np.array(conf_files, dtype=str)[
+                sample_indices
+            ].tolist()
+    assert len(conf_files) > 0
+    return conf_files
+
+
 def mda_load_universe(args) -> mda.Universe:
     conf_files = get_pdb_list(
         args.conformations_dir,
@@ -348,37 +379,13 @@ def mda_load_universe(args) -> mda.Universe:
     )
     # TODO support option to load pdb files from .star or .npz (cs)?
     # sort alphanumerically
-    conf_files = sorted(conf_files)
-    # limit number of conformations if desired
-    if args.n_confs and args.contiguous_confs:
-        if args.n_confs > len(conf_files):
-            raise ValueError(
-                "Trying to sample {} confs from {} files!".format(
-                    args.n_confs, len(conf_files)
-                )
-            )
-        conf_files = conf_files[
-            args.first_conf : args.first_conf + args.n_confs
-        ]
-    elif args.n_confs:
-        # get every nth sample depending on n_confs requested
-        if (len(conf_files) - args.first_conf) < args.n_confs:
-            raise ValueError(
-                "Trying to sample {} confs from {} remaining! Error!".format(
-                    args.n_confs,
-                    len(conf_files) - args.first_conf,
-                )
-            )
-        else:
-            sample_indices = np.arange(
-                args.first_conf,
-                len(conf_files),
-                (len(conf_files) - args.first_conf) / args.n_confs,
-            ).astype(int)
-            conf_files = np.array(conf_files, dtype=str)[
-                sample_indices
-            ].tolist()
-    assert len(conf_files) > 0
+
+    conf_files = select_confs(
+        conf_files,
+        args.n_confs,
+        args.first_conf,
+        args.contiguous_confs,
+    )
     # add the first pdb as a topology file
     topfile = conf_files[0]
     # turn list of pdbs into an mda.Universe
@@ -400,11 +407,12 @@ def mdtraj_load_traj(args) -> mdtraj.Trajectory:
         args.file_ext,
     )
     # TODO support option to load pdb files from .star or .npz (cs)?
-    # sort alphanumerically
-    conf_files = sorted(conf_files)
-    # limit number of conformations if desired
-    if args.n_confs:
-        conf_files = conf_files[: args.n_confs]
+    conf_files = select_confs(
+        conf_files,
+        args.n_confs,
+        args.first_conf,
+        args.contiguous_confs,
+    )
     # add the first pdb as a topology file
     topfile = conf_files[0]
     traj = mdtraj.load(conf_files, top=topfile)
@@ -673,6 +681,14 @@ def determine_workflow_permutations(
         "cluster_alg",
         "clusters",
     ]
+    if verbose:
+        print("alignment: {}".format(alignment))
+        print("dimension_reduction: {}".format(dimension_reduction))
+        print("dimensions: {}".format(dimensions))
+        print("distance_metric: {}".format(distance_metric))
+        print("cluster_alg: {}".format(cluster_alg))
+        print("clusters: {}".format(clusters))
+
     workflows = []
     for al in alignment:
         for dr in dimension_reduction:
@@ -1576,17 +1592,6 @@ def pilot_study(args):
     embedding: 2D pca sklearn
     clustering: k-means sklearn
     """
-
-    # can only use one of dimsions or variance_coverage
-    # ensure by default that dimensions is used
-    if (args.dimensions != [None]) and (args.variance_coverage != [None]):
-        raise ValueError(
-            "Must use only one of --dimensions or --variance_coverage"
-        )
-    dimensions = args.dimensions
-    if args.variance_coverage is not [None]:
-        dimensions = args.variance_coverage
-
     # using mdtraj to compute RMSD clustering of traj
     # and subsequently pairwise distance clustering of traj???
     # load traj
@@ -1607,7 +1612,7 @@ def pilot_study(args):
         alignment=args.alignment,
         distance_metric=args.distance_metric,
         dimension_reduction=args.dimension_reduction,
-        dimensions=dimensions,
+        dimensions=args.dimensions,
         cluster_alg=args.cluster_alg,
         clusters=args.n_clusters,
         overwrite=args.overwrite,
@@ -1643,22 +1648,6 @@ def pilot_study(args):
     """
 
 
-def pilot_study_compare_ensembles(args):
-    """Pilot study to establish sw library interfaces for
-    2 slightly different clustering workflows and perform
-    the comparison by calculating metrics. To compare a
-    latent space representation, do equivalent. A latent
-    space is simply equivalent to a distance metric
-    """
-    pass
-
-
-def load_universe(args):
-    # load the trajectory as an mda.Universe
-    conformations = mda_load_universe(args)
-    return conformations
-
-
 def avg_linkage_clustering(args, distance_metric: np.ndarray):
     # cluster with average linkage using RMSD distance metric as an example
     # Clustering only accepts reduced form. Squareform's checks are too
@@ -1674,33 +1663,6 @@ def main(args):
     related metrics and (optimal) clustering"""
     pilot_study(args)
 
-    """
-    labels are generic in the plot function for now
-    TODO improve plot label customisation
-    plt.scatter(
-        reduced_distances[:, 0],
-        reduced_distances[:,1],
-        marker='x',
-        c=traj.time
-    )
-    plt.xlabel('PC1')
-    plt.ylabel('PC2')
-    plt.title('Pairwise distance PCA')
-    cbar = plt.colorbar()
-    mdtraj_2dpca_pdist_figname = os.path.join(
-        args.output_dir,
-        "mdtraj_2dpca_pdist"
-    )
-    plt.savefig(
-        mdtraj_2dpca_pdist_figname+".png",
-        dpi=args.dpi
-    )
-    if args.pdf:
-        plt.savefig(
-        mdtraj_2dpca_pdist_figname+".pdf",
-    )
-    """
-
     # calc pairwise rmsd with mda standard rmsd
     # first you gotta align the conformations
     # more info on in_mem/file here:
@@ -1712,106 +1674,8 @@ def main(args):
     # default metric is rmsd
     # looks like there is no
     # dimension reduction (that is implemented in diffusionmap instead)
-    """
-    plot_mda_distancematrix(
-        args,
-        distancematrix.dist_matrix,
-    )
-    """
 
     # TODO calc rmsf?
-
-    # POSSIBLE FULL TRAJECTORY CLUSTERING -> DISTANCE PLOT ORGANISED BY
-    # CLUSTER INDEX
-    # use clm KMeans, AffinityPropagation??? and DBScan
-    # to cluster trajectory into N clusters
-    # rearrange distance matrix along y axis by increasing cluster index
-    # with each cluster having its entries arranged by increasing
-    # distance from the centre of the cluster
-    # Leave x axis as frame index from 0 to -1
-
-    # cluster the rmsd with k-means
-    # use dimenstionality reduction method to cluster
-    # using a range of different PCA dimensions
-    # set up PCA dimension reduction algs
-    """
-    pc2 = clm.KMeans(
-        2,
-    )
-    ces0, details0 = encore.ces(
-        [conformations],
-        select="name CA",
-        # clustering_method=[pc1, pc2, pc3],
-        clustering_method=[pc2],
-        ncores=args.n_cores,
-    )
-    # this aligns and calcs similarity matrix
-    # as well as calculating the clusters
-    # ces0 is the similarity matrix, with dimensions
-    # [len(conformations)][len(clustering_methods)]
-    # so can remove the above alignment and calculation code
-    # details0 holds encore.clustering.ClusterCollection.ClusterCollection
-    print(ces0)
-    print(details0)
-    print(details0["clustering"])
-    print(details0["clustering"][0])
-    print(details0["clustering"][0].clusters)
-    cluster_list = details0["clustering"][0].clusters
-    print(details0["clustering"][0].clusters[0].id)
-    print(details0["clustering"][0].clusters[0].elements)
-
-    colors = ["red", "blue", "yellow", "black"]
-    pca_figname = os.path.join(args.output_dir, "pca_2d")
-    pca_2d_clusters = zip(
-        [cluster.id for cluster in cluster_list],
-        [cluster.elements for cluster in cluster_list],
-    )
-    for cluster, elems in pca_2d_clusters:
-        plt.plot(elems, color=colors[cluster])
-    plt.savefig(
-        pca_figname + ".png",
-        dpi=args.dpi,
-    )
-    if args.pdf:
-        plt.savefig(pca_figname + ".pdf")
-    plt.clf()
-    # in summary there was no dimensionality reduction here
-    # so no good trying to plot 2d coords in space.
-    # What you actually did was clusters trajectories into
-    # 2 different clusters (because you set kmeans to have
-    # 2 centroids)
-
-    # POSSIBLE CLUSTERING OF MD TRAJECTORIES IN N DIMENSIONAL SPACE
-    # VIA DIMENSIONALITY REDUCTION
-    # reduce
-
-    # set dimensionality reduction PCAs
-    # pc1 = drm.PrincipalComponentAnalysis(dimension=1, svd_solver="auto")
-    pc2 = drm.PrincipalComponentAnalysis(dimension=2, svd_solver="auto")
-    # pc3 = drm.PrincipalComponentAnalysis(dimension=3, svd_solver="auto")
-    dres0, dres_details0 = encore.dres(
-        [conformations],
-        select="name CA",
-        # dimensionality_reduction_method=[pc1,pc2,pc3],
-        dimensionality_reduction_method=[pc2],
-        ncores=args.n_cores,
-    )
-    print(dres_details0)
-    reduced_coords = dres_details0["reduced_coordinates"][0]
-    print(reduced_coords)
-    index = np.arange(len(reduced_coords[0]))
-    plt.scatter(reduced_coords[0], reduced_coords[1], c=index, cmap="viridis")
-
-    plt.colorbar()
-    pca_figname = os.path.join(args.output_dir, "pca_2d")
-    plt.savefig(
-        pca_figname + ".png",
-        dpi=args.dpi,
-    )
-    if args.pdf:
-        plt.savefig(pca_figname + ".pdf")
-    plt.clf()
-    """
 
     # TODO apply elbow for optimal number of clusters (sklearn inertia)
 

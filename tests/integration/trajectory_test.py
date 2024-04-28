@@ -62,7 +62,7 @@ class IntegrationTest(unittest.TestCase):
         # set up the args to pass to roodmus conformations_sampling
         trajfiles_dir = self.test_data
         topfile = os.path.join(self.test_data, "pdbfile_11021566_glyco.pdb")
-        sampling_method = "even_sampling"
+        # sampling_method = "even_sampling"
         n_conformations = 2
         traj_extension = ".dcd"
         output_dir = os.path.join(self.test_dir, "conformations_sampling")
@@ -73,7 +73,7 @@ class IntegrationTest(unittest.TestCase):
             + " --trajfiles_dir {}".format(trajfiles_dir)
             + " --topfile {}".format(topfile)
             + " --verbose"
-            + " --sampling_method {}".format(sampling_method)
+            # + " --sampling_method {}".format(sampling_method)
             + " --n_conformations {}".format(n_conformations)
             + " --traj_extension {}".format(traj_extension)
             + " --output_dir {}".format(output_dir)

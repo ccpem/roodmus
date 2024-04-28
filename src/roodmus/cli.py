@@ -43,6 +43,7 @@ import roodmus.analysis.plot_alignment
 import roodmus.heterogeneity.het_metrics
 import roodmus.heterogeneity.latent_clustering
 import roodmus.heterogeneity.het_ensemblecomparison
+import roodmus.heterogeneity.remove_hydrogens
 
 # import analysis.analyse_alignment
 
@@ -84,12 +85,14 @@ def main():
         roodmus.heterogeneity.het_metrics,
         roodmus.heterogeneity.latent_clustering,
         roodmus.heterogeneity.het_ensemblecomparison,
+        roodmus.heterogeneity.remove_hydrogens,
     ]
 
     module_helptext = [
         "Sampling a molecular dynamics trajectory and saving the"
         + " conformations to PDB files.",
         "Simulation of micrograph/tomogram dataset using Parakeet software.",
+        "Write out a particle stack using picked particle coordinates",
         "Plot a comparison between the estimated CTF parameters and the"
         + " true values used in data generation.",
         "Plot statistics from picking analyses and overlays of"
@@ -107,6 +110,7 @@ def main():
         "Calculation of Jensen-Shannon divergence between ensembles"
         + " identified through clustering of MD trajectory(ies)"
         + " and/or clustering of latent spaces representing heterogeneity",
+        "Remove hydrogens from pdb file(s)",
     ]
 
     for helptext, module in zip(module_helptext, modules):
