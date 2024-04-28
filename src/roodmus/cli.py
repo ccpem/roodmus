@@ -32,6 +32,7 @@ import pkg_resources
 from pathlib import Path
 
 import roodmus.simulation.run_parakeet
+import roodmus.simulation.write_starfile
 import roodmus.trajectory.conformations_sampling
 import roodmus.analysis.plot_ctf
 import roodmus.analysis.plot_picking
@@ -39,6 +40,10 @@ import roodmus.analysis.plot_frames
 import roodmus.analysis.plot_classes
 import roodmus.analysis.extract_particles
 import roodmus.analysis.plot_alignment
+import roodmus.heterogeneity.het_metrics
+import roodmus.heterogeneity.latent_clustering
+import roodmus.heterogeneity.het_ensemblecomparison
+import roodmus.heterogeneity.remove_hydrogens
 
 # import analysis.analyse_alignment
 
@@ -70,18 +75,24 @@ def main():
     modules = [
         roodmus.trajectory.conformations_sampling,
         roodmus.simulation.run_parakeet,
+        roodmus.simulation.write_starfile,
         roodmus.analysis.plot_ctf,
         roodmus.analysis.plot_picking,
         roodmus.analysis.plot_frames,
         roodmus.analysis.plot_classes,
         roodmus.analysis.plot_alignment,
         roodmus.analysis.extract_particles,
+        roodmus.heterogeneity.het_metrics,
+        roodmus.heterogeneity.latent_clustering,
+        roodmus.heterogeneity.het_ensemblecomparison,
+        roodmus.heterogeneity.remove_hydrogens,
     ]
 
     module_helptext = [
         "Sampling a molecular dynamics trajectory and saving the"
         + " conformations to PDB files.",
         "Simulation of micrograph/tomogram dataset using Parakeet software.",
+        "Write out a particle stack using picked particle coordinates",
         "Plot a comparison between the estimated CTF parameters and the"
         + " true values used in data generation.",
         "Plot statistics from picking analyses and overlays of"
@@ -92,6 +103,14 @@ def main():
         + " ground-truth orientation values used in Parakeet data generation.",
         "Extract a stack of particles from a set of simulated micrographs"
         + " using the ground-truth positions.",
+        "Sandbox for computing dimension reduction and/or distance metrics"
+        + " and/or clustering on conformations extracted from MD simulations",
+        "Sandbox for computing dimension reduction and/or clustering on"
+        + " latent spaces (encoding heterogeneity)",
+        "Calculation of Jensen-Shannon divergence between ensembles"
+        + " identified through clustering of MD trajectory(ies)"
+        + " and/or clustering of latent spaces representing heterogeneity",
+        "Remove hydrogens from pdb file(s)",
     ]
 
     for helptext, module in zip(module_helptext, modules):

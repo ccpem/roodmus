@@ -29,45 +29,7 @@ import filecmp
 import difflib
 
 from tests.integration import fixtures
-
-
-def remove_ts_text_file(filename: str) -> str:
-    """Some decisions have been made which add date of generation to
-    pdb files created via mdtraj and to mtf files created by parakeet.
-    These mess up filecmp against a fixed date reference file.
-    These dates and other superfluous info are add into first line of
-    the text files.
-    Therefore, this function creates temporary files which are 1 line
-    shorter (removes the first line)
-
-    Args:
-        file (str): file
-
-    Returns:
-        str: Path of saved file with first line removed
-    """
-    # get the dirname
-    which_dir = os.path.dirname(filename)
-
-    # get the filename
-    which_file = os.path.basename(filename)
-
-    # make the new_filename
-    file_name_parts = which_file.split(".")
-    saved_file = "".join(file_name_parts[:-1])
-    saved_file = saved_file + "_removed_line" + file_name_parts[-1]
-    saved_file = os.path.join(which_dir, saved_file)
-
-    # load text file into memory and remove first line
-    with open(filename, "r") as infile:
-        data = infile.read().splitlines(True)
-
-    # save file after removing first line
-    with open(saved_file, "w") as outfile:
-        outfile.writelines(data[1:])
-    print("Saved {} from {}".format(saved_file, filename))
-
-    return saved_file
+from tests.integration.simulation_test import remove_ts_text_file
 
 
 class IntegrationTest(unittest.TestCase):
@@ -98,11 +60,9 @@ class IntegrationTest(unittest.TestCase):
         """
 
         # set up the args to pass to roodmus conformations_sampling
-        traj_files_path = self.test_data
-        top_file_path = os.path.join(
-            self.test_data, "pdbfile_11021566_glyco.pdb"
-        )
-        sampling_method = "even_sampling"
+        trajfiles_dir = self.test_data
+        topfile = os.path.join(self.test_data, "pdbfile_11021566_glyco.pdb")
+        # sampling_method = "even_sampling"
         n_conformations = 2
         traj_extension = ".dcd"
         output_dir = os.path.join(self.test_dir, "conformations_sampling")
@@ -110,10 +70,10 @@ class IntegrationTest(unittest.TestCase):
         # run the conformations_sampling
         system_cmd = (
             "roodmus conformations_sampling"
-            + " --trajfiles_dir_path {}".format(traj_files_path)
-            + " --topfile_path {}".format(top_file_path)
+            + " --trajfiles_dir {}".format(trajfiles_dir)
+            + " --topfile {}".format(topfile)
             + " --verbose"
-            + " --sampling_method {}".format(sampling_method)
+            # + " --sampling_method {}".format(sampling_method)
             + " --n_conformations {}".format(n_conformations)
             + " --traj_extension {}".format(traj_extension)
             + " --output_dir {}".format(output_dir)
@@ -174,3 +134,5 @@ class IntegrationTest(unittest.TestCase):
 
             # ensure they are the same
             assert filecmp.cmp(ref_file_no_ts, output_file_no_ts)
+            os.remove(ref_file_no_ts)
+            os.remove(output_file_no_ts)

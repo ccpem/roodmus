@@ -30,6 +30,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import mdtraj as mdt
 import glob2 as glob
+from tqdm import tqdm
 
 
 def add_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -43,7 +44,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     """
 
     parser.add_argument(
-        "--trajfiles_dir_path",
+        "--trajfiles_dir",
         help=(
             "Path to directory holding (dcd) trajectory files which make up"
             " the whole trajectory."
@@ -53,7 +54,7 @@ def add_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
-        "--topfile_path",
+        "--topfile",
         help="The pdb holding the structure of molecule (no solvent)",
         type=str,
         default="",
@@ -68,14 +69,20 @@ def add_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
-        "--sampling_method",
-        help=(
-            "Choose whether to sample a trajectory uniformly in time"
-            " (even_sampling) or by >rmsd threshold (waymark)"
-        ),
-        type=str,
-        default="even_sampling",
+        "--tqdm",
+        help="Turn on progress bar",
+        action="store_true",
     )
+
+    # parser.add_argument(
+    #     "--sampling_method",
+    #     help=(
+    #         "Choose whether to sample a trajectory uniformly in time"
+    #         " (even_sampling) or by >rmsd threshold (waymark)"
+    #     ),
+    #     type=str,
+    #     default="even_sampling",
+    # )
 
     parser.add_argument(
         "--n_conformations",
@@ -146,13 +153,13 @@ def add_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         required=False,
     )
 
-    parser.add_argument(
-        "--rmsd",
-        help="RMSD in nm to use for waymark sampling",
-        type=float,
-        default=0.3,
-        required=False,
-    )
+    # parser.add_argument(
+    #     "--rmsd",
+    #     help="RMSD in nm to use for waymark sampling",
+    #     type=float,
+    #     default=0.3,
+    #     required=False,
+    # )
 
     parser.add_argument(
         "--digits",
@@ -165,13 +172,13 @@ def add_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         required=False,
     )
 
-    parser.add_argument(
-        "--waymarking_plots",
-        help=("Directory to create and put waymarking plots into"),
-        type=str,
-        default="waymarking_plots",
-        required=False,
-    )
+    # parser.add_argument(
+    #     "--waymarking_plots",
+    #     help=("Directory to create and put waymarking plots into"),
+    #     type=str,
+    #     default="waymarking_plots",
+    #     required=False,
+    # )
     return parser
 
 
@@ -180,12 +187,12 @@ def get_name():
 
 
 def get_trajfiles(
-    trajfiles_dir_path: str, verbose: bool, traj_extension: str = ".dcd"
+    trajfiles_dir: str, verbose: bool, traj_extension: str = ".dcd"
 ) -> List[str]:
     """Grab an ordered list of trajectory files
 
     Args:
-        trajfiles_dir_path (str): Directory containing trajectory files
+        trajfiles_dir (str): Directory containing trajectory files
         verbose (bool): Increase output verbosity
         traj_extension (str, optional): File extension of trajectory files.
         Defaults to '.dcd'.
@@ -193,9 +200,7 @@ def get_trajfiles(
     Returns:
         list[str]: Alphanumerically ordered list of full trajectory file paths
     """
-    trajfiles_path = os.path.join(
-        trajfiles_dir_path, "*{}".format(traj_extension)
-    )
+    trajfiles_path = os.path.join(trajfiles_dir, "*{}".format(traj_extension))
     if verbose:
         print("Traj files path to glob: {}".format(trajfiles_path))
     trajfiles = sorted(glob.glob(trajfiles_path))
@@ -205,20 +210,20 @@ def get_trajfiles(
     return trajfiles
 
 
-def get_topfile(topfile_path: str, verbose: bool) -> str:
+def get_topfile(topfile: str, verbose: bool) -> str:
     """Grab the path to the topology file with option
      to output path
 
     Args:
-        topfile_path (str): Path to topology file
+        topfile (str): Path to topology file
         verbose (bool): Increase output verbosity
 
     Returns:
         str: Topology file path
     """
     if verbose:
-        print("Top file path: {}".format(topfile_path))
-    return topfile_path
+        print("Top file path: {}".format(topfile))
+    return topfile
 
 
 def load_traj(trajfile: str, topfile: str, verbose: bool) -> mdt.Trajectory:
@@ -237,6 +242,18 @@ def load_traj(trajfile: str, topfile: str, verbose: bool) -> mdt.Trajectory:
     if verbose:
         print("mdt.load returns type: {}".format(type(t)))
     return t
+
+
+"""
+Waymarking is currently disabled. The function does not work
+when only a single trajectory file is used.
+The waymarking is also done incorrectly, with
+new conformations only being checked against the
+fist conformation, instead of all conformations
+in the ensemble
+
+We should redo waymarking entirely in the future
+"""
 
 
 def waymark(
@@ -537,6 +554,7 @@ def sample_dcd_evenly(
     verbose: bool,
     output_dir: str,
     digits: int = 6,
+    enable_progressbar: bool = False,
 ):
     """Reads a traj file (single dcd) and then selects which conformation(s)
     to save from sample_index list. Saves as pdb with indexes ranging over
@@ -548,6 +566,9 @@ def sample_dcd_evenly(
         traj_indices (list[list[int]]): List containing list of indices of
         conformation(s) in each dcd which need to be saved to file as pdb_
         verbose (bool): Increase output verbosity
+        output_dir (str): Directory to save the sampled conformations to
+        digits (int, optional): Number of digits to use in saved filenames
+        enable_progressbar (bool, optional): Whether to show progress bar
     """
     create_output_dir(output_dir, verbose=verbose)
 
@@ -575,7 +596,10 @@ def sample_dcd_evenly(
                         len(selected_conformations)
                     )
                 )
-
+            progressbar = tqdm(
+                total=len(selected_conformations),
+                disable=not enable_progressbar,
+            )
             # save the conformations selected from this trajectory file to disk
             for i_conf, conf in enumerate(selected_conformations):
                 conf_file = os.path.join(
@@ -586,7 +610,7 @@ def sample_dcd_evenly(
                 )
                 conf.save(conf_file)
                 conformation_counter += 1
-                if verbose:
+                if verbose and not enable_progressbar:
                     print(
                         "Saved conformation_{}.pdb from traj file"
                         " {} ({}) to location {}".format(
@@ -596,6 +620,12 @@ def sample_dcd_evenly(
                             conf_file,
                         )
                     )
+                progressbar.update(1)
+                progressbar.set_description(
+                    f"conformation_ \
+                        {str(conformation_counter).zfill(digits)}.pdb"
+                )
+            progressbar.close()
 
         else:
             # skip this traj file
@@ -703,12 +733,12 @@ def get_traj_indices(
 
 def main(args):
     trajfiles = get_trajfiles(
-        args.trajfiles_dir_path, args.verbose, args.traj_extension
+        args.trajfiles_dir, args.verbose, args.traj_extension
     )
     if args.limit_n_traj_subfiles:
         trajfiles = trajfiles[: args.limit_n_traj_subfiles]
 
-    topfile = get_topfile(args.topfile_path, args.verbose)
+    topfile = get_topfile(args.topfile, args.verbose)
 
     traj_steps, steps_per_file = get_traj_steps(
         trajfiles, topfile, args.verbose
@@ -730,6 +760,11 @@ def main(args):
         )
         return
 
+    # only available sampling method at this time is even sampling.
+    # waymarking has been disabled for now, as it is not correctly
+    # implemented
+    args.sampling_method = "even_sampling"
+
     if args.sampling_method == "even_sampling":
         # create function to get indices of N conformations to sample from
         # entire trajectory
@@ -746,10 +781,17 @@ def main(args):
 
         # create functio to take list[list[int]] and save the pdbs to file
         sample_dcd_evenly(
-            trajfiles, topfile, traj_indices, args.verbose, args.output_dir
+            trajfiles,
+            topfile,
+            traj_indices,
+            args.verbose,
+            args.output_dir,
+            args.digits,
+            args.tqdm,
         )
 
-    if args.sampling_method == "waymark":
+        """
+    elif args.sampling_method == "waymark":
         # we want to get: Tuple[list[int], list[np.int64],
         # np.ndarray[np.int64,np.int64]]
         # First is waymarks (frame_ind_list -> the trajectory frames which
@@ -807,6 +849,16 @@ def main(args):
         write_non_redundant_confs(
             non_redundant_confs, args.output_dir, args.digits
         )
+        """
+
+    else:
+        # method of sampling not recognised
+        print(
+            "Sampling method {} not recognised. Exiting.".format(
+                args.sampling_method
+            )
+        )
+
     return
 
 

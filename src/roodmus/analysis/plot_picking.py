@@ -23,7 +23,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import os
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List
 
 import pandas as pd
 import seaborn as sns
@@ -136,7 +136,7 @@ class plotLabelTruth(plotDataFrame):
     def __init__(
         self,
         mrc_dir: str,
-        plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
+        plot_data: Dict[str, Dict[str, pd.DataFrame]] | None = None,
         plot_dir: str = "",
         num_ugraphs: int | None = None,
         box_width: float = 200,
@@ -1613,7 +1613,7 @@ class labelMicrograph(object):
         box_width: float,
         box_height: float,
         verbose: bool = False,
-    ) -> list[list[float]]:
+    ) -> List[List[float]]:
         box_half_width = box_width / 2.0
         box_half_height = box_height / 2.0
 
@@ -1672,8 +1672,8 @@ class labelMicrograph(object):
             # Now that you've plotted the true central points of each particle,
             # also plot the boxes
             boxes = labelMicrograph._twoD_image_bboxs(
-                particles_ugraph["position_x"],
-                particles_ugraph["position_y"],
+                np.array(particles_ugraph["position_x"]),
+                np.array(particles_ugraph["position_y"]),
                 box_width,
                 box_height,
                 verbose,
@@ -1739,8 +1739,8 @@ class labelMicrograph(object):
             # Now that you've plotted the true central points of each particle,
             # also plot the boxes
             boxes = labelMicrograph._twoD_image_bboxs(
-                particles_ugraph["position_x"],
-                particles_ugraph["position_y"],
+                np.array(particles_ugraph["position_x"]),
+                np.array(particles_ugraph["position_y"]),
                 box_width,
                 box_height,
                 verbose,
@@ -1777,7 +1777,7 @@ class labelMicrograph(object):
     @staticmethod
     def label_micrograph_truth_and_picked(
         picked_particles: pd.DataFrame,
-        metadata_filename: str | list[str],
+        metadata_filename: str | List[str],
         truth_particles: pd.DataFrame,
         ugraph_index: int = 0,
         mrc_dir: str = "",
@@ -1817,8 +1817,8 @@ class labelMicrograph(object):
             # Now that you've plotted the true central points of each particle,
             # also plot the boxes
             boxes = labelMicrograph._twoD_image_bboxs(
-                picked_particles_ugraph["position_x"],
-                picked_particles_ugraph["position_y"],
+                np.array(picked_particles_ugraph["position_x"]),
+                np.array(picked_particles_ugraph["position_y"]),
                 box_width,
                 box_height,
                 verbose,
@@ -1841,8 +1841,8 @@ class labelMicrograph(object):
                 ax.add_patch(rect)
 
             boxes = labelMicrograph._twoD_image_bboxs(
-                truth_particles_ugraph["position_x"],
-                truth_particles_ugraph["position_y"],
+                np.array(truth_particles_ugraph["position_x"]),
+                np.array(truth_particles_ugraph["position_y"]),
                 box_width,
                 box_height,
                 verbose,
@@ -1907,8 +1907,8 @@ class labelMicrograph(object):
             # Now that you've plotted the true central points of each particle,
             # also plot the boxes
             boxes = labelMicrograph._twoD_image_bboxs(
-                truth_particles1_ugraph["position_x"],
-                truth_particles1_ugraph["position_y"],
+                np.array(truth_particles1_ugraph["position_x"]),
+                np.array(truth_particles1_ugraph["position_y"]),
                 box_width,
                 box_height,
                 verbose,
@@ -1931,8 +1931,8 @@ class labelMicrograph(object):
                 ax.add_patch(rect)
 
             boxes = labelMicrograph._twoD_image_bboxs(
-                truth_particles2_ugraph["position_x"],
-                truth_particles2_ugraph["position_y"],
+                np.array(truth_particles2_ugraph["position_x"]),
+                np.array(truth_particles2_ugraph["position_y"]),
                 box_width,
                 box_height,
                 verbose,
@@ -1961,7 +1961,7 @@ class labelMicrograph(object):
     def label_micrograph_picked_and_picked(
         picked_particles1: pd.DataFrame,
         picked_particles2: pd.DataFrame,
-        metadata_filename: str | list[str],
+        metadata_filename: str | List[str],
         truth_particles: pd.DataFrame,
         ugraph_index: int = 0,
         mrc_dir: str = "",
@@ -2004,8 +2004,8 @@ class labelMicrograph(object):
             # Now that you've plotted the true central points of each particle,
             # also plot the boxes
             boxes = labelMicrograph._twoD_image_bboxs(
-                picked_particles1_ugraph["position_x"],
-                picked_particles1_ugraph["position_y"],
+                np.array(picked_particles1_ugraph["position_x"]),
+                np.array(picked_particles1_ugraph["position_y"]),
                 box_width,
                 box_height,
                 verbose,
@@ -2028,8 +2028,8 @@ class labelMicrograph(object):
                 ax.add_patch(rect)
 
             boxes = labelMicrograph._twoD_image_bboxs(
-                picked_particles2_ugraph["position_x"],
-                picked_particles2_ugraph["position_y"],
+                np.array(picked_particles2_ugraph["position_x"]),
+                np.array(picked_particles2_ugraph["position_y"]),
                 box_width,
                 box_height,
                 verbose,
@@ -2215,13 +2215,13 @@ def plot_precision(
     sm = plt.cm.ScalarMappable(
         cmap="RdYlBu",
         norm=plt.Normalize(
-            vmin=df_precision["defocus"].min(),
-            vmax=df_precision["defocus"].max(),
+            vmin=df_precision["defocus"].min() / 10000,
+            vmax=df_precision["defocus"].max() / 10000,
         ),
     )
     sm._A = []
     cbar = fig.colorbar(sm, ax=ax)
-    cbar.set_label("defocus (Å)", rotation=270, labelpad=20, fontsize=12)
+    cbar.set_label("defocus (\u03bcm)", rotation=270, labelpad=20, fontsize=12)
     # add labels
     ax.set_xlabel("")
     ax.set_ylabel("precision", fontsize=14)
@@ -2283,13 +2283,13 @@ def plot_recall(
     sm = plt.cm.ScalarMappable(
         cmap="RdYlBu",
         norm=plt.Normalize(
-            vmin=df_precision["defocus"].min(),
-            vmax=df_precision["defocus"].max(),
+            vmin=df_precision["defocus"].min() / 10000,
+            vmax=df_precision["defocus"].max() / 10000,
         ),
     )
     sm._A = []
     cbar = fig.colorbar(sm, ax=ax)
-    cbar.set_label("defocus (Å)", rotation=270, labelpad=20, fontsize=12)
+    cbar.set_label("defocus (\u03bcm)", rotation=270, labelpad=20, fontsize=12)
     # add labels
     ax.set_xlabel("")
     ax.set_ylabel("recall", fontsize=14)
@@ -2541,9 +2541,10 @@ def plot_boundary_investigation(
         metadata_filename = metadata_filename[0]
 
     particles_per_ugraph = (
-        df_truth.groupby("ugraph_filename")
-        .size()
-        .reset_index(name="particles_per_ugraph")
+        df_truth.groupby("ugraph_filename").size().reset_index()
+    )
+    particles_per_ugraph.rename(
+        columns={0: "particles_per_ugraph"}, inplace=True
     )
     avg_particles_per_ugraph = particles_per_ugraph[
         "particles_per_ugraph"
@@ -2669,12 +2670,12 @@ class plotOverlap(plotDataFrame):
                     )
                     self._save_plot(fig, ax, outfilename)
 
-                fig, ax = self.plot_overlap_investigation(
+                fig, ax = plot_overlap_investigation(
                     self.plot_data["plot_overlap"]["df_overlap"],
                     None,
                     self.job_types,
                 )  # plot all
-                outfilename = os.path.join(args.plot_dir, "overlap.png")
+                outfilename = os.path.join(self.plot_dir, "overlap.png")
                 self._save_plot(fig, ax, outfilename)
         else:
             raise TypeError("plot_overlap is not a pd.DataFrame!")
