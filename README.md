@@ -1,4 +1,6 @@
 # Roodmus
+"Roodmus: A toolkit for benchmarking heterogeneous electron cryo-microscopy reconstructions" preprint is now on bioRxiv: https://doi.org/10.1101/2024.04.29.590932!
+
 Roodmus is a benchmarking tool that allows for the analysis of cryo-EM reconstruction methods using ground truth data. Roodmus uses a molecular dynamics (MD) trajectory as input and samples this trajectory to generate a data set with encoded heterogeneity as defined by the MD. Synthetic micrographs are generated in the package using the Parakeet simulation software (github.com/rosalindfranklininstitute/parakeet). This data can then be processed using either RELION (https://relion.readthedocs.io/en/release-4.0/) or cryoSPARC (https://cryosparc.com/) to generate a reconstruction. Roodmus provides several tools to analyse various steps in the reconstruction pipeline including:
 - Comparing the estimated defocus values to the ground truth CTF parameters
 - Computing precision and recall of particle picking by comparing the picked particles to the ground truth particle positions
