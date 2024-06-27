@@ -2221,7 +2221,9 @@ def plot_precision(
     )
     sm._A = []
     cbar = fig.colorbar(sm, ax=ax)
-    cbar.set_label("defocus (\u03bcm)", rotation=270, labelpad=20, fontsize=12)
+    cbar.set_label("Defocus (\u03bcm)", rotation=270, labelpad=20, fontsize=21)
+    # change tick labels of the colourbar to use 18 fontsize
+    cbar.ax.tick_params(labelsize=18)
     # add labels
     ax.set_xlabel("")
     ax.set_ylabel("precision", fontsize=14)
@@ -2289,7 +2291,8 @@ def plot_recall(
     )
     sm._A = []
     cbar = fig.colorbar(sm, ax=ax)
-    cbar.set_label("defocus (\u03bcm)", rotation=270, labelpad=20, fontsize=12)
+    cbar.set_label("Defocus (\u03bcm)", rotation=270, labelpad=20, fontsize=21)
+    cbar.ax.tick_params(labelsize=18)
     # add labels
     ax.set_xlabel("")
     ax.set_ylabel("recall", fontsize=14)

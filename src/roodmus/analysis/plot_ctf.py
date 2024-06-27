@@ -408,8 +408,8 @@ def plot_defocus_scatter(
     ax[0].set_xlabel("defocus truth [$\u212B$]")
     ax[1].set_xlabel("defocus truth [$\u212B$]")
     ax[0].set_ylabel("defocusU estimated [$\u212B$]")
-    ax[0].set_title("defocusU")
-    ax[1].set_title("defocusV")
+    ax[0].set_title("DefocusU (\u03bcm)")
+    ax[1].set_title("DefocusV (\u03bcm)")
     ax[0].grid(False)
     ax[1].grid(False)
     # add colorbar legend
@@ -421,7 +421,7 @@ def plot_defocus_scatter(
     )
     sm._A = []
     cbar = plt.colorbar(sm)
-    cbar.set_label("micrograph")
+    cbar.set_label("Micrograph")
     fig.tight_layout()
     return fig, ax
 
