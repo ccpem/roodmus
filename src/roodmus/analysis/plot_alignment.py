@@ -178,7 +178,7 @@ def true_pose_distribution_plot(
         cmap="RdYlBu_r",
         marginal_kws=dict(bins=100, fill=False),
     )
-    grid.fig.set_size_inches(14, 7)
+    grid.figure.set_size_inches(7, 3.5)
     # adjust the x and y ticks to show multiples of pi
     grid.ax_joint.set_xticks(
         [
@@ -204,7 +204,8 @@ def true_pose_distribution_plot(
             "\u03C0/2",
             "3/4\u03C0",
             "\u03C0",
-        ]
+        ],
+        rotation=45,
     )
     grid.ax_joint.set_yticks([0, np.pi / 4, np.pi / 2, 3 / 4 * np.pi, np.pi])
     grid.ax_joint.set_yticklabels(
@@ -215,7 +216,9 @@ def true_pose_distribution_plot(
     # add new sublot to the right of the jointplot
     cbar_ax = grid.fig.add_axes([1, 0.15, 0.02, 0.7])
     # add colorbar to the new subplot
-    grid.fig.colorbar(grid.ax_joint.collections[0], cax=cbar_ax, label="count")
+    grid.figure.colorbar(
+        grid.ax_joint.collections[0], cax=cbar_ax, label="Count"
+    )
     if vmin and vmax:
         # set limits of the colorbar to the same as for
         # the picked particles
@@ -224,7 +227,7 @@ def true_pose_distribution_plot(
         # get the limits of the colorbar
         vmin, vmax = grid.ax_joint.collections[0].get_clim()
     # add title to the top of the jointplot
-    grid.fig.suptitle("true particle pose distribution", fontsize=20, y=1.05)
+    grid.fig.suptitle("Ground-Truth pose distribution", fontsize=21, y=1.05)
 
     return grid, vmin, vmax
 
@@ -351,7 +354,7 @@ def picked_pose_distribution_plot(
         cmap="RdYlBu_r",
         marginal_kws=dict(bins=100, fill=False),
     )
-    grid.fig.set_size_inches(14, 7)
+    grid.fig.set_size_inches(7, 3.5)
     # adjust the x and y ticks to show multiples of pi
     grid.ax_joint.set_xticks(
         [
@@ -377,7 +380,8 @@ def picked_pose_distribution_plot(
             "\u03C0/2",
             "3/4\u03C0",
             "\u03C0",
-        ]
+        ],
+        rotation=45,
     )
     grid.ax_joint.set_yticks([0, np.pi / 4, np.pi / 2, 3 / 4 * np.pi, np.pi])
     grid.ax_joint.set_yticklabels(
@@ -386,9 +390,11 @@ def picked_pose_distribution_plot(
     grid.ax_joint.set_xlabel("Azimuth")
     grid.ax_joint.set_ylabel("Tilt")
     # add new sublot to the right of the jointplot
-    cbar_ax = grid.fig.add_axes([1, 0.15, 0.02, 0.7])
+    cbar_ax = grid.figure.add_axes([1, 0.15, 0.02, 0.7])
     # add colorbar to the new subplot
-    grid.fig.colorbar(grid.ax_joint.collections[0], cax=cbar_ax, label="count")
+    grid.figure.colorbar(
+        grid.ax_joint.collections[0], cax=cbar_ax, label="Count"
+    )
     if vmin and vmax:
         # set limits of the colorbar to the
         # same as for the picked particles
@@ -397,7 +403,9 @@ def picked_pose_distribution_plot(
         # get the limits of the colorbar
         vmin, vmax = grid.ax_joint.collections[0].get_clim()
     # add title to the top of the jointplot
-    grid.fig.suptitle("picked particle pose distribution", fontsize=20, y=1.05)
+    grid.figure.suptitle(
+        "Picked particle pose distribution", fontsize=21, y=1.05
+    )
 
     return grid, vmin, vmax
 

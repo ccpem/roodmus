@@ -1529,7 +1529,7 @@ class load_data(object):
         results_truth: pd.DataFrame,
         verbose: bool = False,
         enable_tqdm: bool = False,
-    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame,]:
+    ) -> Tuple:
         """When picked and truth dfs are loaded, this can be used to create
         dataframes of matched picked particles, matched truth particles,
         picked particles not matched to truth particles and finally, truth
@@ -1580,6 +1580,9 @@ class load_data(object):
         matched_truth_dfs = []
         unmatched_picked_dfs = []
         unmatched_truth_dfs = []
+        # list to hold all indices of matched truth particles
+        # for the total number of picked particles
+        truth_index_for_picked = []
 
         # loop over the metadata files
         if isinstance(metadata_filenames, str):
@@ -1653,6 +1656,7 @@ class load_data(object):
                             )
                         # no particle is matched to picked particle
                         # and we move on to next particle
+                        truth_index_for_picked.append(np.nan)
                         continue
                     # check if closest truth particle is within particle
                     # diameter of picked particle
@@ -1661,6 +1665,7 @@ class load_data(object):
                         > self.particle_diameter
                     ):
                         closest_truth_index.append(np.nan)
+                        truth_index_for_picked.append(np.nan)
                         continue
                     # if it is, consider picking successful and allow the
                     # pickedand truth particle to be associated with each
@@ -1671,6 +1676,12 @@ class load_data(object):
                         # respective list
                         p_match.append(j)
                         t_match.append(truth_particle_index)
+
+                        # to the list of truth indices for picked particles
+                        # add the index of the truth particle in results_truth
+                        truth_index_for_picked.append(
+                            ugraph_truth.index[truth_particle_index]
+                        )
 
                 # check whether any truth particles had multiple
                 # picked particles mapped to them
@@ -1697,7 +1708,7 @@ class load_data(object):
                             ugraph,
                         )
                     )
-                if non_unique_count > 0:
+                if non_unique_count > 0 and verbose:
                     print(
                         "This may cause problems with overwritten assns"
                         " in truth particles dict!"
@@ -1775,6 +1786,7 @@ class load_data(object):
             matched_truth_df,
             unmatched_picked_df,
             unmatched_truth_df,
+            truth_index_for_picked,
         )
 
     def _calc_neighbours(self, pos_picked, pos_truth, r):
