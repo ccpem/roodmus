@@ -78,7 +78,7 @@ def add_arguments(parser):
         type=str,
         nargs="+",
         default=["scatter"],
-        choices=["scatter", "per-particle-scatter", "ctf"],
+        choices=["scatter", "per-particle-scatter"],
     )
     parser.add_argument(
         "--verbose", help="increase output verbosity", action="store_true"
@@ -740,6 +740,11 @@ def main(args):
                 print(f"Time taken: {time.time()-tt:.2f} seconds")
 
         if plot_type.lower() == "ctf":
+            raise NotImplementedError(
+                "Plotting CTF for each micrograph is currently bugged and"
+                " will be fixed in a future release."
+            )
+
             if args.num_ugraphs is None:
                 print("Plotting CTF for all micrographs ...")
             else:
