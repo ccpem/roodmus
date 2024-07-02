@@ -8,6 +8,7 @@ MRC_DIR="/path/to/output/files/dir"
 
 N_IMAGES=1
 N_MOLECULES=10
+SCAN_NUM_FRACTIONS=40
 
 DEVICE=$"cpu"
 ELECTRONS_PER_ANGSTROM=45.0
@@ -39,6 +40,7 @@ nohup $EXECUTABLE $SUBROUTINE \
     --mrc_dir $MRC_DIR \
     --n_images $N_IMAGES \
     --n_molecules $N_MOLECULES \
+    --scan_num_fractions $SCAN_NUM_FRACTIONS \
     --device $DEVICE \
     --electrons_per_angstrom $ELECTRONS_PER_ANGSTROM \
     --energy $ENERGY \
