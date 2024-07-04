@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
 import argparse
+import time
 
 import pandas as pd
 import numpy as np
@@ -74,6 +75,13 @@ def add_arguments(
     )
 
     write_starfile_parser.add_argument(
+        "--extract_dir",
+        type=str,
+        default=None,
+        help="Directory with extracted particles (optional)",
+    )
+
+    write_starfile_parser.add_argument(
         "--pixel_size",
         type=float,
         required=True,
@@ -84,6 +92,9 @@ def add_arguments(
         "--tqdm",
         action="store_true",
         help="Enable progressbar",
+    )
+    write_starfile_parser.add_argument(
+        "--verbose", help="increase output verbosity", action="store_true"
     )
     optics_args = write_starfile_parser.add_argument_group(
         "Optics group arguments"
@@ -191,6 +202,7 @@ class particle_coords_star(object):
         output_dir: str,
         pixel_size: float,
         enable_progressbar: bool = False,
+        verbose: bool = False,
     ):
         self.cif_document = cif.Document()
         self.tags = [
@@ -209,6 +221,7 @@ class particle_coords_star(object):
         )
         self.pixel_size = pixel_size
         self.enable_progressbar = enable_progressbar
+        self.verbose = verbose
 
     def parse_df(self, df_particles: pd.DataFrame):
         """
@@ -253,6 +266,16 @@ class particle_coords_star(object):
             )
 
             progressbar.update(1)
+            if self.verbose and not self.enable_progressbar:
+                print(f"writing starfile for {ugraph_filename}")
+                print(f"contains {len(df)} particles")
+            elif self.verbose:
+                progressbar.set_postfix(
+                    {
+                        "micrograph": ugraph_filename,
+                        "particles": len(df),
+                    }
+                )
         progressbar.close()
 
     def save_stafile(self):
@@ -351,7 +374,13 @@ class particle_data_star(object):
     """
 
     def __init__(
-        self, ugraph_dir, output_dir, pixel_size, enable_progressbar=False
+        self,
+        ugraph_dir,
+        output_dir,
+        pixel_size,
+        optics_group,
+        extract_dir=None,
+        enable_progressbar=False,
     ):
         self.cif_document = cif.Document()
         self.tags = [
@@ -388,6 +417,8 @@ class particle_data_star(object):
         self.ugraph_dir = ugraph_dir
         self.output_dir = output_dir
         self.pixel_size = pixel_size
+        self.optics_group = optics_group
+        self.extract_dir = extract_dir
         self.enable_progressbar = enable_progressbar
 
     def parse_df(self, df_particles):
@@ -409,16 +440,29 @@ class particle_data_star(object):
             micrograph_filename = os.path.join(
                 self.ugraph_dir, row["ugraph_filename"]
             )
+            if self.extract_dir:
+                if self.extract_dir[-1] != os.sep:
+                    self.extract_dir += os.sep
+                image_name = (
+                    f"{i}".zfill(6)
+                    + f"@{self.extract_dir}"
+                    + row["ugraph_filename"]
+                )
+            else:
+                # meaningless name since the particles
+                # are not linked to an image file
+                image_name = "image_name"
+
             self.loop.add_row(
                 [
                     str(row["position_x"] * self.pixel_size),
                     str(row["position_y"] * self.pixel_size),
                     "1",  # figure of merit not used
                     str(row.get("Class2D", "0")),
-                    str(np.rad2deg(row.get("euler_psi", "0"))),
-                    "image_name",
+                    str(np.rad2deg(row.get("euler_phi", "0"))),
+                    image_name,
                     micrograph_filename,
-                    "1",  # default optics group is 1
+                    str(self.optics_group),
                     "0",  # CTF max resolution not used
                     "0",  # CTF figure of merit not used
                     str(row.get("defocusU", "0")),
@@ -428,7 +472,7 @@ class particle_data_star(object):
                     "1",  # CTF scalefactor defaults to 1
                     "0",  # phase shift not used
                     "1",  # group number not used
-                    str(np.rad2deg(row.get("euler_phi", "0"))),
+                    str(np.rad2deg(row.get("euler_psi", "0"))),
                     str(np.rad2deg(row.get("euler_theta", "0"))),
                     "0",  # origin x not used
                     "0",  # origin y not used
@@ -602,15 +646,23 @@ def main(args):
     """
 
     df_particles = pd.read_csv(args.input_csv)
+    tt = time.time()
 
     if args.type == "coordinate_star":
+        print(f"creating coordinate starfile from {args.input_csv}")
+        print("setting up starfile writer")
         starfile = particle_coords_star(
             args.ugraph_dir,
             args.output_dir,
             args.pixel_size,
             args.tqdm,
+            args.verbose,
         )
+        print("parsing the dataframe")
         starfile.parse_df(df_particles)
+        if args.verbose:
+            print(f"time taken to parse dataframe: {time.time() - tt}")
+        print("saving the starfile")
         starfile.save_stafile()
 
     elif args.type == "data_star":
@@ -618,6 +670,8 @@ def main(args):
             args.ugraph_dir,
             args.output_dir,
             args.pixel_size,
+            args.optics_group,
+            args.extract_dir,
             args.tqdm,
         )
         starfile.parse_df(df_particles)

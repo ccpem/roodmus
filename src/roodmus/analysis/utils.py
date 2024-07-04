@@ -863,6 +863,10 @@ class load_data(object):
         if isinstance(job_types, str) and isinstance(meta_files, str):
             return meta_files, job_types, meta_files
 
+        # if meta_files is a string, convert it to a list
+        if isinstance(meta_files, str):
+            meta_files = [meta_files]
+
         # if no job_types parameter is give, use the basename of meta_files
         if job_types is None:
             job_types_dict = {}
@@ -1524,7 +1528,7 @@ class load_data(object):
 
     def _match_particles(
         self,
-        metadata_filenames: str | list[str],
+        metadata_filenames: str | list[str] | np.ndarray,
         results_picking: pd.DataFrame,
         results_truth: pd.DataFrame,
         verbose: bool = False,
@@ -1585,9 +1589,11 @@ class load_data(object):
         truth_index_for_picked = []
 
         # loop over the metadata files
-        if isinstance(metadata_filenames, str):
+        if not metadata_filenames:
+            metadata_filenames = results_picking["metadata_filename"].unique()
+        elif isinstance(metadata_filenames, str):
             metadata_filenames = [metadata_filenames]
-        for metadata_filename in metadata_filenames:
+        for midx, metadata_filename in enumerate(metadata_filenames):
             # grab particles for this metadata file only
             metafile_picked = results_picking.loc[
                 results_picking["metadata_filename"] == metadata_filename
@@ -1629,7 +1635,7 @@ class load_data(object):
                     .toarray()
                 )
                 sdm[sdm < np.finfo(float).eps] = np.nan
-                if verbose:
+                if verbose and not enable_tqdm:
                     print("Shape of {}\n\tsdm: {}".format(ugraph, sdm.shape))
 
                 # find the minimum value along axis 0 (1 per picked particle)
@@ -1646,7 +1652,7 @@ class load_data(object):
                             np.nanargmin(picked_particle)
                         )
                     else:
-                        if verbose:
+                        if verbose and not enable_tqdm:
                             print(
                                 "all nan slice in ugraph {}"
                                 " with picked particle"
@@ -1700,7 +1706,7 @@ class load_data(object):
                         > 1
                     ]
                 )
-                if verbose:
+                if verbose and not enable_tqdm:
                     print(
                         "There are {} non-unique picked"
                         " particles in ugraph {}!".format(
@@ -1708,7 +1714,7 @@ class load_data(object):
                             ugraph,
                         )
                     )
-                if non_unique_count > 0 and verbose:
+                if non_unique_count > 0 and verbose and not enable_tqdm:
                     print(
                         "This may cause problems with overwritten assns"
                         " in truth particles dict!"
@@ -1729,17 +1735,12 @@ class load_data(object):
                         == 0
                     ]
                 )
-                if no_truth_match > 0 and verbose:
+                if no_truth_match > 0 and verbose and not enable_tqdm:
                     print(
                         "There are {} no-truth-match picked particles!".format(
                             no_truth_match
                         )
                     )
-                    if non_unique_count > 0 and verbose:
-                        print(
-                            "This may cause problems with overwritten assns"
-                            " in truth particles dict!"
-                        )
 
                 # Next extract the matched particles by df row
                 # for this ugraph. df indices should be propagated.
@@ -1763,6 +1764,16 @@ class load_data(object):
                 unmatched_truth_dfs.append(ugraph_truth.iloc[t_unmatched])
 
                 progressbar.update(1)
+                if verbose:
+                    progressbar.set_postfix(
+                        {
+                            "ugraph": ugraph,
+                            "matched picked": len(p_match),
+                            "matched truth": len(t_match),
+                            "unmatched picked": len(p_unmatched),
+                            "unmatched truth": len(t_unmatched),
+                        }
+                    )
             progressbar.close()
 
             # now that we have 4 lists of picked and truth
@@ -1781,11 +1792,68 @@ class load_data(object):
                 unmatched_truth_dfs, axis=0
             ).reset_index(drop=True)
 
+            if midx == 0:
+                matched_picked_df_all = matched_picked_df
+                matched_truth_df_all = matched_truth_df
+                unmatched_picked_df_all = unmatched_picked_df
+                unmatched_truth_df_all = unmatched_truth_df
+            else:
+                matched_picked_df_all = pd.concat(
+                    [matched_picked_df_all, matched_picked_df], axis=0
+                ).reset_index(drop=True)
+                matched_truth_df_all = pd.concat(
+                    [matched_truth_df_all, matched_truth_df], axis=0
+                ).reset_index(drop=True)
+                unmatched_picked_df_all = pd.concat(
+                    [unmatched_picked_df_all, unmatched_picked_df], axis=0
+                ).reset_index(drop=True)
+                unmatched_truth_df_all = pd.concat(
+                    [unmatched_truth_df_all, unmatched_truth_df], axis=0
+                ).reset_index(drop=True)
+
+            if verbose:
+                print(
+                    "number of matched picked particles:"
+                    + f"{len(matched_picked_df)}",
+                    "number of matched truth particles:"
+                    + f"{len(matched_truth_df)}",
+                    "number of unmatched picked particles:"
+                    + f"{len(unmatched_picked_df)}",
+                    "number of unmatched truth particles:"
+                    + f"{len(unmatched_truth_df)}",
+                )
+                print("matched picked particles:")
+                print(matched_picked_df.head(n=5))
+                print("matched truth particles:")
+                print(matched_truth_df.head(n=5))
+                print("unmatched picked particles:")
+                print(unmatched_picked_df.head(n=5))
+                print("unmatched truth particles:")
+                print(unmatched_truth_df.head(n=5))
+
+        if verbose:
+            print(
+                "number of matched picked particles:"
+                + f"{len(matched_picked_df_all)}"
+            )
+            print(
+                "number of matched truth particles:"
+                + f"{len(matched_truth_df_all)}"
+            )
+            print(
+                "number of unmatched picked particles:"
+                + f"{len(unmatched_picked_df_all)}"
+            )
+            print(
+                "number of unmatched truth particles:"
+                + f"{len(unmatched_truth_df_all)}"
+            )
+
         return (
-            matched_picked_df,
-            matched_truth_df,
-            unmatched_picked_df,
-            unmatched_truth_df,
+            matched_picked_df_all,
+            matched_truth_df_all,
+            unmatched_picked_df_all,
+            unmatched_truth_df_all,
             truth_index_for_picked,
         )
 
