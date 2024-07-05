@@ -52,7 +52,7 @@ class Configuration(object):
 
         self.config = config.new(filename=self.config_filename, full=True)
         if args:
-            self.sample_filename = "sample.h5"
+            self.sample_filename = os.path.join(args.mrc_dir, "sample.h5")
             self.exit_wave_filename = os.path.join(
                 args.mrc_dir, "exit_wave.h5"
             )
