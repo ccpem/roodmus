@@ -110,7 +110,7 @@ def save_particle_stack(
     particle_stack: np.ndarray, particle_dir: str, file_type: str
 ):
     particle_file = os.path.join(
-        args.particle_dir,
+        particle_dir,
         "particle_stack." + file_type,
     )
 
