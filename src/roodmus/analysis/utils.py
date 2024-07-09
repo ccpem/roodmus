@@ -72,14 +72,40 @@ class IO(object):
 
         if "location/micrograph_path" in metadata_cs.dtype.names:
             ugraph_paths = metadata_cs["location/micrograph_path"].tolist()
-            ugraph_paths = [
-                os.path.basename(path).decode("utf-8").split("_")[-1]
-                for path in ugraph_paths
+            # Cryosparc may add suffixes to the micrograph
+            # name, such as _patch_aligned_doseweighted.mrc.
+            # We remove these suffixes to match the micrograph
+            # names in the config files.
+            list_of_suffixes = [
+                "_patch_aligned_doseweighted",
             ]
+            ugraph_path_basenames = []
+            for ugraph_path in ugraph_paths:
+                ugraph_path_basename = os.path.basename(ugraph_path).decode(
+                    "utf-8"
+                )
+                for suffix in list_of_suffixes:
+                    ugraph_path_basename = ugraph_path_basename.replace(
+                        suffix, ""
+                    )
+                # check that the final part of the basename
+                # can be converted to an integer
+                if ugraph_path_basename.split("_")[-1].isdigit():
+                    ugraph_path_basenames.append(
+                        ugraph_path_basename.split("_")[-1]
+                    )
+                elif ugraph_path_basename.split("_")[-2].isdigit():
+                    # there is some additional suffix which we want to preserve
+                    ugraph_path_basenames.append(
+                        "_".join(ugraph_path_basename.split("_")[-2:])
+                    )
+                else:
+                    ugraph_path_basenames.append(ugraph_path_basename)
+                # ugraph_path_basenames.append(ugraph_path_basename.split("_")[-1])
         else:
-            ugraph_paths = []
+            ugraph_path_basenames = []
 
-        return ugraph_paths
+        return ugraph_path_basenames
 
     @classmethod
     def get_uid_cs(self, metadata_cs: np.recarray):
@@ -1579,14 +1605,6 @@ class load_data(object):
             matched_particles, unmatched_picked_particles,
             unmatched_truth_particles
         """
-        # to hold list of dfs (1 entry per ugraph) before concat
-        matched_picked_dfs = []
-        matched_truth_dfs = []
-        unmatched_picked_dfs = []
-        unmatched_truth_dfs = []
-        # list to hold all indices of matched truth particles
-        # for the total number of picked particles
-        truth_index_for_picked = []
 
         # loop over the metadata files
         if not metadata_filenames:
@@ -1594,11 +1612,26 @@ class load_data(object):
         elif isinstance(metadata_filenames, str):
             metadata_filenames = [metadata_filenames]
         for midx, metadata_filename in enumerate(metadata_filenames):
+            # to hold list of dfs (1 entry per ugraph) before concat
+            matched_picked_dfs = []
+            matched_truth_dfs = []
+            unmatched_picked_dfs = []
+            unmatched_truth_dfs = []
+            # list to hold all indices of matched truth particles
+            # for the total number of picked particles
+            truth_index_for_picked = []
+
             # grab particles for this metadata file only
             metafile_picked = results_picking.loc[
                 results_picking["metadata_filename"] == metadata_filename
             ]
             metafile_truth = results_truth
+            if verbose:
+                print(
+                    "number of picked particles for "
+                    + f"{metadata_filename}: {len(metafile_picked)}"
+                )
+                print(f"number of truth particles: {len(metafile_truth)}")
 
             # now find unique ugraphs, loop over whilst computing matches
             # and unmatched particles
@@ -2219,6 +2252,7 @@ class load_data(object):
         t_unmatched: pd.DataFrame,
         results_truth: pd.DataFrame,
         verbose: bool = False,
+        enable_tqdm: bool = False,
     ):
         """This function produces another data frame containing the number
         of true positives, false positives, false negatives
@@ -2286,13 +2320,15 @@ class load_data(object):
         )
 
         progressbar = tqdm(
-            total=len(df_truth_grouped.groups.keys()),
+            total=len(p_match_grouped.groups.keys()),
             desc="computing precision",
-            disable=False,  # not verbose,
+            disable=not enable_tqdm,
         )
 
         groupnames: dict_keys = p_match_grouped.groups.keys()
         for groupname in groupnames:
+            if verbose and not enable_tqdm:
+                print(groupname)
             # grab the particles in this ugraph
             p_match_in_ugraph = p_match_grouped.get_group(groupname)
             TP = len(p_match_in_ugraph)
