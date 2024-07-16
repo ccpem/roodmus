@@ -37,29 +37,46 @@ from run_parakeet.orientation_generator import orientation_generator
 
 
 class Configuration(object):
-    def __init__(self, config_filename, args=None):
-        # intermediate file names
-        self.sample_filename = "sample.h5"
-        self.exit_wave_filename = "exit_wave.h5"
-        self.optics_filename = "optics.h5"
-        self.image_filename = "image.h5"
-
-        # default value for the leading zeros
+    def __init__(self, config_filename, args=None, image_index=0):
+        # store the index of the generated image
+        # Used to determine the filenames and what GPU
+        # out of the provided list will be used for image generation
+        self.image_index = image_index
         self.leading_zeros = 6
+        file_prefix = f"{image_index:0{self.leading_zeros}d}_"
+
+        # intermediate file names
+        self.sample_filename = file_prefix + "sample.h5"
+        self.exit_wave_filename = file_prefix + "exit_wave.h5"
+        self.optics_filename = file_prefix + "optics.h5"
+        self.image_filename = file_prefix + "image.h5"
 
         # initialise the config file for Parakeet
         self.config_filename = config_filename
 
         self.config = config.new(filename=self.config_filename, full=True)
         if args:
-            self.sample_filename = os.path.join(args.mrc_dir, "sample.h5")
-            self.exit_wave_filename = os.path.join(
-                args.mrc_dir, "exit_wave.h5"
+            self.sample_filename = os.path.join(
+                args.mrc_dir, file_prefix + "sample.h5"
             )
-            self.optics_filename = os.path.join(args.mrc_dir, "optics.h5")
-            self.image_filename = os.path.join(args.mrc_dir, "image.h5")
+            self.exit_wave_filename = os.path.join(
+                args.mrc_dir, file_prefix + "exit_wave.h5"
+            )
+            self.optics_filename = os.path.join(
+                args.mrc_dir, file_prefix + "optics.h5"
+            )
+            self.image_filename = os.path.join(
+                args.mrc_dir, file_prefix + "image.h5"
+            )
             self.leading_zeros = args.leading_zeros
             self.verbose = args.verbose
+            if self.verbose:
+                print(f"Config file: {self.config_filename}")
+                print(f"Sample file: {self.sample_filename}")
+                print(f"Exit wave file: {self.exit_wave_filename}")
+                print(f"Optics file: {self.optics_filename}")
+                print(f"Image file: {self.image_filename}")
+
             self._set_config(args)
 
     def _set_config(self, args):
@@ -69,17 +86,7 @@ class Configuration(object):
         Args:
             args (argparse.ArgumentParser): Parsed arguments and defaults
         """
-        # cluster
-        self.config.cluster.method = args.method
-        self.config.cluster.max_workers = args.max_workers
-
-        # device
-        self.config.device = args.device
-
         # microscope
-        self.config.microscope.model = args.model
-        self.config.microscope.phase_plate = args.phase_plate
-
         # microscope->beam
         self.config.microscope.beam.energy = args.energy
         self.config.microscope.beam.energy_spread = args.energy_spread
@@ -89,15 +96,9 @@ class Configuration(object):
         self.config.microscope.beam.electrons_per_angstrom = (
             args.electrons_per_angstrom
         )
-        """
-        (newer defn)
-        self.config.microscope.beam.total_electrons_per_angstrom = (
-            args.electrons_per_angstrom
-        )
         self.config.microscope.beam.illumination_semiangle = (
             args.illumination_semiangle
         )
-        """
         self.config.microscope.beam.phi = args.phi
         self.config.microscope.beam.theta = args.theta
 
@@ -136,6 +137,26 @@ class Configuration(object):
         self.config.microscope.lens.c_56 = args.c_56
         self.config.microscope.lens.phi_56 = args.phi_56
         self.config.microscope.lens.current_spread = args.current_spread
+
+        # microscope->model
+        self.config.microscope.model = args.model
+
+        # microscope->phase_plate
+        self.config.microscope.phase_plate.phase_shift = args.phase_shift
+        self.config.microscope.phase_plate.radius = args.phase_plate_radius
+        self.config.microscope.phase_plate.use = args.use_phase_plate
+
+        # multiprocessing
+        self.config.multiprocessing.device = args.device
+        gpu_id = args.gpu_id[self.image_index % len(args.gpu_id)]
+        self.config.multiprocessing.gpu_id = [gpu_id]
+        self.config.multiprocessing.nproc = 1
+        """
+        Current version of Parakeet only supports single GPU
+        and 1 process per GPU. Within Roodmus we can parallelise
+        the generation of multiple images by running multiple
+        instances of Parakeet.
+        """
 
         # sample
         self.config.sample.box = (args.box_x, args.box_y, args.box_z)
