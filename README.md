@@ -8,6 +8,10 @@ Roodmus is a benchmarking tool that allows for the analysis of cryo-EM reconstru
 - Computing precision for 2D classes
 - Analysis of the distribution of the MD trajectory over 3D classes
 
+## Pre-print
+We have a pre-print available on BioRxiv (https://www.biorxiv.org/content/10.1101/2024.04.29.590932v1)
+
+
 WIP analysis tools:
 - analysis of latent spaces of heterogeneous reconstruction methods (CryoDRGN, cryoSPARC 3DFlex)
 - comparing the MD trajectory to a latent space
