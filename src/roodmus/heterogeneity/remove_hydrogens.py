@@ -117,8 +117,10 @@ def read_pdbs(args) -> list[str]:
 
 def main(args):
     # check if gemmi executable is in path
-    assert shutil.which("gemmi"), "Install gemmi cmd line program via"
-    " pip install gemmi-program==0.6.5"
+    assert shutil.which("gemmi"), (
+        "Install gemmi cmd line program via"
+        " pip install gemmi-program==0.6.5"
+    )
 
     # read in the pdb files
     conf_files = get_pdb_list(

@@ -51,13 +51,13 @@ def add_arguments(parser):
         type=str,
         default=None,
     )
-    parser.add_argument(
-        "-N",
-        "--num_ugraphs",
-        help="Number of micrographs to consider in analyses. Default 'all'",
-        type=int,
-        default=None,
-    )
+    # parser.add_argument(
+    #     "-N",
+    #     "--num_ugraphs",
+    #     help="Number of micrographs to consider in analyses. Default 'all'",
+    #     type=int,
+    #     default=None,
+    # )
     parser.add_argument(
         "--meta_file",
         help=(
@@ -65,6 +65,16 @@ def add_arguments(parser):
             " (CryoSPARC)"
         ),
         type=str,
+    )
+    parser.add_argument(
+        "--job_types",
+        help=(
+            "Labels for each metadata file. Must be the same length as"
+            " 'meta_file'"
+        ),
+        type=str,
+        nargs="+",
+        default=None,
     )
     parser.add_argument(
         "--plot_dir",
@@ -78,7 +88,7 @@ def add_arguments(parser):
         type=str,
         nargs="+",
         default=["scatter"],
-        choices=["scatter", "per-particle-scatter", "ctf"],
+        choices=["scatter", "per-particle-scatter"],
     )
     parser.add_argument(
         "--verbose", help="increase output verbosity", action="store_true"
@@ -254,7 +264,7 @@ def plot_per_particle_defocus_scatter(
 class plotDefocusScatter(plotDataFrame):
     def __init__(
         self,
-        meta_file: str,
+        job_types: str | dict[str, str] | None = None,
         plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
         plot_dir: str = "",
         dpi: int = 300,
@@ -265,7 +275,7 @@ class plotDefocusScatter(plotDataFrame):
         if plot_data:
             self.plot_data = plot_data
 
-        self.meta_file = meta_file
+        self.job_types = job_types
         self.plot_dir = plot_dir
         self.dpi = dpi
         self.pdf = pdf
@@ -299,13 +309,25 @@ class plotDefocusScatter(plotDataFrame):
             self.plot_data["defocus_scatter"]["df_picked"],
             pd.DataFrame,
         ):
-            outfilename = os.path.join(self.plot_dir, "ctf_scatter.png")
-            fig, ax = plot_defocus_scatter(
-                df_picked=self.plot_data["defocus_scatter"]["df_picked"],
-                metadata_filename=self.meta_file,
-                df_truth=self.plot_data["defocus_scatter"]["df_truth"],
-            )
-            self._save_plot(fig, ax, outfilename)
+            for meta_file in self.plot_data["defocus_scatter"]["df_picked"][
+                "metadata_filename"
+            ].unique():
+                if isinstance(self.job_types, dict):
+                    job_type = self.job_types[meta_file]
+                elif isinstance(self.job_types, str):
+                    job_type = self.job_types
+                else:
+                    job_type = meta_file.split(".")[0]
+
+                outfilename = os.path.join(
+                    self.plot_dir, "{}_ctf_scatter.png".format(job_type)
+                )
+                fig, ax = plot_defocus_scatter(
+                    df_picked=self.plot_data["defocus_scatter"]["df_picked"],
+                    metadata_filename=meta_file,
+                    df_truth=self.plot_data["defocus_scatter"]["df_truth"],
+                )
+                self._save_plot(fig, ax, outfilename)
         else:
             raise TypeError("df_truth or df_picked is not a pd.DataFrame!")
 
@@ -408,8 +430,8 @@ def plot_defocus_scatter(
     ax[0].set_xlabel("defocus truth [$\u212B$]")
     ax[1].set_xlabel("defocus truth [$\u212B$]")
     ax[0].set_ylabel("defocusU estimated [$\u212B$]")
-    ax[0].set_title("defocusU")
-    ax[1].set_title("defocusV")
+    ax[0].set_title("DefocusU (\u03bcm)")
+    ax[1].set_title("DefocusV (\u03bcm)")
     ax[0].grid(False)
     ax[1].grid(False)
     # add colorbar legend
@@ -421,7 +443,7 @@ def plot_defocus_scatter(
     )
     sm._A = []
     cbar = plt.colorbar(sm)
-    cbar.set_label("micrograph")
+    cbar.set_label("Micrograph")
     fig.tight_layout()
     return fig, ax
 
@@ -612,40 +634,36 @@ def main(args):
         tt = time.time()
         print("loading particles ...")
 
-    # load data from file(s)
-    mrc_dir = args.mrc_dir if args.mrc_dir else args.config_dir
-    analysis = load_data(
-        args.meta_file,
-        args.config_dir,
-        particle_diameter=100,
-        verbose=args.verbose,
-        enable_tqdm=args.tqdm,
+        # parse the metadata files and job types
+    meta_files, job_types, order = load_data.parse_jobtypes(
+        args.meta_file, args.job_types
     )
-    df_picked = pd.DataFrame(analysis.results_picking)
-    df_truth = pd.DataFrame(analysis.results_truth)
-
-    # only include first --num_ugraphs micrographs
-    # select subset of ugraphs from truth df
-    if args.num_ugraphs:
-        ugraph_identifiers = sorted(df_truth["ugraph_filename"].unique())[
-            : args.num_ugraphs
-        ]
-
-        # remove all rows not corresponding to selected ugraphs
-        df_picked = df_picked[
-            df_picked["ugraph_filename"].isin(ugraph_identifiers)
-        ]
-        df_truth = df_truth[
-            df_truth["ugraph_filename"].isin(ugraph_identifiers)
-        ]
-
     if args.verbose:
-        print(
-            "Loaded {} particles from {}. starting plotting ...".format(
-                len(df_picked), args.meta_file
+        print("Job types: {}".format(job_types))
+        print("Metadata files: {}".format(meta_files))
+
+    for i, meta_file in enumerate(meta_files):
+        if i == 0:
+            analysis = load_data(
+                meta_file,
+                args.config_dir,
+                1,  # particle diameter does not matter here
+                verbose=args.verbose,
+                enable_tqdm=args.tqdm,
             )
-        )
-        print(f"time taken: {time.time()-tt:.2f} seconds")
+        else:
+            analysis.add_data(
+                meta_file,
+                args.config_dir,
+                verbose=args.verbose,
+                enable_tqdm=args.tqdm,
+            )
+    df_picked = pd.DataFrame(
+        analysis.results_picking
+    )  # data frame containing the picked particles
+    df_truth = pd.DataFrame(
+        analysis.results_truth
+    )  # data frame containing the ground-truth particles
 
     # create the plots, which are:
     # 1. single scatter plot of estimated vs truth defoci
@@ -656,7 +674,7 @@ def main(args):
                 tt = time.time()
                 print("Plotting defocus scatter plot ...")
             defocus_scatter = plotDefocusScatter(
-                meta_file=args.meta_file,
+                job_types=job_types,
                 plot_dir=args.plot_dir,
                 dpi=args.dpi,
                 pdf=args.pdf,
@@ -740,6 +758,16 @@ def main(args):
                 print(f"Time taken: {time.time()-tt:.2f} seconds")
 
         if plot_type.lower() == "ctf":
+            raise NotImplementedError(
+                "Plotting CTF for each micrograph is currently bugged and"
+                " will be fixed in a future release."
+            )
+
+            if isinstance(args.mrc_dir, str):
+                mrc_dir = args.mrc_dir
+            else:
+                mrc_dir = args.config_dir
+
             if args.num_ugraphs is None:
                 print("Plotting CTF for all micrographs ...")
             else:

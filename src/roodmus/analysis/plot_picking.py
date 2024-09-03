@@ -63,6 +63,7 @@ def add_arguments(parser):
         ),
         type=str,
         nargs="+",
+        default=None,
     )
     parser.add_argument(
         "-N",
@@ -257,6 +258,7 @@ class plotLabelPicked(plotDataFrame):
         mrc_dir: str,
         plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
         plot_dir: str = "",
+        job_types: str | dict[str, str] | None = None,
         num_ugraphs: int | None = None,
         box_width: float = 200,
         box_height: float = 200,
@@ -271,6 +273,7 @@ class plotLabelPicked(plotDataFrame):
 
         self.mrc_dir = mrc_dir
         self.plot_dir = plot_dir
+        self.job_types = job_types
         self.num_ugraphs = num_ugraphs
         self.box_width = box_width
         self.box_height = box_height
@@ -302,6 +305,13 @@ class plotLabelPicked(plotDataFrame):
             for meta_file in self.plot_data["label_picked"]["df_picked"][
                 "metadata_filename"
             ].unique():
+                if isinstance(self.job_types, dict):
+                    job_type = self.job_types[meta_file]
+                elif isinstance(self.job_types, str):
+                    job_type = self.job_types
+                else:
+                    job_type = os.path.basename(meta_file).split(".")[0]
+
                 for ugraph_index, ugraph_filename in enumerate(
                     np.unique(
                         self.plot_data["label_picked"]["df_picked"][
@@ -309,7 +319,7 @@ class plotLabelPicked(plotDataFrame):
                         ]
                     )[: self.num_ugraphs]
                 ):
-                    fig, ax, outfilename = plot_label_picked(
+                    fig, ax = plot_label_picked(
                         self.plot_data["label_picked"]["df_picked"],
                         meta_file,
                         ugraph_filename,
@@ -320,7 +330,13 @@ class plotLabelPicked(plotDataFrame):
                         self.verbose,
                         self.plot_dir,
                     )
-
+                    outfilename = os.path.join(
+                        self.plot_dir,
+                        "{}_{}_picked.png".format(
+                            ugraph_filename.strip(".mrc"),
+                            job_type,
+                        ),
+                    )
                     self._save_plot(fig, ax, outfilename)
         else:
             raise TypeError(
@@ -370,14 +386,7 @@ def plot_label_picked(
     # remove axis ticks
     ax.set_xticks([])
     ax.set_yticks([])
-    outfilename = os.path.join(
-        plot_dir,
-        "{}_{}_picked.png".format(
-            ugraph_filename.strip(".mrc"),
-            meta_basename.split(".")[0],
-        ),
-    )
-    return fig, ax, outfilename
+    return fig, ax
 
 
 class plotLabelTruthAndPicked(plotDataFrame):
@@ -386,6 +395,7 @@ class plotLabelTruthAndPicked(plotDataFrame):
         mrc_dir: str,
         plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
         plot_dir: str = "",
+        job_types: str | dict[str, str] | None = None,
         num_ugraphs: int | None = None,
         box_width: float = 200,
         box_height: float = 200,
@@ -400,6 +410,7 @@ class plotLabelTruthAndPicked(plotDataFrame):
 
         self.mrc_dir = mrc_dir
         self.plot_dir = plot_dir
+        self.job_types = job_types
         self.num_ugraphs = num_ugraphs
         self.box_width = box_width
         self.box_height = box_height
@@ -439,6 +450,13 @@ class plotLabelTruthAndPicked(plotDataFrame):
             for meta_file in self.plot_data["label_truth_and_picked"][
                 "df_picked"
             ]["metadata_filename"].unique():
+                if isinstance(self.job_types, dict):
+                    job_type = self.job_types[meta_file]
+                elif isinstance(self.job_types, str):
+                    job_type = self.job_types
+                else:
+                    job_type = os.path.basename(meta_file).split(".")[0]
+
                 for ugraph_index, ugraph_filename in enumerate(
                     np.unique(
                         self.plot_data["label_truth_and_picked"]["df_picked"][
@@ -446,7 +464,7 @@ class plotLabelTruthAndPicked(plotDataFrame):
                         ]
                     )[: self.num_ugraphs]
                 ):
-                    fig, ax, outfilename = plot_label_picked_and_truth(
+                    fig, ax = plot_label_picked_and_truth(
                         self.plot_data["label_truth_and_picked"]["df_truth"],
                         self.plot_data["label_truth_and_picked"]["df_picked"],
                         meta_file,
@@ -458,7 +476,13 @@ class plotLabelTruthAndPicked(plotDataFrame):
                         self.verbose,
                         self.plot_dir,
                     )
-
+                    outfilename = os.path.join(
+                        self.plot_dir,
+                        "{}_{}_truth_and_picked.png".format(
+                            ugraph_filename.strip(".mrc"),
+                            job_type,
+                        ),
+                    )
                     self._save_plot(fig, ax, outfilename)
 
         else:
@@ -514,14 +538,7 @@ def plot_label_picked_and_truth(
     # remove axis ticks
     ax.set_xticks([])
     ax.set_yticks([])
-    outfilename = os.path.join(
-        plot_dir,
-        "{}_{}_truth_and_picked.png".format(
-            ugraph_filename.strip(".mrc"),
-            meta_basename.split(".")[0],
-        ),
-    )
-    return fig, ax, outfilename
+    return fig, ax
 
 
 class plotMatchedAndUnmatched(plotDataFrame):
@@ -550,12 +567,14 @@ class plotMatchedAndUnmatched(plotDataFrame):
         mrc_dir: str,
         plot_data: dict[str, dict[str, pd.DataFrame]] | None = None,
         plot_dir: str = "",
+        job_types: str | dict[str, str] | None = None,
         num_ugraphs: int | None = None,
         box_width: float = 200,
         box_height: float = 200,
         dpi: int = 300,
         pdf: bool = False,
         verbose: bool = False,
+        enable_tqdm: bool = False,
         analysis: load_data | None = None,
     ) -> None:
         super().__init__(plot_data)
@@ -566,12 +585,14 @@ class plotMatchedAndUnmatched(plotDataFrame):
 
         self.mrc_dir = mrc_dir
         self.plot_dir = plot_dir
+        self.job_types = job_types
         self.num_ugraphs = num_ugraphs
         self.box_width = box_width
         self.box_height = box_height
         self.dpi = dpi
         self.pdf = pdf
         self.verbose = verbose
+        self.enable_tqdm = enable_tqdm
 
     def setup_plot_data(
         self,
@@ -606,46 +627,20 @@ class plotMatchedAndUnmatched(plotDataFrame):
                 self.plot_data["label_matched_and_unmatched"]["df_picked"],
                 pd.DataFrame,
             ):
-                for meta_file in self.plot_data["label_matched_and_unmatched"][
-                    "df_picked"
-                ]["metadata_filename"].unique():
-                    meta_basename = os.path.basename(meta_file)
-                    self.plot_data[
-                        "label_matched_and_unmatched_{}".format(
-                            meta_basename.split(".")[0]
-                        )
-                    ] = {}
-                    (
-                        self.plot_data[
-                            "label_matched_and_unmatched_{}".format(
-                                meta_basename.split(".")[0]
-                            )
-                        ]["df_mp"],
-                        self.plot_data[
-                            "label_matched_and_unmatched_{}".format(
-                                meta_basename.split(".")[0]
-                            )
-                        ]["df_mt"],
-                        self.plot_data[
-                            "label_matched_and_unmatched_{}".format(
-                                meta_basename.split(".")[0]
-                            )
-                        ]["df_up"],
-                        self.plot_data[
-                            "label_matched_and_unmatched_{}".format(
-                                meta_basename.split(".")[0]
-                            )
-                        ]["df_ut"],
-                    ) = analysis._match_particles(
-                        meta_file,
-                        self.plot_data["label_matched_and_unmatched"][
-                            "df_picked"
-                        ],
-                        self.plot_data["label_matched_and_unmatched"][
-                            "df_truth"
-                        ],
-                        verbose=self.verbose,
-                    )
+                (
+                    self.plot_data["label_matched_and_unmatched"]["df_mp"],
+                    self.plot_data["label_matched_and_unmatched"]["df_mt"],
+                    self.plot_data["label_matched_and_unmatched"]["df_up"],
+                    self.plot_data["label_matched_and_unmatched"]["df_ut"],
+                    _,
+                ) = analysis._match_particles(
+                    [],
+                    self.plot_data["label_matched_and_unmatched"]["df_picked"],
+                    self.plot_data["label_matched_and_unmatched"]["df_truth"],
+                    verbose=self.verbose,
+                    enable_tqdm=self.enable_tqdm,
+                )
+
             else:
                 raise TypeError(
                     'Either self.plot_data["label_matched_and_unmatched"]'
@@ -703,6 +698,25 @@ class plotMatchedAndUnmatched(plotDataFrame):
                 "df_picked"
             ]["metadata_filename"].unique():
                 meta_basename = os.path.basename(meta_file)
+                if isinstance(self.job_types, dict):
+                    job_type = self.job_types[meta_file]
+                elif isinstance(self.job_types, str):
+                    job_type = self.job_types
+                else:
+                    job_type = os.path.basename(meta_file).split(".")[0]
+
+                df_mp = (
+                    self.plot_data["label_matched_and_unmatched"]["df_mp"]
+                    .groupby("metadata_filename")
+                    .get_group(meta_file)
+                )
+                df_mt = self.plot_data["label_matched_and_unmatched"]["df_mt"]
+                df_up = (
+                    self.plot_data["label_matched_and_unmatched"]["df_up"]
+                    .groupby("metadata_filename")
+                    .get_group(meta_file)
+                )
+                df_ut = self.plot_data["label_matched_and_unmatched"]["df_ut"]
 
                 # now for each micrograph, make the plots
                 for ugraph_index, ugraph_filename in enumerate(
@@ -712,559 +726,357 @@ class plotMatchedAndUnmatched(plotDataFrame):
                         ]["ugraph_filename"]
                     )[: self.num_ugraphs]
                 ):
+                    # matched_picked_particles
+                    if sum(df_mp["ugraph_filename"] == ugraph_filename) > 0:
+                        if self.verbose:
+                            n = sum(
+                                df_mp["ugraph_filename"] == ugraph_filename
+                            )
+                            print(
+                                "number of matched picked particles in"
+                                + f"micrograph {ugraph_filename} is {n}"
+                            )
+                        print(
+                            "Plotting matched picked particles in"
+                            " micrograph {}, \
+                            from metadata file {}".format(
+                                ugraph_filename, meta_basename
+                            )
+                        )
+                        (
+                            fig,
+                            ax,
+                        ) = make_matched_picked_plot(
+                            self.plot_data["label_matched_and_unmatched"][
+                                "df_mp"
+                            ],
+                            meta_file,
+                            ugraph_filename,
+                            ugraph_index,
+                            self.box_width,
+                            self.box_height,
+                            self.mrc_dir,
+                            self.verbose,
+                        )
+                        outfilename = os.path.join(
+                            self.plot_dir,
+                            "{}_{}_matched_picked.png".format(
+                                ugraph_filename.strip(".mrc"),
+                                job_type,
+                            ),
+                        )
+
+                        self._save_plot(fig, ax, outfilename)
+
+                    # matched_truth_particles
+                    if sum(df_mt["ugraph_filename"] == ugraph_filename) > 0:
+                        if self.verbose:
+                            n = sum(
+                                df_mt["ugraph_filename"] == ugraph_filename
+                            )
+                            print(
+                                "number of matched truth particles in"
+                                + f"micrograph {ugraph_filename} is {n}"
+                            )
+                        print(
+                            "Plotting matched truth particles in"
+                            " micrograph {}, \
+                            from metadata file {}".format(
+                                ugraph_filename, meta_basename
+                            )
+                        )
+                        (
+                            fig,
+                            ax,
+                        ) = make_matched_truth_plot(
+                            self.plot_data["label_matched_and_unmatched"][
+                                "df_mt"
+                            ],
+                            ugraph_filename,
+                            ugraph_index,
+                            self.box_width,
+                            self.box_height,
+                            self.mrc_dir,
+                            self.verbose,
+                        )
+                        outfilename = os.path.join(
+                            self.plot_dir,
+                            "{}_{}_matched_truth.png".format(
+                                ugraph_filename.strip(".mrc"),
+                                job_type,
+                            ),
+                        )
+                        self._save_plot(fig, ax, outfilename)
+
+                    # umatched_picked_particles
+                    if sum(df_up["ugraph_filename"] == ugraph_filename) > 0:
+                        if self.verbose:
+                            n = sum(
+                                df_up["ugraph_filename"] == ugraph_filename
+                            )
+                            print(
+                                "number of unmatched picked particles in"
+                                + f"micrograph {ugraph_filename} is {n}"
+                            )
+                        print(
+                            "Plotting unmatched picked particles in"
+                            " micrograph {}, \
+                            from metadata file {}".format(
+                                ugraph_filename, meta_basename
+                            )
+                        )
+                        (
+                            fig,
+                            ax,
+                        ) = make_unmatched_picked_plot(
+                            self.plot_data["label_matched_and_unmatched"][
+                                "df_up"
+                            ],
+                            meta_file,
+                            ugraph_filename,
+                            ugraph_index,
+                            self.box_width,
+                            self.box_height,
+                            self.mrc_dir,
+                            self.verbose,
+                        )
+                        outfilename = os.path.join(
+                            self.plot_dir,
+                            "{}_{}_unmatched_picked.png".format(
+                                ugraph_filename.strip(".mrc"),
+                                job_type,
+                            ),
+                        )
+                        self._save_plot(fig, ax, outfilename)
+
+                    # unmatched_truth_particles
+                    if sum(df_ut["ugraph_filename"] == ugraph_filename) > 0:
+                        if self.verbose:
+                            n = sum(
+                                df_ut["ugraph_filename"] == ugraph_filename
+                            )
+                            print(
+                                "number of unmatched truth particles in"
+                                + f"micrograph {ugraph_filename} is {n}"
+                            )
+                        print(
+                            "Plotting unmatched truth particles in"
+                            " micrograph {}, \
+                            from metadata file {}".format(
+                                ugraph_filename, meta_basename
+                            )
+                        )
+                        (
+                            fig,
+                            ax,
+                        ) = make_unmatched_truth_plot(
+                            self.plot_data["label_matched_and_unmatched"][
+                                "df_ut"
+                            ],
+                            ugraph_filename,
+                            ugraph_index,
+                            self.box_width,
+                            self.box_height,
+                            self.mrc_dir,
+                            self.verbose,
+                        )
+                        outfilename = os.path.join(
+                            self.plot_dir,
+                            "{}_{}_unmatched_truth.png".format(
+                                ugraph_filename.strip(".mrc"),
+                                job_type,
+                            ),
+                        )
+                        self._save_plot(fig, ax, outfilename)
+
+                    # matched_picked_particles and
+                    # unmatched_picked_particles
                     if (
-                        isinstance(
+                        sum(df_mp["ugraph_filename"] == ugraph_filename) > 0
+                        and sum(df_up["ugraph_filename"] == ugraph_filename)
+                        > 0
+                    ):
+                        print(
+                            "Plotting matched picked particles and"
+                            " unmatched picked particles"
+                            " in micrograph"
+                            " {}, from metadata file {}".format(
+                                ugraph_filename,
+                                meta_basename,
+                            )
+                        )
+                        (
+                            fig,
+                            ax,
+                        ) = make_matched_unmatched_picked_plot(
+                            self.plot_data["label_matched_and_unmatched"][
+                                "df_mp"
+                            ],
+                            self.plot_data["label_matched_and_unmatched"][
+                                "df_up"
+                            ],
+                            meta_file,
                             self.plot_data["label_matched_and_unmatched"][
                                 "df_truth"
                             ],
-                            pd.DataFrame,
+                            ugraph_filename,
+                            ugraph_index,
+                            self.box_width,
+                            self.box_height,
+                            self.mrc_dir,
+                            self.verbose,
                         )
-                        and isinstance(
+                        outfilename = os.path.join(
+                            self.plot_dir,
+                            "{}_{}_matched_picked_and_"
+                            "unmatched_picked.png".format(
+                                ugraph_filename.strip(".mrc"),
+                                job_type,
+                            ),
+                        )
+                        self._save_plot(fig, ax, outfilename)
+
+                    # matched_truth_particles and
+                    # unmatched_truth_particles
+                    if (
+                        sum(df_mt["ugraph_filename"] == ugraph_filename) > 0
+                        and sum(df_ut["ugraph_filename"] == ugraph_filename)
+                        > 0
+                    ):
+                        print(
+                            "Plotting matched truth particles and"
+                            " unmatched truth particles"
+                            " in micrograph"
+                            " {}, from metadata file {}".format(
+                                ugraph_filename,
+                                meta_basename,
+                            )
+                        )
+                        (
+                            fig,
+                            ax,
+                        ) = make_matched_unmatched_truth_plot(
+                            self.plot_data["label_matched_and_unmatched"][
+                                "df_mt"
+                            ],
+                            self.plot_data["label_matched_and_unmatched"][
+                                "df_ut"
+                            ],
+                            ugraph_filename,
+                            ugraph_index,
+                            self.box_width,
+                            self.box_height,
+                            self.mrc_dir,
+                            self.verbose,
+                        )
+                        outfilename = os.path.join(
+                            self.plot_dir,
+                            "{}_{}_matched_truth_and"
+                            "_unmatched_truth.png".format(
+                                ugraph_filename.strip(".mrc"),
+                                job_type,
+                            ),
+                        )
+                        self._save_plot(fig, ax, outfilename)
+
+                    # unmatched_picked particles and
+                    # truth_particles
+                    if (
+                        sum(df_up["ugraph_filename"] == ugraph_filename) > 0
+                        and len(
+                            self.plot_data["label_matched_and_unmatched"][
+                                "df_truth"
+                            ]
+                        )
+                        > 0
+                    ):
+                        print(
+                            "Plotting unmatched particles and"
+                            " truth particles in micrograph"
+                            " {}, from metadata file {}".format(
+                                ugraph_filename,
+                                meta_basename,
+                            )
+                        )
+                        (
+                            fig,
+                            ax,
+                        ) = make_unmatched_picked_and_truth_plot(
+                            self.plot_data["label_matched_and_unmatched"][
+                                "df_up"
+                            ],
+                            meta_file,
+                            self.plot_data["label_matched_and_unmatched"][
+                                "df_truth"
+                            ],
+                            ugraph_filename,
+                            ugraph_index,
+                            self.box_width,
+                            self.box_height,
+                            self.mrc_dir,
+                            self.verbose,
+                        )
+                        outfilename = os.path.join(
+                            self.plot_dir,
+                            "{}_{}_unmatched_picked_and_truth.png".format(
+                                ugraph_filename.strip(".mrc"),
+                                job_type,
+                            ),
+                        )
+                        self._save_plot(fig, ax, outfilename)
+
+                    # picked_particles and
+                    # unmatched_truth_particles
+                    if (
+                        len(
+                            self.plot_data["label_matched_and_unmatched"][
+                                "df_picked"
+                            ]
+                        )
+                        > 0
+                        and sum(df_ut["ugraph_filename"] == ugraph_filename)
+                        > 0
+                    ):
+                        print(
+                            "Plotting picked particles and"
+                            " unmatched truth particles"
+                            " in micrograph"
+                            " {}, from metadata file {}".format(
+                                ugraph_filename,
+                                meta_basename,
+                            )
+                        )
+                        (
+                            fig,
+                            ax,
+                        ) = make_unmatched_truth_and_picked_plot(
                             self.plot_data["label_matched_and_unmatched"][
                                 "df_picked"
                             ],
-                            pd.DataFrame,
+                            meta_file,
+                            self.plot_data["label_matched_and_unmatched"][
+                                "df_ut"
+                            ],
+                            ugraph_filename,
+                            ugraph_index,
+                            self.box_width,
+                            self.box_height,
+                            self.mrc_dir,
+                            self.verbose,
                         )
-                        and isinstance(
-                            self.plot_data[
-                                "label_matched_and_unmatched_{}".format(
-                                    meta_basename.split(".")[0]
-                                )
-                            ]["df_mp"],
-                            pd.DataFrame,
+                        outfilename = os.path.join(
+                            self.plot_dir,
+                            "{}_{}_picked_and_unmatched_truth.png".format(
+                                ugraph_filename.strip(".mrc"),
+                                job_type,
+                            ),
                         )
-                        and isinstance(
-                            self.plot_data[
-                                "label_matched_and_unmatched_{}".format(
-                                    meta_basename.split(".")[0]
-                                )
-                            ]["df_up"],
-                            pd.DataFrame,
+                        self._save_plot(
+                            fig,
+                            ax,
+                            outfilename,
                         )
-                        and isinstance(
-                            self.plot_data[
-                                "label_matched_and_unmatched_{}".format(
-                                    meta_basename.split(".")[0]
-                                )
-                            ]["df_mt"],
-                            pd.DataFrame,
-                        )
-                        and isinstance(
-                            self.plot_data[
-                                "label_matched_and_unmatched_{}".format(
-                                    meta_basename.split(".")[0]
-                                )
-                            ]["df_ut"],
-                            pd.DataFrame,
-                        )
-                    ):
-                        # matched_picked_particles
-                        if (
-                            len(
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_mp"]
-                            )
-                            > 0
-                        ):
-                            print(
-                                "Plotting matched picked particles in"
-                                " micrograph {}, \
-                                from metadata file {}".format(
-                                    ugraph_filename, meta_basename
-                                )
-                            )
-                            (
-                                fig,
-                                ax,
-                                outfilename,
-                            ) = make_matched_picked_plot(
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_mp"],
-                                meta_file,
-                                ugraph_filename,
-                                ugraph_index,
-                                self.box_width,
-                                self.box_height,
-                                self.mrc_dir,
-                                self.verbose,
-                                self.plot_dir,
-                            )
 
-                            self._save_plot(fig, ax, outfilename)
-                        else:
-                            print("There are no matched picked particles!")
-
-                        # matched_truth_particles
-                        if (
-                            len(
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_mt"]
-                            )
-                            > 0
-                        ):
-                            print(
-                                "Plotting matched truth particles in"
-                                " micrograph {}, \
-                                from metadata file {}".format(
-                                    ugraph_filename, meta_basename
-                                )
-                            )
-                            (
-                                fig,
-                                ax,
-                                outfilename,
-                            ) = make_matched_truth_plot(
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_mt"],
-                                meta_file,
-                                ugraph_filename,
-                                ugraph_index,
-                                self.box_width,
-                                self.box_height,
-                                self.mrc_dir,
-                                self.verbose,
-                                self.plot_dir,
-                            )
-                            self._save_plot(fig, ax, outfilename)
-                        else:
-                            print("There are no matched truth particles!")
-
-                        # umatched_picked_particles
-                        if (
-                            len(
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_up"]
-                            )
-                            > 0
-                        ):
-                            print(
-                                "Plotting unmatched picked particles in"
-                                " micrograph {}, \
-                                from metadata file {}".format(
-                                    ugraph_filename, meta_basename
-                                )
-                            )
-                            (
-                                fig,
-                                ax,
-                                outfilename,
-                            ) = make_unmatched_picked_plot(
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_up"],
-                                meta_file,
-                                ugraph_filename,
-                                ugraph_index,
-                                self.box_width,
-                                self.box_height,
-                                self.mrc_dir,
-                                self.verbose,
-                                self.plot_dir,
-                            )
-                            self._save_plot(fig, ax, outfilename)
-                        else:
-                            print("There are no matched truth particles!")
-
-                        # unmatched_truth_particles
-                        if (
-                            len(
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_ut"]
-                            )
-                            > 0
-                        ):
-                            print(
-                                "Plotting unmatched truth particles in"
-                                " micrograph {}, \
-                                from metadata file {}".format(
-                                    ugraph_filename, meta_basename
-                                )
-                            )
-                            (
-                                fig,
-                                ax,
-                                outfilename,
-                            ) = make_unmatched_truth_plot(
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_ut"],
-                                meta_file,
-                                ugraph_filename,
-                                ugraph_index,
-                                self.box_width,
-                                self.box_height,
-                                self.mrc_dir,
-                                self.verbose,
-                                self.plot_dir,
-                            )
-                            self._save_plot(fig, ax, outfilename)
-                        else:
-                            print("There are no unmatched truth particles!")
-
-                        # matched_picked_particles and
-                        # unmatched_picked_particles
-                        if (
-                            len(
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_mp"]
-                            )
-                            > 0
-                            and len(
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_up"]
-                            )
-                            > 0
-                        ):
-                            print(
-                                "Plotting matched picked particles and"
-                                " unmatched picked particles"
-                                " in micrograph"
-                                " {}, from metadata file {}".format(
-                                    ugraph_filename,
-                                    meta_basename,
-                                )
-                            )
-                            (
-                                fig,
-                                ax,
-                                outfilename,
-                            ) = make_matched_unmatched_picked_plot(
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_mp"],
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_up"],
-                                meta_file,
-                                self.plot_data["label_matched_and_unmatched"][
-                                    "df_truth"
-                                ],
-                                ugraph_filename,
-                                ugraph_index,
-                                self.box_width,
-                                self.box_height,
-                                self.mrc_dir,
-                                self.verbose,
-                                self.plot_dir,
-                            )
-                            self._save_plot(fig, ax, outfilename)
-                        else:
-                            if (
-                                len(
-                                    self.plot_data[
-                                        "label_matched_and_"
-                                        "unmatched_{}".format(
-                                            meta_basename.split(".")[0]
-                                        )
-                                    ]["df_mp"]
-                                )
-                                == 0
-                            ):
-                                print(
-                                    "There are no matched picked particles!"
-                                    " Not plotting comparison to unmatched"
-                                    " picked particles!"
-                                )
-                            if (
-                                len(
-                                    self.plot_data[
-                                        "label_matched_and_"
-                                        "unmatched_{}".format(
-                                            meta_basename.split(".")[0]
-                                        )
-                                    ]["df_up"]
-                                )
-                                == 0
-                            ):
-                                print(
-                                    "There are no unmatched picked particles!"
-                                    " Not plotting comparison to matched"
-                                    " picked particles!"
-                                )
-
-                        # matched_truth_particles and
-                        # unmatched_truth_particles
-                        if (
-                            len(
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_mt"]
-                            )
-                            > 0
-                            and len(
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_ut"]
-                            )
-                            > 0
-                        ):
-                            print(
-                                "Plotting matched truth particles and"
-                                " unmatched truth particles"
-                                " in micrograph"
-                                " {}, from metadata file {}".format(
-                                    ugraph_filename,
-                                    meta_basename,
-                                )
-                            )
-                            (
-                                fig,
-                                ax,
-                                outfilename,
-                            ) = make_matched_unmatched_truth_plot(
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_mt"],
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_ut"],
-                                meta_file,
-                                ugraph_filename,
-                                ugraph_index,
-                                self.box_width,
-                                self.box_height,
-                                self.mrc_dir,
-                                self.verbose,
-                                self.plot_dir,
-                            )
-                            self._save_plot(fig, ax, outfilename)
-                        else:
-                            if (
-                                len(
-                                    self.plot_data[
-                                        "label_matched_and_"
-                                        "unmatched_{}".format(
-                                            meta_basename.split(".")[0]
-                                        )
-                                    ]["mt_up"]
-                                )
-                                == 0
-                            ):
-                                print(
-                                    "There are no matched truth particles!"
-                                    " Not plotting comparison to unmatched"
-                                    " truth particles!"
-                                )
-                            if (
-                                len(
-                                    self.plot_data[
-                                        "label_matched_and"
-                                        "_unmatched_{}".format(
-                                            meta_basename.split(".")[0]
-                                        )
-                                    ]["df_ut"]
-                                )
-                                == 0
-                            ):
-                                print(
-                                    "There are no unmatched truth particles!"
-                                    " Not plotting comparison to matched"
-                                    " truth particles!"
-                                )
-
-                        # unmatched_picked particles and truth_particles
-                        if (
-                            len(
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_up"]
-                            )
-                            > 0
-                            and len(
-                                self.plot_data["label_matched_and_unmatched"][
-                                    "df_truth"
-                                ]
-                            )
-                            > 0
-                        ):
-                            print(
-                                "Plotting unmatched particles and"
-                                " truth particles in micrograph"
-                                " {}, from metadata file {}".format(
-                                    ugraph_filename,
-                                    meta_basename,
-                                )
-                            )
-                            (
-                                fig,
-                                ax,
-                                outfilename,
-                            ) = make_unmatched_picked_and_truth_plot(
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_up"],
-                                meta_file,
-                                self.plot_data["label_matched_and_unmatched"][
-                                    "df_truth"
-                                ],
-                                ugraph_filename,
-                                ugraph_index,
-                                self.box_width,
-                                self.box_height,
-                                self.mrc_dir,
-                                self.verbose,
-                                self.plot_dir,
-                            )
-                            self._save_plot(fig, ax, outfilename)
-
-                        else:
-                            if (
-                                len(
-                                    self.plot_data[
-                                        "label_matched_and"
-                                        "_unmatched_{}".format(
-                                            meta_basename.split(".")[0]
-                                        )
-                                    ]["df_up"]
-                                )
-                                == 0
-                            ):
-                                print(
-                                    "There are no unmatched picked particles!"
-                                    " Not plotting comparison to truth"
-                                    " particles!"
-                                )
-                            if (
-                                len(
-                                    self.plot_data[
-                                        "label_matched_and_unmatched"
-                                    ]["df_truth"]
-                                )
-                                == 0
-                            ):
-                                print(
-                                    "There are no truth particles!"
-                                    " Not plotting comparison to unmatched"
-                                    " picked particles!"
-                                )
-
-                        # picked_particles and unmatched_truth_particles
-                        if (
-                            len(
-                                self.plot_data["label_matched_and_unmatched"][
-                                    "df_picked"
-                                ]
-                            )
-                            > 0
-                            and len(
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_ut"]
-                            )
-                            > 0
-                        ):
-                            print(
-                                "Plotting picked particles and"
-                                " unmatched truth particles"
-                                " in micrograph"
-                                " {}, from metadata file {}".format(
-                                    ugraph_filename,
-                                    meta_basename,
-                                )
-                            )
-                            (
-                                fig,
-                                ax,
-                                outfilename,
-                            ) = make_unmatched_truth_and_picked_plot(
-                                self.plot_data["label_matched_and_unmatched"][
-                                    "df_picked"
-                                ],
-                                meta_file,
-                                self.plot_data[
-                                    "label_matched_and_unmatched_{}".format(
-                                        meta_basename.split(".")[0]
-                                    )
-                                ]["df_ut"],
-                                ugraph_filename,
-                                ugraph_index,
-                                self.box_width,
-                                self.box_height,
-                                self.mrc_dir,
-                                self.verbose,
-                                self.plot_dir,
-                            )
-                            self._save_plot(
-                                fig,
-                                ax,
-                                outfilename,
-                            )
-                        else:
-                            if (
-                                len(
-                                    self.plot_data[
-                                        "label_matched_and_unmatched"
-                                    ]["df_picked"]
-                                )
-                                == 0
-                            ):
-                                print(
-                                    "There are no picked particles!"
-                                    " Not plotting comparison to unmatched"
-                                    " truth particles!"
-                                )
-                            if (
-                                len(
-                                    self.plot_data[
-                                        "label_matched_and_"
-                                        "unmatched_{}".format(
-                                            meta_basename.split(".")[0]
-                                        )
-                                    ]["df_ut"]
-                                )
-                                == 0
-                            ):
-                                print(
-                                    "There are no unmatched truth particles!"
-                                    " Not plotting comparison to"
-                                    " picked particles!"
-                                )
                         self.save_dataframes(self.plot_dir, overwrite_data)
 
                     else:
@@ -1313,9 +1125,7 @@ def make_matched_picked_plot(
     box_height: float,
     mrc_dir: str,
     verbose: bool,
-    plot_dir: str = "",
 ):
-    meta_basename = os.path.basename(meta_file)
     fig, ax = labelMicrograph.label_micrograph_picked(
         df_mp,
         meta_file,
@@ -1329,28 +1139,18 @@ def make_matched_picked_plot(
     # remove axis ticks
     ax.set_xticks([])
     ax.set_yticks([])
-    outfilename = os.path.join(
-        plot_dir,
-        "{}_{}_matched_picked.png".format(
-            ugraph_filename.strip(".mrc"),
-            meta_basename.split(".")[0],
-        ),
-    )
-    return fig, ax, outfilename
+    return fig, ax
 
 
 def make_matched_truth_plot(
     df_mt: pd.DataFrame,
-    meta_file: str,
     ugraph_filename: str,
     ugraph_index: int,
     box_width: float,
     box_height: float,
     mrc_dir: str,
     verbose: bool,
-    plot_dir: str = "",
 ):
-    meta_basename = os.path.basename(meta_file)
     fig, ax = labelMicrograph.label_micrograph_truth(
         df_mt,
         ugraph_index,
@@ -1363,14 +1163,7 @@ def make_matched_truth_plot(
     # remove axis ticks
     ax.set_xticks([])
     ax.set_yticks([])
-    outfilename = os.path.join(
-        plot_dir,
-        "{}_{}_matched_truth.png".format(
-            ugraph_filename.strip(".mrc"),
-            meta_basename.split(".")[0],
-        ),
-    )
-    return fig, ax, outfilename
+    return fig, ax
 
 
 def make_unmatched_picked_plot(
@@ -1382,9 +1175,7 @@ def make_unmatched_picked_plot(
     box_height: float,
     mrc_dir: str,
     verbose: bool,
-    plot_dir: str = "",
 ):
-    meta_basename = os.path.basename(meta_file)
     fig, ax = labelMicrograph.label_micrograph_picked(
         df_up,
         meta_file,
@@ -1398,28 +1189,18 @@ def make_unmatched_picked_plot(
     # remove axis ticks
     ax.set_xticks([])
     ax.set_yticks([])
-    outfilename = os.path.join(
-        plot_dir,
-        "{}_{}_unmatched_picked.png".format(
-            ugraph_filename.strip(".mrc"),
-            meta_basename.split(".")[0],
-        ),
-    )
-    return fig, ax, outfilename
+    return fig, ax
 
 
 def make_unmatched_truth_plot(
     df_ut: pd.DataFrame,
-    meta_file: str,
     ugraph_filename: str,
     ugraph_index: int,
     box_width: float,
     box_height: float,
     mrc_dir: str,
     verbose: bool,
-    plot_dir: str = "",
 ):
-    meta_basename = os.path.basename(meta_file)
     fig, ax = labelMicrograph.label_micrograph_truth(
         df_ut,
         ugraph_index,
@@ -1432,14 +1213,7 @@ def make_unmatched_truth_plot(
     # remove axis ticks
     ax.set_xticks([])
     ax.set_yticks([])
-    outfilename = os.path.join(
-        plot_dir,
-        "{}_{}_unmatched_truth.png".format(
-            ugraph_filename.strip(".mrc"),
-            meta_basename.split(".")[0],
-        ),
-    )
-    return fig, ax, outfilename
+    return fig, ax
 
 
 def make_matched_unmatched_picked_plot(
@@ -1453,9 +1227,7 @@ def make_matched_unmatched_picked_plot(
     box_height: float,
     mrc_dir: str,
     verbose: bool,
-    plot_dir: str = "",
 ):
-    meta_basename = os.path.basename(meta_file)
     fig, ax = labelMicrograph.label_micrograph_picked_and_picked(
         df_mp,
         df_up,
@@ -1472,30 +1244,19 @@ def make_matched_unmatched_picked_plot(
     # remove axis ticks
     ax.set_xticks([])
     ax.set_yticks([])
-    outfilename = os.path.join(
-        plot_dir,
-        "{}_{}_matched_picked_and_"
-        "unmatched_picked.png".format(
-            ugraph_filename.strip(".mrc"),
-            meta_basename.split(".")[0],
-        ),
-    )
-    return fig, ax, outfilename
+    return fig, ax
 
 
 def make_matched_unmatched_truth_plot(
     df_mt: pd.DataFrame,
     df_ut: pd.DataFrame,
-    meta_file: str,
     ugraph_filename: str,
     ugraph_index: int,
     box_width: float,
     box_height: float,
     mrc_dir: str,
     verbose: bool,
-    plot_dir: str = "",
 ):
-    meta_basename = os.path.basename(meta_file)
     fig, ax = labelMicrograph.label_micrograph_truth_and_truth(
         df_mt,
         df_ut,
@@ -1510,15 +1271,7 @@ def make_matched_unmatched_truth_plot(
     # remove axis ticks
     ax.set_xticks([])
     ax.set_yticks([])
-    outfilename = os.path.join(
-        plot_dir,
-        "{}_{}_matched_truth_and"
-        "_unmatched_truth.png".format(
-            ugraph_filename.strip(".mrc"),
-            meta_basename.split(".")[0],
-        ),
-    )
-    return fig, ax, outfilename
+    return fig, ax
 
 
 def make_unmatched_picked_and_truth_plot(
@@ -1531,9 +1284,7 @@ def make_unmatched_picked_and_truth_plot(
     box_height: float,
     mrc_dir: str,
     verbose: bool,
-    plot_dir: str = "",
 ):
-    meta_basename = os.path.basename(meta_file)
     fig, ax = labelMicrograph.label_micrograph_truth_and_picked(
         df_up,
         meta_file,
@@ -1549,14 +1300,7 @@ def make_unmatched_picked_and_truth_plot(
     # remove axis ticks
     ax.set_xticks([])
     ax.set_yticks([])
-    outfilename = os.path.join(
-        plot_dir,
-        "{}_{}_unmatched_picked_and_truth.png".format(
-            ugraph_filename.strip(".mrc"),
-            meta_basename.split(".")[0],
-        ),
-    )
-    return fig, ax, outfilename
+    return fig, ax
 
 
 def make_unmatched_truth_and_picked_plot(
@@ -1569,9 +1313,7 @@ def make_unmatched_truth_and_picked_plot(
     box_height: float,
     mrc_dir: str,
     verbose: bool,
-    plot_dir: str = "",
 ):
-    meta_basename = os.path.basename(meta_file)
     fig, ax = labelMicrograph.label_micrograph_truth_and_picked(
         df_picked,
         meta_file,
@@ -1587,14 +1329,7 @@ def make_unmatched_truth_and_picked_plot(
     # remove axis ticks
     ax.set_xticks([])
     ax.set_yticks([])
-    outfilename = os.path.join(
-        plot_dir,
-        "{}_{}_picked_and_unmatched_truth.png".format(
-            ugraph_filename.strip(".mrc"),
-            meta_basename.split(".")[0],
-        ),
-    )
-    return fig, ax, outfilename
+    return fig, ax
 
 
 class labelMicrograph(object):
@@ -1790,9 +1525,18 @@ class labelMicrograph(object):
         # group the picked particles by metadata file
         if isinstance(metadata_filename, list):
             metadata_filename = metadata_filename[0]
-        picked_particles = picked_particles.groupby(
+        picked_particles_grouped = picked_particles.groupby(
             "metadata_filename"
-        ).get_group(metadata_filename)
+        )
+        if metadata_filename not in picked_particles_grouped.groups:
+            # there are no particles for this metadata file
+            # returning empty figure
+            fig, ax = plt.subplots(figsize=[3, 3])
+            return fig, ax
+
+        picked_particles = picked_particles_grouped.get_group(
+            metadata_filename
+        )
         # get the micrograph name
         ugraph_filename = np.unique(truth_particles["ugraph_filename"])[
             ugraph_index
@@ -2221,7 +1965,9 @@ def plot_precision(
     )
     sm._A = []
     cbar = fig.colorbar(sm, ax=ax)
-    cbar.set_label("defocus (\u03bcm)", rotation=270, labelpad=20, fontsize=12)
+    cbar.set_label("Defocus (\u03bcm)", rotation=270, labelpad=20, fontsize=21)
+    # change tick labels of the colourbar to use 18 fontsize
+    cbar.ax.tick_params(labelsize=18)
     # add labels
     ax.set_xlabel("")
     ax.set_ylabel("precision", fontsize=14)
@@ -2289,7 +2035,8 @@ def plot_recall(
     )
     sm._A = []
     cbar = fig.colorbar(sm, ax=ax)
-    cbar.set_label("defocus (\u03bcm)", rotation=270, labelpad=20, fontsize=12)
+    cbar.set_label("Defocus (\u03bcm)", rotation=270, labelpad=20, fontsize=21)
+    cbar.ax.tick_params(labelsize=18)
     # add labels
     ax.set_xlabel("")
     ax.set_ylabel("recall", fontsize=14)
@@ -2838,6 +2585,7 @@ def main(args):
             label_picked = plotLabelPicked(
                 args.mrc_dir,
                 plot_dir=args.plot_dir,
+                job_types=job_types,
                 num_ugraphs=args.num_ugraphs,
                 box_width=args.box_width,
                 box_height=args.box_height,
@@ -2866,12 +2614,14 @@ def main(args):
             label_matched_and_unmatched = plotMatchedAndUnmatched(
                 args.mrc_dir,
                 plot_dir=args.plot_dir,
+                job_types=job_types,
                 num_ugraphs=args.num_ugraphs,
                 box_width=args.box_width,
                 box_height=args.box_height,
                 dpi=args.dpi,
                 pdf=args.pdf,
                 verbose=args.verbose,
+                enable_tqdm=args.tqdm,
             )
             label_matched_and_unmatched.setup_plot_data(analysis)
             label_matched_and_unmatched.make_and_save_plots(

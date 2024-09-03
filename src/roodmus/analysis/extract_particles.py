@@ -61,6 +61,12 @@ def add_arguments(parser):
         default="particles",
     )
     parser.add_argument(
+        "--file_type",
+        help="File type of the micrographs. Default 'mrcs'",
+        type=str,
+        default="mrcs",
+    )
+    parser.add_argument(
         "--tqdm",
         help="Use tqdm progress bar. Default False",
         action="store_true",
@@ -98,6 +104,24 @@ def get_particle(
         position[1] - box_size // 2 : position[1] + box_size // 2,
     ]
     return particle
+
+
+def save_particle_stack(
+    particle_stack: np.ndarray, particle_dir: str, file_type: str
+):
+    particle_file = os.path.join(
+        particle_dir,
+        "particle_stack." + file_type,
+    )
+
+    if file_type == "mrcs" or file_type == "mrc":
+        with mrcfile.new(particle_file, overwrite=True) as mrc:
+            mrc.set_data(np.float32(particle_stack))
+            mrc.set_image_stack()
+            mrc.update_header_from_data()
+
+    elif file_type == "tif" or file_type == "tiff":
+        tifffile.imwrite(particle_file.replace(".mrc", ".tif"), particle_stack)
 
 
 def main(args):
@@ -152,17 +176,8 @@ def main(args):
                 print(f"particle stack shape: {particle_stack.shape}")
 
             # save the particle stack
-            particle_file = os.path.join(
-                args.particle_dir,
-                "particle_stack.mrc",
-            )
-
-            with mrcfile.new(particle_file, overwrite=True) as mrc:
-                mrc.set_data(np.float32(particle_stack))
-                mrc.set_image_stack()
-                mrc.update_header_from_data()
-            tifffile.imwrite(
-                particle_file.replace(".mrc", ".tif"), particle_stack
+            save_particle_stack(
+                particle_stack, args.particle_dir, args.file_type
             )
 
 

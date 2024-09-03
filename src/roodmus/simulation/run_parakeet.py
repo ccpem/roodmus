@@ -27,6 +27,7 @@ from typing import Tuple, List
 
 import numpy as np
 from tqdm import tqdm
+from joblib import Parallel, delayed
 
 import parakeet
 from .configuration import Configuration
@@ -53,14 +54,12 @@ def add_arguments(
         type=str,
         required=True,
     )
-
     run_parakeet_parser.add_argument(
         "--mrc_dir",
         help="Path to the directory in which to save the mrc files",
         type=str,
         required=True,
     )
-
     run_parakeet_parser.add_argument(
         "-n",
         "--n_images",
@@ -69,7 +68,6 @@ def add_arguments(
         default=1,
         required=False,
     )
-
     run_parakeet_parser.add_argument(
         "-m",
         "--n_molecules",
@@ -78,21 +76,18 @@ def add_arguments(
         default=1,
         required=False,
     )
-
     run_parakeet_parser.add_argument(
         "--no_replacement",
         help="Disable sampling with replacement",
         default=True,
         action="store_false",
     )
-
     run_parakeet_parser.add_argument(
         "--tqdm",
         help="Turn on progress bar",
         default=False,
         action="store_true",
     )
-
     run_parakeet_parser.add_argument(
         "--overwrite_metadata",
         help="Overwrite metdata output",
@@ -108,55 +103,34 @@ def add_arguments(
         default="parakeet",
     )
     run_parakeet_parser.add_argument(
+        "--leading_zeros",
+        help=(
+            "Number of decimal integers to use for image filenames."
+            " Defaults to 6"
+        ),
+        type=int,
+        default=6,
+        required=False,
+    )
+    run_parakeet_parser.add_argument(
         "--verbose",
         help="Turn on verbose output",
         default=False,
         action="store_true",
     )
 
-    parser = run_parakeet_parser.add_argument_group("configuration")
-    parser.add_argument(
-        "--max_workers",
-        help=(
-            "Maximum number of worker processes to use on a cluster."
-            " Must specify cluster method."
-        ),
-        type=int,
-        default=1,
-        required=False,
+    options_microscope_beam = run_parakeet_parser.add_argument_group(
+        "microscope_beam"
     )
-
-    parser.add_argument(
-        "--method",
-        help=(
-            "Maximum number of worker processes to use on a cluster."
-            " Must specify cluster method."
-        ),
-        type=str,
-        default=None,
-        required=False,
-    )
-
-    parser.add_argument(
-        "--device",
-        help=(
-            "An enumeration to set whether to run on the GPU or CPU."
-            " Options are 'cpu' or 'gpu'. Defaults to gpu"
-        ),
-        type=str,
-        default="gpu",
-        required=False,
-    )
-
-    parser.add_argument(
+    # options_microscope_beam = options_microscope.add_argument_group("beam")
+    options_microscope_beam.add_argument(
         "--acceleration_voltage_spread",
         help=("The acceleration voltage spread (dV/V). Defaults to 8.0e-07"),
         type=float,
         default=8.0e-7,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_beam.add_argument(
         "--electrons_per_angstrom",
         help=(
             "Dose of electrons per square angstrom to use in"
@@ -166,8 +140,7 @@ def add_arguments(
         default=45.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_beam.add_argument(
         "--energy",
         help=(
             "Electron beam energy (kV) to use in Parakeet simulation"
@@ -177,42 +150,28 @@ def add_arguments(
         default=300.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_beam.add_argument(
         "--energy_spread",
         help=("Electron beam energy spread (dE/E)" " Defaults to 2.66e-6"),
         type=float,
         default=2.66e-6,
         required=False,
     )
-
-    parser.add_argument(
-        "--source_spread",
-        help=("The source spread (mrad)." " Defaults to 0.1"),
-        type=float,
-        default=0.1,
-        required=False,
-    )
-
-    """
-    parser.add_argument(
+    options_microscope_beam.add_argument(
         "--illumination_semiangle",
         help=("The illumination semiangle (mrad)."),
         type=float,
         default=0.02,
         required=False,
     )
-    """
-
-    parser.add_argument(
+    options_microscope_beam.add_argument(
         "--phi",
         help=("The beam tilt phi angle (deg). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_beam.add_argument(
         "--theta",
         help=("The beam tilt theta angle (deg). Defaults to 0"),
         type=float,
@@ -220,14 +179,16 @@ def add_arguments(
         required=False,
     )
 
-    parser.add_argument(
+    options_microscope_detector = run_parakeet_parser.add_argument_group(
+        "microscope_detector"
+    )
+    options_microscope_detector.add_argument(
         "--dqe",
         help=("Use the DQE model (True/False). Defaults to False"),
         default=False,
         action="store_true",
     )
-
-    parser.add_argument(
+    options_microscope_detector.add_argument(
         "--nx",
         help=(
             "Number of pixels along the x"
@@ -238,8 +199,7 @@ def add_arguments(
         default=1000,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_detector.add_argument(
         "--ny",
         help=(
             "Number of pixels along the y"
@@ -250,8 +210,7 @@ def add_arguments(
         default=1000,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_detector.add_argument(
         "--origin_x",
         help=(
             "Origin of detector along the x"
@@ -262,8 +221,7 @@ def add_arguments(
         default=0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_detector.add_argument(
         "--origin_y",
         help=(
             "Origin of detector along the y"
@@ -274,8 +232,7 @@ def add_arguments(
         default=0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_detector.add_argument(
         "--pixel_size",
         help=(
             "Pixel size (angstroms) to use"
@@ -288,19 +245,10 @@ def add_arguments(
         required=False,
     )
 
-    parser.add_argument(
-        "--phase_plate",
-        help=(
-            "Whether to use a"
-            " phase plate in"
-            " Parakeet simulation"
-            " Defaults to False"
-        ),
-        default=False,
-        action="store_true",
+    options_microscope_lens = run_parakeet_parser.add_argument_group(
+        "microscope_lens"
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--c_10",
         help=(
             "Average defocus value (A) (input a negative number for"
@@ -311,8 +259,7 @@ def add_arguments(
         required=False,
         nargs="+",
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--c_10_stddev",
         help=(
             "Standard deviation of defocus value (A)"
@@ -323,16 +270,14 @@ def add_arguments(
         required=False,
         nargs="+",
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--c_12",
         help=("The 2-fold astigmatism (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--phi_12",
         help=(
             "The Azimuthal angle of 2-fold astigmatism (rad)." " Defaults to 0"
@@ -341,32 +286,28 @@ def add_arguments(
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--c_21",
         help=("The Axial coma (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--phi_21",
         help=("The Azimuthal angle of axial coma (rad). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--c_23",
         help=("The 3-fold astigmatism (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--phi_23",
         help=(
             "The Azimuthal angle of 3-fold astigmatism (rad)." " Defaults to 0"
@@ -375,24 +316,21 @@ def add_arguments(
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--c_30",
         help=("Spherical aberration (A). Defaults to 2.7"),
         type=float,
         default=2.7,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--c_32",
         help=("The Axial star aberration (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--phi_32",
         help=(
             "The Azimuthal angle of axial star aberration (rad)."
@@ -402,16 +340,14 @@ def add_arguments(
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--c_34",
         help=("The 4-fold astigmatism (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--phi_34",
         help=(
             "The Azimuthal angle of 4-fold astigmatism (rad)" " Defaults to 0"
@@ -420,16 +356,14 @@ def add_arguments(
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--c_41",
         help=("The 4th order axial coma (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--phi_41",
         help=(
             "The Azimuthal angle of 4th order axial coma (rad)."
@@ -439,32 +373,28 @@ def add_arguments(
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--c_43",
         help=("The 3-lobe aberration (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--phi_43",
         help=("The Azimuthal angle of 3-lobe aberration (rad). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--c_45",
         help=("The 5-fold astigmatism (A).  Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--phi_45",
         help=(
             "The Azimuthal angle of 5-fold astigmatism (rad)." " Defaults to 0"
@@ -473,24 +403,21 @@ def add_arguments(
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--c_50",
         help=("The 5th order spherical aberration (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--c_52",
         help=("The 5th order axial star aberration (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--phi_52",
         help=(
             "The Azimuthal angle of 5th order axial star aberration (rad)."
@@ -500,16 +427,14 @@ def add_arguments(
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--c_54",
         help=("The 5th order rosette aberration (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--phi_54",
         help=(
             "The Azimuthal angle of 5th order rosette aberration (rad)."
@@ -519,16 +444,14 @@ def add_arguments(
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--c_56",
         help=("The 6-fold astigmatism (A). Defaults to 0"),
         type=float,
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--phi_56",
         help=(
             "The Azimuthal angle of 6-fold astigmatism (rad)." " Defaults to 0"
@@ -537,16 +460,14 @@ def add_arguments(
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--c_c",
         help=("Chromatic aberration (A). Defaults to 2.7"),
         type=float,
         default=2.7,
         required=False,
     )
-
-    parser.add_argument(
+    options_microscope_lens.add_argument(
         "--current_spread",
         help=("The current spread (dI/I). Defaults to 0.33e-6"),
         type=float,
@@ -554,7 +475,10 @@ def add_arguments(
         required=False,
     )
 
-    parser.add_argument(
+    options_microscope_model = run_parakeet_parser.add_argument_group(
+        "microscope_model"
+    )
+    options_microscope_model.add_argument(
         "--model",
         help=(
             "Use commercial microscope ('talos' or 'krios')"
@@ -566,31 +490,82 @@ def add_arguments(
         required=False,
     )
 
-    parser.add_argument(
+    options_microscope_phase_plate = run_parakeet_parser.add_argument_group(
+        "microscope_phase_plate"
+    )
+    options_microscope_phase_plate.add_argument(
+        "--use_phase_plate",
+        help=("Use a phase plate in the microscope? Defaults to False"),
+        default=False,
+        action="store_true",
+    )
+    options_microscope_phase_plate.add_argument(
+        "--phase_shift",
+        help=("The phase shift of the phase plate (degree). Defaults to 90"),
+        type=float,
+        default=90.0,
+        required=False,
+    )
+    options_microscope_phase_plate.add_argument(
+        "--phase_plate_radius",
+        help=("The radius of the phase plate. Defaults to 500"),
+        type=float,
+        default=500.0,
+        required=False,
+    )
+
+    options_multiprocessing = run_parakeet_parser.add_argument_group(
+        "multiprocessing"
+    )
+    options_multiprocessing.add_argument(
+        "--device",
+        help=(
+            "An enumeration to set whether to run on the GPU or CPU."
+            " Options are 'cpu' or 'gpu'. Defaults to gpu"
+        ),
+        type=str,
+        default="gpu",
+        choices=["cpu", "gpu"],
+        required=False,
+    )
+    options_multiprocessing.add_argument(
+        "--gpu_id",
+        help="The GPU ID to use. Defaults to 0",
+        type=int,
+        nargs="+",
+        default=[0],
+    )
+    options_multiprocessing.add_argument(
+        "--nproc",
+        help="The number of procesors to use. Defaults to 1",
+        type=int,
+        default=1,
+        required=False,
+    )
+
+    options_sample = run_parakeet_parser.add_argument_group("sample")
+    options_sample.add_argument(
         "--box_x",
         help=("Sample box size along x axis (Angstroms). Defaults to 1000"),
         type=float,
         default=1000.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_sample.add_argument(
         "--box_y",
         help=("Sample box size along y axis (Angstroms). Defaults to 1000"),
         type=float,
         default=1000.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_sample.add_argument(
         "--box_z",
         help=("Sample box size along z axis (Angstroms). Defaults to 500"),
         type=float,
         default=500.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_sample.add_argument(
         "--centre_x",
         help=(
             "Center of tomographic rotation around sample x axis (A)."
@@ -600,8 +575,7 @@ def add_arguments(
         default=500.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_sample.add_argument(
         "--centre_y",
         help=(
             "Center of tomographic rotation around sample y axis (A)."
@@ -611,8 +585,7 @@ def add_arguments(
         default=500.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_sample.add_argument(
         "--centre_z",
         help=(
             "Center of tomographic rotation around sample z axis (A)."
@@ -622,8 +595,7 @@ def add_arguments(
         default=250.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_sample.add_argument(
         "--slow_ice",
         help=(
             "Generate the (very slow) atomic ice model?"
@@ -632,16 +604,14 @@ def add_arguments(
         default=False,
         action="store_true",
     )
-
-    parser.add_argument(
+    options_sample.add_argument(
         "--slow_ice_density",
         help=("Density of molecular ice (slow ice simulation) in kg/m3"),
         type=float,
         default=940.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_sample.add_argument(
         "--type",
         help=(
             "An enumeration of sample shape types."
@@ -651,57 +621,51 @@ def add_arguments(
         type=str,
         default="cuboid",
         required=False,
+        choices=["cuboid", "cube", "cylinder"],
     )
-
-    parser.add_argument(
+    options_sample.add_argument(
         "--cube_length",
         help=("The cube side length (A). Defaults to 1000"),
         type=float,
         default=1000.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_sample.add_argument(
         "--cuboid_length_x",
         help=("The cuboid X side length (A). Defaults to 1000"),
         type=float,
         default=1000.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_sample.add_argument(
         "--cuboid_length_y",
         help=("The cuboid Y side length (A). Defaults to 1000"),
         type=float,
         default=1000.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_sample.add_argument(
         "--cuboid_length_z",
         help=("The cuboid Z side length (A). Defaults to 1000"),
         type=float,
         default=500.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_sample.add_argument(
         "--cylinder_length",
         help=("The cylinder length (A). Defaults to 1000"),
         type=float,
         default=1000.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_sample.add_argument(
         "--cylinder_radius",
         help=("The cylinder radius (A). Defaults to 500"),
         type=float,
         default=500.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_sample.add_argument(
         "--margin_x",
         help=(
             "The x axis margin used to define how close to the edges particles"
@@ -712,8 +676,7 @@ def add_arguments(
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_sample.add_argument(
         "--margin_y",
         help=(
             "The y axis margin used to define how close to the edges particles"
@@ -724,8 +687,7 @@ def add_arguments(
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_sample.add_argument(
         "--margin_z",
         help=(
             "The z axis margin used to define how close to the edges particles"
@@ -738,7 +700,8 @@ def add_arguments(
     )
 
     # scan args
-    parser.add_argument(
+    options_scan = run_parakeet_parser.add_argument_group("scan")
+    options_scan.add_argument(
         "--scan_mode",
         help="Scan mode, defaults to 'still'.",
         default="still",
@@ -754,8 +717,7 @@ def add_arguments(
         ],
         required=False,
     )
-
-    parser.add_argument(
+    options_scan.add_argument(
         "--scan_axis",
         help=("Scan axis vector, provide x y z. Defaults to 0. 1. 0."),
         type=float,
@@ -763,8 +725,7 @@ def add_arguments(
         nargs=3,
         required=False,
     )
-
-    parser.add_argument(
+    options_scan.add_argument(
         "--scan_start_angle",
         help="The start angle for the rotation (deg)",
         type=float,
@@ -772,23 +733,21 @@ def add_arguments(
         required=False,
     )
 
-    parser.add_argument(
+    options_scan.add_argument(
         "--scan_step_angle",
         help="The step angle for the rotation (deg)",
         type=float,
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_scan.add_argument(
         "--scan_start_pos",
         help="The start position for a translational scan (A)",
         type=float,
         default=0.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_scan.add_argument(
         "--scan_step_pos",
         help=(
             "The step distance for a translational scan (A)"
@@ -798,8 +757,7 @@ def add_arguments(
         default=None,
         required=False,
     )
-
-    parser.add_argument(
+    options_scan.add_argument(
         "--scan_num_images",
         help=(
             "The number of images to simulate. "
@@ -812,8 +770,7 @@ def add_arguments(
         default=1,
         required=False,
     )
-
-    parser.add_argument(
+    options_scan.add_argument(
         "--scan_num_fractions",
         help=(
             "The number of movie frames. This refers to the frames of the "
@@ -825,24 +782,21 @@ def add_arguments(
         default=1,
         required=False,
     )
-
-    parser.add_argument(
+    options_scan.add_argument(
         "--scan_num_nhelix",
         help="The number of scans in an n-helix",
         type=int,
         default=1,
         required=False,
     )
-
-    parser.add_argument(
+    options_scan.add_argument(
         "--exposure_time",
         help="The exposure time per image (s)",
         type=float,
         default=1.0,
         required=False,
     )
-
-    parser.add_argument(
+    options_scan.add_argument(
         "--scan_angles",
         help=(
             "The list of angles to use (deg). "
@@ -854,8 +808,7 @@ def add_arguments(
         nargs="+",
         required=False,
     )
-
-    parser.add_argument(
+    options_scan.add_argument(
         "--scan_positions",
         help=(
             "The list of positions to use (A). "
@@ -867,8 +820,7 @@ def add_arguments(
         nargs="+",
         required=False,
     )
-
-    parser.add_argument(
+    options_scan.add_argument(
         "--scan_theta",
         help=(
             "The list of theta angles to use (mrad) for the beam tilt."
@@ -879,8 +831,7 @@ def add_arguments(
         nargs="+",
         required=False,
     )
-
-    parser.add_argument(
+    options_scan.add_argument(
         "--scan_phi",
         help=(
             "The list of phi angles to use (mrad) for the beam tilt."
@@ -891,8 +842,7 @@ def add_arguments(
         nargs="+",
         required=False,
     )
-
-    parser.add_argument(
+    options_scan.add_argument(
         "--scan_drift",
         help=(
             "The model for the drift along each axis computed via "
@@ -905,8 +855,7 @@ def add_arguments(
         nargs=6,
         required=False,
     )
-
-    parser.add_argument(
+    options_scan.add_argument(
         "--fast_ice",
         help=(
             "Use the Gaussian Random Field ice model (True/False)."
@@ -916,54 +865,49 @@ def add_arguments(
         action="store_true",
     )
 
-    parser.add_argument(
+    options_simulation = run_parakeet_parser.add_argument_group("simulation")
+    options_simulation.add_argument(
         "--simulation_margin",
         help=("The margin around the image. Defaults to 100"),
         type=int,
         default=100,
         required=False,
     )
-
-    parser.add_argument(
+    options_simulation.add_argument(
         "--inelastic_model",
         help=("The inelastic model parameters. Defaults to None"),
         type=str,
         default=None,
         required=False,
     )
-
-    parser.add_argument(
+    options_simulation.add_argument(
         "--mp_loss_position",
         help=("The MPL energy filter position. Defaults to peak"),
         type=str,
         default="peak",
         required=False,
     )
-
-    parser.add_argument(
+    options_simulation.add_argument(
         "--mp_loss_width",
         help=("The MPL energy filter width (eV). Defaults to 50"),
         type=float,
         default=None,
         required=False,
     )
-
-    parser.add_argument(
+    options_simulation.add_argument(
         "--simulation_padding",
         help=("Additional padding. Defaults to 100"),
         type=int,
         default=100,
         required=False,
     )
-
-    parser.add_argument(
+    options_simulation.add_argument(
         "--radiation_damage_model",
         help=("Use the radiation damage model? Defaults to False"),
         default=False,
         action="store_true",
     )
-
-    parser.add_argument(
+    options_simulation.add_argument(
         "--sensitivity_coefficient",
         help=(
             "The radiation damage model sensitivity coefficient."
@@ -973,8 +917,7 @@ def add_arguments(
         default=0.022,
         required=False,
     )
-
-    parser.add_argument(
+    options_simulation.add_argument(
         "--slice_thickness",
         help=("The multislice thickness (A). Defaults to 3.0"),
         type=float,
@@ -982,17 +925,26 @@ def add_arguments(
         required=False,
     )
 
+    """
     parser.add_argument(
-        "--leading_zeros",
-        help=(
-            "Number of decimal integers to use for image filenames."
-            " Defaults to 6"
-        ),
-        type=int,
-        default=6,
+        "--source_spread",
+        help=("The source spread (mrad)." " Defaults to 0.1"),
+        type=float,
+        default=0.1,
         required=False,
     )
-
+    parser.add_argument(
+        "--phase_plate",
+        help=(
+            "Whether to use a"
+            " phase plate in"
+            " Parakeet simulation"
+            " Defaults to False"
+        ),
+        default=False,
+        action="store_true",
+    )
+    """
     return run_parakeet_parser
 
 
@@ -1100,6 +1052,110 @@ def get_instances(
         return new_pdb_files, new_n_instances
 
 
+def simulate_image(
+    config, mrc_dir, mrc_filename, write_mtf=False, overwrite_mtf=False
+):
+    """Call parakeet through the Python API and
+    simulate a new micrograph based on the provided config file.
+
+    Args:
+        config (Configuration): Configuration object for the simulation
+        mrc_dir (str): Directory to save the mrc file
+        mrc_filename (str): Filename for the mrc file
+        write_mtf (bool, optional): Write the MTF file. Defaults to False.
+        overwrite_mtf (bool, optional): Overwrite the MTF file if it exists.
+
+    Returns:
+        None
+    """
+    sample = parakeet.sample.new(
+        config.config_filename, sample_file=config.sample_filename
+    )
+    sample = parakeet.sample.add_molecules(
+        config.config_filename, sample_file=config.sample_filename
+    )
+
+    # Write out the metadata if this is the first image in this
+    # run_parakeet session or if overwrite requested
+    if write_mtf:
+        metadata_exporter = parakeet.metadata.RelionMetadataExporter(
+            config.config, sample, mrc_dir
+        )
+        if not os.path.exists(
+            os.path.join(
+                mrc_dir,
+                "relion/mtf_{}kV.star".format(
+                    config.config.microscope.beam.energy
+                ),
+            )
+        ):
+            metadata_exporter.write_mtf_file()
+        else:
+            if overwrite_mtf:
+                metadata_exporter.write_mtf_file()
+            else:
+                raise FileExistsError(
+                    "{} already exists!".format(
+                        os.path.join(mrc_dir, "relion")
+                    )
+                )
+
+    parakeet.simulate.exit_wave(
+        config.config_filename,
+        config.sample_filename,
+        exit_wave_file=config.exit_wave_filename,
+    )
+    parakeet.simulate.optics(
+        config.config_filename,
+        exit_wave_file=config.exit_wave_filename,
+        optics_file=config.optics_filename,
+    )
+    parakeet.simulate.image(
+        config.config_filename,
+        optics_file=config.optics_filename,
+        image_file=config.image_filename,
+    )
+
+    # save the image
+    os.system(
+        "parakeet.export {} -o {}".format(
+            config.image_filename,
+            mrc_filename,
+        )
+    )
+
+    # remove the intermediate files
+    os.system(
+        "rm {} {} {} {}".format(
+            config.sample_filename,
+            config.exit_wave_filename,
+            config.optics_filename,
+            config.image_filename,
+        )
+    )
+
+    # update the config from the sample and save/overwrite it
+    config.update_config(sample)
+
+    return
+
+
+def simulate_image_parallel(
+    config, mrc_dir, leading_zeros=6, write_mtf=False, overwrite_mtf=False
+):
+    mrc_filename = os.path.join(
+        mrc_dir, f"{config.image_index}".zfill(leading_zeros) + ".mrc"
+    )
+    simulate_image(
+        config,
+        mrc_dir,
+        mrc_filename,
+        write_mtf=write_mtf,
+        overwrite_mtf=overwrite_mtf,
+    )
+    return
+
+
 def main(args):
     """
     Loops over the number of images to generate. For each image,
@@ -1125,34 +1181,35 @@ def main(args):
     if not os.path.exists(args.mrc_dir):
         os.makedirs(args.mrc_dir)
 
-    # check how many images are already in the mrc_dir
+    # the script will look at the files in the output directory
+    # and continue with the numbering from the last image
     images_in_directory = len(
         [r for r in os.listdir(args.mrc_dir) if r.endswith(".mrc")]
     )
-
-    # get the pdb files
     frames = get_pdb_files(args.pdb_dir)
 
-    # loop over the number of images to generate
+    # loop over the number of images to generate config files
     progressbar = tqdm(
-        range(args.n_images), desc="Generating images", disable=not args.tqdm
+        range(args.n_images),
+        desc="Generating config files",
+        disable=not args.tqdm,
     )
     defocus_idx = 0
+    list_of_configs = []
     for n_image in range(
         images_in_directory, args.n_images + images_in_directory
     ):
-        # full path to where the current image will be saved
-        mrc_filename = os.path.join(
-            args.mrc_dir, f"{n_image}".zfill(args.leading_zeros) + ".mrc"
-        )
-
-        # full path to where the current configuration will be saved
         config_filename = os.path.join(
             args.mrc_dir, f"{n_image}".zfill(args.leading_zeros) + ".yaml"
         )
 
         # initialise the configuration
-        config = Configuration(config_filename, args=args)
+        # the .h5 files will be saved to <nimage>_sample.h5 in the mrc_dir
+        config = Configuration(
+            config_filename,
+            args=args,
+            image_index=n_image,
+        )
 
         # sample the defocus around the specified value
         config.config.microscope.lens.c_10 = sample_defocus(
@@ -1171,79 +1228,56 @@ def main(args):
             chosen_frames, n_instances, orientation_method=args.orientations
         )
 
-        # run parakeet
-        sample = parakeet.sample.new(
-            config.config_filename, sample_file=config.sample_filename
-        )
-        sample = parakeet.sample.add_molecules(
-            config.config_filename, sample_file=config.sample_filename
-        )
-
-        # Write out the metadata if this is the first image in this
-        # run_parakeet session or if overwrite requested
-        if n_image == images_in_directory:
-            metadata_exporter = parakeet.metadata.RelionMetadataExporter(
-                config.config, sample, args.mrc_dir
-            )
-            if not os.path.exists(
-                os.path.join(
-                    args.mrc_dir,
-                    "relion/mtf_{}kV.star".format(
-                        config.config.microscope.beam.energy
-                    ),
-                )
-            ):
-                metadata_exporter.write_mtf_file()
-            else:
-                if args.overwrite_metadata:
-                    metadata_exporter.write_mtf_file()
-                else:
-                    raise FileExistsError(
-                        "{} already exists!".format(
-                            os.path.join(args.mrc_dir, "relion")
-                        )
-                    )
-
-        parakeet.simulate.exit_wave(
-            config.config_filename,
-            config.sample_filename,
-            exit_wave_file=config.exit_wave_filename,
-        )
-        parakeet.simulate.optics(
-            config.config_filename,
-            exit_wave_file=config.exit_wave_filename,
-            optics_file=config.optics_filename,
-        )
-        parakeet.simulate.image(
-            config.config_filename,
-            optics_file=config.optics_filename,
-            image_file=config.image_filename,
-        )
-
-        # save the image
-        os.system(
-            "parakeet.export {} -o {}".format(
-                config.image_filename,
-                mrc_filename,
-            )
-        )
-
-        # remove the intermediate files
-        os.system(
-            "rm {} {} {} {}".format(
-                config.sample_filename,
-                config.exit_wave_filename,
-                config.optics_filename,
-                config.image_filename,
-            )
-        )
-
-        # update the config from the sample and save/overwrite it
-        config.update_config(sample)
-
+        list_of_configs.append(config)
         progressbar.update(1)
+        progressbar.set_postfix(
+            {
+                "filename": config_filename,
+                "defocus": config.config.microscope.lens.c_10,
+            }
+        )
 
-    progressbar.close()
+    # now loop over all the genrated config files
+    # and call parakeet to simulate the images
+    if args.nproc == 1:
+        progressbar = tqdm(
+            list_of_configs, desc="Simulating images", disable=not args.tqdm
+        )
+        for i, config in enumerate(list_of_configs):
+            mrc_filename = os.path.join(
+                args.mrc_dir,
+                f"{config.image_index}".zfill(args.leading_zeros) + ".mrc",
+            )
+            simulate_image(
+                config,
+                args.mrc_dir,
+                mrc_filename,
+                write_mtf=i == 0,
+                overwrite_mtf=args.overwrite_metadata,
+            )
+
+            progressbar.update(1)
+        progressbar.close()
+
+    else:
+        """testing the use of joblib to parallelize the simulation
+        of multiple images at once
+        """
+        print(
+            "running micrograph simulation in parallel"
+            + f" with {args.nproc} processors"
+        )
+
+        Parallel(n_jobs=args.nproc)(
+            delayed(simulate_image_parallel)(
+                config,
+                args.mrc_dir,
+                args.leading_zeros,
+                write_mtf=i == 0,
+                overwrite_mtf=args.overwrite_metadata,
+            )
+            for i, config in enumerate(list_of_configs)
+        )
 
 
 if __name__ == "__main__":
