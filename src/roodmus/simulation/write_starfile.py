@@ -392,8 +392,8 @@ class particle_data_star(object):
             "_rlnImageName",
             "_rlnMicrographName",
             "_rlnOpticsGroup",
-            "_rlnCtfMaxResolution",
-            "_rlnCtfFigureOfMerit",
+            # "_rlnCtfMaxResolution",
+            # "_rlnCtfFigureOfMerit",
             "_rlnDefocusU",
             "_rlnDefocusV",
             "_rlnDefocusAngle",
@@ -405,11 +405,10 @@ class particle_data_star(object):
             "_rlnAngleTilt",
             "_rlnOriginXAngst",
             "_rlnOriginYAngst",
-            "_rlnNormCorrection",
-            "_rlnLogLikeliContribution",
-            "_rlnMaxValueProbDistribution",
-            "_rlnNrOfSignificantSamples",
-            "_rlnRandomSubset",
+            # "_rlnNormCorrection",
+            # "_rlnLogLikeliContribution",
+            # "_rlnMaxValueProbDistribution",
+            # "_rlnNrOfSignificantSamples",
         ]
         self.particles = self.cif_document.add_new_block("particles")
         self.loop = self.particles.init_loop(prefix="", tags=self.tags)
@@ -430,6 +429,21 @@ class particle_data_star(object):
         The dataframe can also optionally contain:
         euler_phi, euler_psi, euler_theta, defocusU, defocusV, Class2D
         """
+
+        # check if the columns defocusU and defocusV are present
+        # if the columns are not present, but defocus is present,
+        # make a new column for defocusU and defocusV and copy the
+        # values from defocus
+        if (
+            "defocusU" not in df_particles.columns
+            and "defocus" in df_particles.columns
+        ):
+            df_particles["defocusU"] = df_particles["defocus"]
+        if (
+            "defocusV" not in df_particles.columns
+            and "defocus" in df_particles.columns
+        ):
+            df_particles["defocusV"] = df_particles["defocus"]
 
         progressbar = tqdm(
             total=len(df_particles),
@@ -463,8 +477,8 @@ class particle_data_star(object):
                     image_name,
                     micrograph_filename,
                     str(self.optics_group),
-                    "0",  # CTF max resolution not used
-                    "0",  # CTF figure of merit not used
+                    # "0",  # CTF max resolution not used
+                    # "1",  # CTF figure of merit not used
                     str(row.get("defocusU", "0")),
                     str(row.get("defocusV", "0")),
                     "0",  # defocus angle not used
@@ -476,11 +490,10 @@ class particle_data_star(object):
                     str(np.rad2deg(row.get("euler_theta", "0"))),
                     "0",  # origin x not used
                     "0",  # origin y not used
-                    "0",  # norm correction not used
-                    "0",  # log likelihood contribution not used
-                    "0",  # max value prob distribution not used
-                    "1",  # nr of significant samples not used
-                    "1",  # random subset not used
+                    # "0",  # norm correction not used
+                    # "0",  # log likelihood contribution not used
+                    # "0",  # max value prob distribution not used
+                    # "1",  # nr of significant samples not used
                 ]
             )
             progressbar.update(1)

@@ -1442,6 +1442,7 @@ class load_data(object):
             for instance in molecules["instances"]:
                 position = instance["position"]
                 orientation = instance["orientation"]  # rotation vector
+                orientation = -np.array(orientation)  # invert the orientation
                 # convert to euler angles
                 # euler = geom.rot2euler(geom.expmap(np.array(orientation)))
                 euler = R.from_rotvec(orientation).as_euler("ZYZ")
