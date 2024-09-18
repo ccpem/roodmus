@@ -1000,6 +1000,14 @@ def get_pdb_files(pdb_dir: str) -> List[str]:
         elif file.endswith(".cif.gz"):
             # untested as to whether parakeet can unpack .cif.gz
             pdb_files.append(os.path.join(pdb_dir, file))
+
+    # ensure list is not empty to avoid zero divs in get_instances
+    if len(pdb_files) == 0:
+        raise ValueError(
+            "Found 0 atomic structure (pdb/cif/mmcif/cif.gz) files in"
+            " directory {}!".format(pdb_dir)
+        )
+
     return pdb_files
 
 
