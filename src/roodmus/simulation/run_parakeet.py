@@ -118,6 +118,13 @@ def add_arguments(
         default=False,
         action="store_true",
     )
+    run_parakeet_parser.add_argument(
+        "--from_yaml",
+        action="store_true",
+        help="use .yaml files in mrc dir to generate micrographs instead of \
+            generating new ones",
+        required=False,
+    )
 
     options_microscope_beam = run_parakeet_parser.add_argument_group(
         "microscope_beam"
