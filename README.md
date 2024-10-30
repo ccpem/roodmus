@@ -8,6 +8,10 @@ Roodmus is a benchmarking tool that allows for the analysis of cryo-EM reconstru
 - Computing precision for 2D classes
 - Analysis of the distribution of the MD trajectory over 3D classes
 
+## Pre-print
+We have a pre-print available on BioRxiv (https://www.biorxiv.org/content/10.1101/2024.04.29.590932v1)
+
+
 WIP analysis tools:
 - analysis of latent spaces of heterogeneous reconstruction methods (CryoDRGN, cryoSPARC 3DFlex)
 - comparing the MD trajectory to a latent space
@@ -90,33 +94,18 @@ conda create -n roodmus_python3_10_4 python=3.10.4
 source activate roodmus_python3_10_4
 
 git clone git@gitlab.tudelft.nl:aj-lab/roodmus.git
-git checkout jgreer/merge_w_analysis
-cd ../
-
-git clone https://github.com/rosalindfranklininstitute/parakeet.git
-cd parakeet
-git checkout 17a0c864f6cfd84b5fd56b60fa446f7b021d338c
-git submodule update --init --recursive
-cd ../
 
 git clone https://gitlab.com/ccpem/ccpem-pipeliner.git
 cd ccpem-pipeliner
 git checkout bedbedbe183ad497dbaa82a638f210d316ba9bae
 cd ../
 
-export CXX=<path>/g++
-export CUDACXX=<path>/bin/nvcc
-export CMAKE_CUDA_ARCHITECTURES=<>
-
 pip install --upgrade pip
 cd roodmus
 pip install e .
 pre-commit install
+pip install pytest
 cd ../
-
-cd parakeet
-pip install -e .
-cd../
 
 cd ccpem-pipeliner
 pip install -e .
