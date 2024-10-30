@@ -386,7 +386,7 @@ def plot_defocus_scatter(
 
     # plot the results
     plt.rcParams["font.size"] = 24
-    plt.style.use("seaborn-whitegrid")
+    # plt.style.use("seaborn-whitegrid")
     fig, ax = plt.subplots(1, 2, figsize=(16, 8), sharey=True)
     sns.scatterplot(
         x="defocus_truth",
@@ -442,7 +442,7 @@ def plot_defocus_scatter(
         ),
     )
     sm._A = []
-    cbar = plt.colorbar(sm)
+    cbar = plt.colorbar(sm, ax=ax)
     cbar.set_label("Micrograph")
     fig.tight_layout()
     return fig, ax
