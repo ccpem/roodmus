@@ -1120,7 +1120,10 @@ def simulate_image(
     # run_parakeet session or if overwrite requested
     if write_mtf:
         metadata_exporter = parakeet.metadata.RelionMetadataExporter(
-            config.config, sample, mrc_dir
+            config.config,
+            sample,
+            parakeet.io.open(config.image_filename),
+            mrc_dir,
         )
         if not os.path.exists(
             os.path.join(
