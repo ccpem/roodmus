@@ -705,6 +705,32 @@ def add_arguments(
         default=0.0,
         required=False,
     )
+    options_sample_motion = options_sample.add_argument_group("motion")
+    options_sample_motion.add_argument(
+        "--global_drift",
+        help="global drift vector. Must specify x- and y-components",
+        type=float,
+        default=[0, 0],
+        nargs=2,
+    )
+    options_sample_motion.add_argument(
+        "--interaction_range",
+        help="radius over which to average particle directions in Angstrom",
+        type=float,
+        default=1000,
+    )
+    options_sample_motion.add_argument(
+        "--velocity",
+        help="magnitude of local velocity",
+        type=float,
+        default=0.1,
+    )
+    options_sample_motion.add_argument(
+        "--noise_magnitude",
+        help="std of noise on local velocity direction in radians",
+        type=float,
+        default=20,
+    )
 
     # scan args
     options_scan = run_parakeet_parser.add_argument_group("scan")
