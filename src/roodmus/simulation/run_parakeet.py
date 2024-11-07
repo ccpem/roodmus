@@ -1028,8 +1028,8 @@ def sample_drift(
     """
 
     angle = np.random.normal(global_drift_direction, global_drift_std)
-    global_drift_vec = global_drift_magnitude * np.array(
-        [np.cos(angle), np.sin(angle)]
+    global_drift_vec = list(
+        global_drift_magnitude * np.array([np.cos(angle), np.sin(angle)])
     )
     return global_drift_vec
 
