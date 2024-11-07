@@ -1021,15 +1021,26 @@ def sample_drift(
     global_drift_magnitude: float,
     global_drift_std: float,
     global_drift_direction: float,
-):
+) -> np.ndarray:
     """From the base direction sample a new vector with magnitude equal
     to global_drift_magnitude and direction given by global_drift_direction
      +- a random value with std equal to global_drift_std
+
+    Args:
+        global_drift_magnitude (float): magnitude of global drift velocity
+        global_drift_std (float):
+            standard deviation on the direction of global drift
+            velocity vector
+        global_drift_direction (float): constant direction for global
+            drift for all micrographs
+
+    Returns:
+        np.ndarray: global drift vector
     """
 
     angle = np.random.normal(global_drift_direction, global_drift_std)
-    global_drift_vec = list(
-        global_drift_magnitude * np.array([np.cos(angle), np.sin(angle)])
+    global_drift_vec = global_drift_magnitude * np.array(
+        [np.cos(angle), np.sin(angle)]
     )
     return global_drift_vec
 

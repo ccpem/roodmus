@@ -168,7 +168,10 @@ class Configuration(object):
 
         # sample motion
         self.config.sample.motion = config.SampleMotion()
-        self.config.sample.motion.global_drift = args.global_drift
+        self.config.sample.motion.global_drift = [
+            args.global_drift[0],
+            args.global_drift[1],
+        ]
         self.config.sample.motion.interaction_range = args.interaction_range
         self.config.sample.motion.velocity = args.velocity
         self.config.sample.motion.noise_magnitude = args.noise_magnitude
