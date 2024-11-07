@@ -1116,6 +1116,22 @@ def simulate_image(
         config.config_filename, sample_file=config.sample_filename
     )
 
+    parakeet.simulate.exit_wave(
+        config.config_filename,
+        config.sample_filename,
+        exit_wave_file=config.exit_wave_filename,
+    )
+    parakeet.simulate.optics(
+        config.config_filename,
+        exit_wave_file=config.exit_wave_filename,
+        optics_file=config.optics_filename,
+    )
+    parakeet.simulate.image(
+        config.config_filename,
+        optics_file=config.optics_filename,
+        image_file=config.image_filename,
+    )
+
     # Write out the metadata if this is the first image in this
     # run_parakeet session or if overwrite requested
     if write_mtf:
@@ -1143,22 +1159,6 @@ def simulate_image(
                         os.path.join(mrc_dir, "relion")
                     )
                 )
-
-    parakeet.simulate.exit_wave(
-        config.config_filename,
-        config.sample_filename,
-        exit_wave_file=config.exit_wave_filename,
-    )
-    parakeet.simulate.optics(
-        config.config_filename,
-        exit_wave_file=config.exit_wave_filename,
-        optics_file=config.optics_filename,
-    )
-    parakeet.simulate.image(
-        config.config_filename,
-        optics_file=config.optics_filename,
-        image_file=config.image_filename,
-    )
 
     # save the image
     os.system(
