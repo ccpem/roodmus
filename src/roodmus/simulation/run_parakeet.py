@@ -705,37 +705,42 @@ def add_arguments(
         default=0.0,
         required=False,
     )
+
     options_sample_motion = options_sample.add_argument_group("motion")
     options_sample_motion.add_argument(
         "--global_drift_magnitude",
-        help="magnitude of global drift in Angstrom",
+        help="magnitude of global drift in A/frame",
         type=float,
         default=0,
+        required=False,
     )
     options_sample_motion.add_argument(
         "--global_drift_std",
-        help="std of the direction of global"
-        + " drift for each micrograph in radians",
-        default=0,
+        help="standard deviation on direction of global drift in rad",
         type=float,
+        default=0,
+        required=False,
     )
     options_sample_motion.add_argument(
         "--interaction_range",
-        help="radius over which to average particle directions in Angstrom",
+        help="radius within which to average particle directions",
         type=float,
-        default=1000,
+        default=700,
+        required=False,
     )
     options_sample_motion.add_argument(
         "--velocity",
-        help="magnitude of local velocity",
+        help="local velocity magnitude of particles in A/frame",
         type=float,
-        default=0.1,
+        default=1,
+        required=False,
     )
     options_sample_motion.add_argument(
         "--noise_magnitude",
-        help="std of noise on local velocity direction in radians",
+        help="noise on directional alilgnment of particles",
         type=float,
-        default=20,
+        default=0,
+        required=False,
     )
 
     # scan args
@@ -1017,32 +1022,18 @@ def sample_defocus(c_10: float, c_10_stddev: float) -> float:
     return np.random.normal(c_10, c_10_stddev)
 
 
-def sample_drift(
-    global_drift_magnitude: float,
-    global_drift_std: float,
-    global_drift_direction: float,
+def sample_global_drift_vector(
+    global_drift_magnitude: float, global_drift_std: float
 ) -> np.ndarray:
-    """From the base direction sample a new vector with magnitude equal
-    to global_drift_magnitude and direction given by global_drift_direction
-     +- a random value with std equal to global_drift_std
-
-    Args:
-        global_drift_magnitude (float): magnitude of global drift velocity
-        global_drift_std (float):
-            standard deviation on the direction of global drift
-            velocity vector
-        global_drift_direction (float): constant direction for global
-            drift for all micrographs
-
-    Returns:
-        np.ndarray: global drift vector
+    """
+    based one the specified magnitude and standard deviation sample
+    a random vector for global drift
     """
 
-    angle = np.random.normal(global_drift_direction, global_drift_std)
-    global_drift_vec = global_drift_magnitude * np.array(
-        [np.cos(angle), np.sin(angle)]
-    )
-    return global_drift_vec
+    random_direction = np.random.normal(0, global_drift_std)
+    rx = np.cos(random_direction)
+    ry = np.sin(random_direction)
+    return global_drift_magnitude * np.array([rx, ry])
 
 
 def get_pdb_files(pdb_dir: str) -> List[str]:
@@ -1150,30 +1141,11 @@ def simulate_image(
         config.config_filename, sample_file=config.sample_filename
     )
 
-    parakeet.simulate.exit_wave(
-        config.config_filename,
-        config.sample_filename,
-        exit_wave_file=config.exit_wave_filename,
-    )
-    parakeet.simulate.optics(
-        config.config_filename,
-        exit_wave_file=config.exit_wave_filename,
-        optics_file=config.optics_filename,
-    )
-    parakeet.simulate.image(
-        config.config_filename,
-        optics_file=config.optics_filename,
-        image_file=config.image_filename,
-    )
-
     # Write out the metadata if this is the first image in this
     # run_parakeet session or if overwrite requested
     if write_mtf:
         metadata_exporter = parakeet.metadata.RelionMetadataExporter(
-            config.config,
-            sample,
-            parakeet.io.open(config.image_filename),
-            mrc_dir,
+            config.config, sample, mrc_dir
         )
         if not os.path.exists(
             os.path.join(
@@ -1193,6 +1165,22 @@ def simulate_image(
                         os.path.join(mrc_dir, "relion")
                     )
                 )
+
+    parakeet.simulate.exit_wave(
+        config.config_filename,
+        config.sample_filename,
+        exit_wave_file=config.exit_wave_filename,
+    )
+    parakeet.simulate.optics(
+        config.config_filename,
+        exit_wave_file=config.exit_wave_filename,
+        optics_file=config.optics_filename,
+    )
+    parakeet.simulate.image(
+        config.config_filename,
+        optics_file=config.optics_filename,
+        image_file=config.image_filename,
+    )
 
     # save the image
     os.system(
@@ -1266,9 +1254,6 @@ def main(args):
     )
     frames = get_pdb_files(args.pdb_dir)
 
-    # sample the global drift base direction
-    global_drift_direction = np.random.uniform(0, 2 * np.pi)
-
     # loop over the number of images to generate config files
     progressbar = tqdm(
         range(args.n_images),
@@ -1284,11 +1269,9 @@ def main(args):
             args.mrc_dir, f"{n_image}".zfill(args.leading_zeros) + ".yaml"
         )
 
-        # determine the glbal drift vector
-        args.global_drift = sample_drift(
-            args.global_drift_magnitude,
-            args.global_drift_std,
-            global_drift_direction,
+        # sample a drift vector for the micrograph
+        args.global_drift_vector = sample_global_drift_vector(
+            args.global_drift_magnitude, args.global_drift_std
         )
 
         # initialise the configuration

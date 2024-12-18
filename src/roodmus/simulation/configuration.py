@@ -166,16 +166,6 @@ class Configuration(object):
             args.centre_z,
         )
 
-        # sample motion
-        self.config.sample.motion = config.SampleMotion()
-        self.config.sample.motion.global_drift = [
-            float(args.global_drift[0]),
-            float(args.global_drift[1]),
-        ]
-        self.config.sample.motion.interaction_range = args.interaction_range
-        self.config.sample.motion.velocity = args.velocity
-        self.config.sample.motion.noise_magnitude = args.noise_magnitude
-
         # sample->ice
         self.config.sample.ice = config.Ice()
         self.config.sample.ice.generate = args.slow_ice
@@ -201,6 +191,13 @@ class Configuration(object):
             args.margin_y,
             args.margin_z,
         )
+
+        # sample->motion
+        self.config.sample.motion = config.SampleMotion()
+        self.config.sample.motion.global_drift = list(args.global_drift_vector)
+        self.config.sample.motion.interaction_range = args.interaction_range
+        self.config.sample.motion.velocity = args.velocity
+        self.config.sample.motion.noise_magnitude = args.noise_magnitude
 
         # sample->sputter (not yet supported as user input)
         # self.config.sample.sputter.element =
