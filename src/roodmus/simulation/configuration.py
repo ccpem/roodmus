@@ -194,7 +194,9 @@ class Configuration(object):
 
         # sample->motion
         self.config.sample.motion = config.SampleMotion()
-        self.config.sample.motion.global_drift = list(args.global_drift_vector)
+        self.config.sample.motion.global_drift = [
+            float(r) for r in args.global_drift_vec
+        ]
         self.config.sample.motion.interaction_range = args.interaction_range
         self.config.sample.motion.velocity = args.velocity
         self.config.sample.motion.noise_magnitude = args.noise_magnitude
