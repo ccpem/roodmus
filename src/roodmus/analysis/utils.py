@@ -518,6 +518,72 @@ class geom(object):
         return alpha, beta, gamma
 
 
+def get_closest_pdb_index(
+    closest_pdbs: pd.core.series.Series,
+) -> Tuple[pd.core.series.Series, List[str]]:
+    """Get the index of the truth particle which is closest to the given
+    picked particle.
+
+    Args:
+        closest_pdbs (pandas.core.series.Series): picked particle
+        column with the closest
+
+    Raises:
+        ValueError: Try/except catches truth conformation filenames not
+        of format filename_XXX.pdb
+
+    Returns:
+        Tuple[List[int], List[str]]: the indices which map each picked
+        particle to the closest truth particle and the sorted list of truth
+        particle pdb filenames if we needed to create a list of indices.
+
+    """
+    # empty list if we don't need to create indices for each truth particle
+    # pdb
+    unique_pdbs = []
+
+    try:
+        closest_pdb_index = closest_pdbs.apply(
+            lambda x: int(os.path.basename(x).split("_")[-1].split(".")[0])
+        )
+    # ValueError: invalid literal for int() with base 10: '6ttf'
+    except ValueError:
+        # find all pdb filenames and sort into a list
+        unique_pdbs = sorted(np.unique(closest_pdbs).tolist())
+        # iterate through closest_pdb filenames and grab the index
+        # from the sorted list of pdb filenames for each
+        closest_pdb_index = pd.Series(
+            int(unique_pdbs.index(closest_pdb)) for closest_pdb in closest_pdbs
+        )
+
+    return closest_pdb_index, unique_pdbs
+
+
+def convert_truth_idxs_to_df(truth_idxs: List[str]) -> pd.DataFrame:
+    """Convert unique_truth_pdb_idxs to pd.DataFrame to allow it to be
+    saved as csv by default along with any plots made using the indexes.
+
+    Args:
+        truth_idxs (List[str]): sorted list of truth particle pdb filenames
+
+    Returns:
+        pd.DataFrame: dataframe allowing truth_idxs to be saved to csv in
+        plotDataFrame class along with the dataframes used to create plots.
+        Allows easy interpretation of plots from indices.
+    """
+    if len(truth_idxs) < 1:
+        raise ValueError(
+            "Truth particles have not been assigned indices and must"
+            " therefore already have suitable pdb filename formats."
+            " No need to call this function!"
+        )
+    idxs = [str(x) for x in list(range(0, len(truth_idxs), 1))]
+    truth_pdb_idxs = {}
+    truth_pdb_idxs["truth_particle_filename"] = truth_idxs
+    truth_pdb_idxs["truth_particle_index"] = idxs
+    return pd.DataFrame(truth_pdb_idxs)
+
+
 class load_data(object):
     def __init__(
         self,
@@ -1971,8 +2037,13 @@ class load_data(object):
             calculation. Defaults to False.
 
         Returns:
-            pandas.DataFrame: a data frame containing the precision, recall
-            and multiplicity for each micrograph.
+            Tuple[pandas.DataFrame, pandas.DataFrame, List[str]]: a data frame
+            containing the precision, recall and multiplicity for each
+            micrograph. Followed by an updated version of results_picking with
+            new fields relating the picked particle and closest truth particle
+            as well as a alphanumeric sorted list of truth pdb filenames and
+            so that results_picking["losest_pdb_index"] indices can be mapped
+            to the corresponding truth pdb filename.
         """
 
         # define results data frame
@@ -2080,7 +2151,9 @@ class load_data(object):
                 0  # the number of false positives in the current micrograph
             )
             for particle in range(len(pos_picked_in_ugraph)):
-                TP += float(np.any(sdm[particle] < self.particle_diameter / 2))
+                TP += float(
+                    np.any(sdm[particle] <= self.particle_diameter / 2)
+                )
                 FP += float(np.all(sdm[particle] > self.particle_diameter / 2))
 
                 TP_all.append(
@@ -2154,9 +2227,10 @@ class load_data(object):
         results_picking["closest_dist"] = closest_dist_all
         results_picking["closest_particle"] = closest_particle_all
         results_picking["closest_pdb"] = closest_pdb_all
-        results_picking["closest_pdb_index"] = results_picking[
-            "closest_pdb"
-        ].apply(lambda x: int(x.split("_")[-1].split(".")[0]))
+        (
+            results_picking["closest_pdb_index"],
+            unique_pdbs,
+        ) = get_closest_pdb_index(results_picking["closest_pdb"])
         # set the closest_pdb_index to np.nan if the particle is not
         # closer to a truth particle thatn the particle diameter
         results_picking.loc[
@@ -2165,7 +2239,11 @@ class load_data(object):
         ] = np.nan
 
         # convert the results data frame to a pandas data frame
-        return pd.DataFrame(results_precision), results_picking
+        return (
+            pd.DataFrame(results_precision),
+            results_picking,
+            unique_pdbs,
+        )
 
     def compute_overlap(
         self,
