@@ -25,7 +25,6 @@ import argparse
 import os
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import seaborn as sns
 
@@ -33,6 +32,7 @@ from roodmus.analysis.utils import (
     load_data,
     plotDataFrame,
     convert_truth_idxs_to_df,
+    get_closest_pdb_index,
 )
 
 
@@ -203,17 +203,8 @@ def plot_frame_distribution(
             " Run 'compute_precision' first"
         )
 
-    df_picked["closest_pdb_index"] = df_picked["closest_pdb"].apply(
-        lambda x: int(x.split("_")[-1].split(".")[0])
-    )
-    # set the closest_pdb_index to np.nan if the particle
-    # is not closer to a truth particle than the particle diameter
-    df_picked.loc[
-        df_picked["closest_dist"] > particle_diameter, "closest_pdb_index"
-    ] = np.nan
-    df_truth["pdb_index"] = df_truth["pdb_filename"].apply(
-        lambda x: int(x.split("_")[-1].split(".")[0])
-    )
+    # get closest_pdb_index for truth particles df
+    df_truth["pdb_index"], _ = get_closest_pdb_index(df_truth["pdb_filename"])
 
     fig, ax = plt.subplots(figsize=(3.5, 3.5))
     sns.histplot(

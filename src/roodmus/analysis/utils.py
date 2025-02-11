@@ -2042,7 +2042,7 @@ class load_data(object):
             micrograph. Followed by an updated version of results_picking with
             new fields relating the picked particle and closest truth particle
             as well as a alphanumeric sorted list of truth pdb filenames and
-            so that results_picking["losest_pdb_index"] indices can be mapped
+            so that results_picking["closest_pdb_index"] indices can be mapped
             to the corresponding truth pdb filename.
         """
 
