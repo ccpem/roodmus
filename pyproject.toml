@@ -26,7 +26,6 @@ dependencies = [
     "MDAnalysis",
     "umap-learn",
     "scikit-learn>=1.3",
-    "python-parakeet==0.5.1",
 ]
 
 [project.scripts]

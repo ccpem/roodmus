@@ -386,7 +386,7 @@ def plot_defocus_scatter(
 
     # plot the results
     plt.rcParams["font.size"] = 24
-    plt.style.use("seaborn-v0_8-whitegrid")
+    # plt.style.use("seaborn-whitegrid")
     fig, ax = plt.subplots(1, 2, figsize=(16, 8), sharey=True)
     sns.scatterplot(
         x="defocus_truth",

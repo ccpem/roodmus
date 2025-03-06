@@ -706,6 +706,43 @@ def add_arguments(
         required=False,
     )
 
+    options_sample_motion = options_sample.add_argument_group("motion")
+    options_sample_motion.add_argument(
+        "--global_drift_magnitude",
+        help="magnitude of global drift in A/frame",
+        type=float,
+        default=0,
+        required=False,
+    )
+    options_sample_motion.add_argument(
+        "--global_drift_std",
+        help="standard deviation on direction of global drift in rad",
+        type=float,
+        default=0,
+        required=False,
+    )
+    options_sample_motion.add_argument(
+        "--interaction_range",
+        help="radius within which to average particle directions",
+        type=float,
+        default=700,
+        required=False,
+    )
+    options_sample_motion.add_argument(
+        "--velocity",
+        help="local velocity magnitude of particles in A/frame",
+        type=float,
+        default=1,
+        required=False,
+    )
+    options_sample_motion.add_argument(
+        "--noise_magnitude",
+        help="noise on directional alilgnment of particles",
+        type=float,
+        default=0,
+        required=False,
+    )
+
     # scan args
     options_scan = run_parakeet_parser.add_argument_group("scan")
     options_scan.add_argument(
@@ -985,6 +1022,20 @@ def sample_defocus(c_10: float, c_10_stddev: float) -> float:
     return np.random.normal(c_10, c_10_stddev)
 
 
+def sample_global_drift_vector(
+    global_drift_magnitude: float, global_drift_std: float
+) -> np.ndarray:
+    """
+    based one the specified magnitude and standard deviation sample
+    a random vector for global drift
+    """
+
+    random_direction = np.random.normal(0, global_drift_std)
+    rx = np.cos(random_direction)
+    ry = np.sin(random_direction)
+    return global_drift_magnitude * np.array([rx, ry])
+
+
 def get_pdb_files(pdb_dir: str) -> List[str]:
     """Grab a list of molecule/structure definition files (such as PDBs) to add
     to micrographs
@@ -1094,7 +1145,7 @@ def simulate_image(
     # run_parakeet session or if overwrite requested
     if write_mtf:
         metadata_exporter = parakeet.metadata.RelionMetadataExporter(
-            config.config, sample, mrc_dir
+            config.config, sample, None, mrc_dir
         )
         if not os.path.exists(
             os.path.join(
@@ -1216,6 +1267,11 @@ def main(args):
     ):
         config_filename = os.path.join(
             args.mrc_dir, f"{n_image}".zfill(args.leading_zeros) + ".yaml"
+        )
+
+        # sample a drift vector for the micrograph
+        args.global_drift_vector = sample_global_drift_vector(
+            args.global_drift_magnitude, args.global_drift_std
         )
 
         # initialise the configuration

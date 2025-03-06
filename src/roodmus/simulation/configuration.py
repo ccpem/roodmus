@@ -192,6 +192,15 @@ class Configuration(object):
             args.margin_z,
         )
 
+        # sample->motion
+        self.config.sample.motion = config.SampleMotion()
+        self.config.sample.motion.global_drift = [
+            float(r) for r in args.global_drift_vector
+        ]
+        self.config.sample.motion.interaction_range = args.interaction_range
+        self.config.sample.motion.velocity = args.velocity
+        self.config.sample.motion.noise_magnitude = args.noise_magnitude
+
         # sample->sputter (not yet supported as user input)
         # self.config.sample.sputter.element =
         # self.config.sample.sputter.thickness =
