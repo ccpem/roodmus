@@ -760,7 +760,8 @@ def main(args):
     )  # creates the class
     df_picked = pd.DataFrame(analysis.results_picking)
     df_truth = pd.DataFrame(analysis.results_truth)
-    _, df_picked = analysis.compute_precision(
+    # TODO update to _, df_picked, truth_idx if ever required
+    _, df_picked, _ = analysis.compute_precision(
         df_picked,
         df_truth,
         verbose=args.verbose,
