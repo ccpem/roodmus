@@ -22,7 +22,7 @@ jobs:
     - name: build-bin-whl
       run: python3 -m build
     - name: grab-build
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: pkg-dist
         path: dist/
