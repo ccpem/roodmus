@@ -111,3 +111,29 @@ cd ccpem-pipeliner
 pip install -e .
 ```
 After doing so, an editable install of roodmus should be set up with all requisite packages.
+
+# Modern (May 2025) developer install on V100
+
+```
+conda create -n roodmus python=3.10.4
+conda activate roodmus
+
+git clone https://gitlab.com/ccpem/ccpem-pipeliner.git
+cd ccpem-pipeliner
+git checkout bedbedbe183ad497dbaa82a638f210d316ba9bae
+cd ../
+
+git clone git@github.com:ccpem/roodmus.git
+cd roodmus
+export CXX=/usr/bin/g++
+export CUDACXX=/usr/local/cuda-12.3/bin/nvcc
+export CMAKE_CUDA_ARCHITECTURES=70
+#USE CMAKE COMPATIBLE WITH CMAKE<3.5
+pip install --upgrade pip
+pip install -e . --no-cache-dir -r requirements-dev.txt
+pre-commit install
+cd ../
+
+cd ccpem-pipeliner
+pip install -e .
+```

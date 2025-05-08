@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "roodmus"
-version = "0.0.37"
+version = "0.0.38"
 authors = [
   { name="Joel Greer", email="joel.greer@stfc.ac.uk" },
   { name="Maarten Joosten", email="m.j.joosten@tudelft.nl" },
@@ -20,12 +20,6 @@ classifiers = [
 ]
 dependencies = [
     "lxml_html_clean",
-    "mdtraj",
-    "glob2",
-    "seaborn",
-    "MDAnalysis",
-    "umap-learn",
-    "scikit-learn>=1.3",
 ]
 
 [project.scripts]
