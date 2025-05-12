@@ -708,6 +708,14 @@ def add_arguments(
 
     options_sample_motion = options_sample.add_argument_group("motion")
     options_sample_motion.add_argument(
+        "--enable_motion",
+        help=(
+            "enables the beam-induced motion model to generate trajectories"
+            " for every particle in the micrograph"
+        ),
+        action="store_true",
+    )
+    options_sample_motion.add_argument(
         "--global_drift_magnitude",
         help="magnitude of global drift in A/frame",
         type=float,
