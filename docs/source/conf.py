@@ -1,3 +1,8 @@
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath("../../src"))
+
 # Configuration file for the Sphinx documentation builder.
 
 # -- Project information
@@ -19,6 +24,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
+    "sphinx.ext.coverage",
 ]
 
 intersphinx_mapping = {
@@ -45,4 +51,5 @@ autosummary_generate = True
 autosummary_generate_overwrite = False
 autodoc_typehints = "description"
 autodoc_typehints_descriptions_target = "documented_params"
+autodoc_default_flags = ["members"]
 autoclass_content = "both"
