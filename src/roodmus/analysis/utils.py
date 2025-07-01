@@ -71,7 +71,9 @@ class IO(object):
         """
 
         if "location/micrograph_path" in metadata_cs.dtype.names:
-            ugraph_paths = metadata_cs["location/micrograph_path"].tolist()
+            ugraph_paths: list = metadata_cs[
+                "location/micrograph_path"
+            ].tolist()
             # Cryosparc may add suffixes to the micrograph
             # name, such as _patch_aligned_doseweighted.mrc.
             # We remove these suffixes to match the micrograph
@@ -520,6 +522,7 @@ class geom(object):
 
 def get_closest_pdb_index(
     closest_pdbs: pd.core.series.Series,
+    index_prefix=False,
 ) -> Tuple[pd.core.series.Series, List[str]]:
     """Get the index of the truth particle which is closest to the given
     picked particle.
@@ -546,6 +549,11 @@ def get_closest_pdb_index(
         closest_pdb_index = closest_pdbs.apply(
             lambda x: int(os.path.basename(x).split("_")[-1].split(".")[0])
         )
+        if index_prefix:
+            # if using prefix as index, instead do the following
+            closest_pdb_index = closest_pdbs.apply(
+                lambda x: int(os.path.basename(x).split("_")[0].split(".")[0])
+            )
     # ValueError: invalid literal for int() with base 10: '6ttf'
     except ValueError:
         # find all pdb filenames and sort into a list
@@ -1854,12 +1862,12 @@ class load_data(object):
                 matched_truth_dfs.append(ugraph_truth.iloc[t_match])
 
                 # Extract the unmatched picked particles
-                p_list = np.arange(len(picked_pos_x), dtype=int).tolist()
+                p_list: list = np.arange(len(picked_pos_x), dtype=int).tolist()
                 p_unmatched = list(set(p_list).difference(p_match))
                 unmatched_picked_dfs.append(ugraph_picked.iloc[p_unmatched])
 
                 # Extract the unmatched truth particles
-                t_list = np.arange(len(truth_pos_x), dtype=int).tolist()
+                t_list: list = np.arange(len(truth_pos_x), dtype=int).tolist()
                 t_unmatched = list(set(t_list).difference(t_match))
                 unmatched_truth_dfs.append(ugraph_truth.iloc[t_unmatched])
 
@@ -2020,6 +2028,7 @@ class load_data(object):
         self,
         results_picking: pd.DataFrame,
         results_truth: pd.DataFrame,
+        index_prefix=False,
         verbose: bool = False,
     ):
         """This function produces another data frame containing the number
@@ -2230,7 +2239,10 @@ class load_data(object):
         (
             results_picking["closest_pdb_index"],
             unique_pdbs,
-        ) = get_closest_pdb_index(results_picking["closest_pdb"])
+        ) = get_closest_pdb_index(
+            results_picking["closest_pdb"],
+            index_prefix=index_prefix,
+        )
         # set the closest_pdb_index to np.nan if the particle is not
         # closer to a truth particle thatn the particle diameter
         results_picking.loc[

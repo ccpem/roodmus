@@ -89,6 +89,13 @@ def add_arguments(
     )
 
     write_starfile_parser.add_argument(
+        "--pp_defoci",
+        action="store_true",
+        help="Allow truth particles to include particle ground truth \
+            z position in defocus to get per-particle defoci",
+    )
+
+    write_starfile_parser.add_argument(
         "--tqdm",
         action="store_true",
         help="Enable progressbar",
@@ -380,6 +387,7 @@ class particle_data_star(object):
         pixel_size,
         optics_group,
         extract_dir=None,
+        per_particle_defoci=False,
         enable_progressbar=False,
     ):
         self.cif_document = cif.Document()
@@ -418,6 +426,7 @@ class particle_data_star(object):
         self.pixel_size = pixel_size
         self.optics_group = optics_group
         self.extract_dir = extract_dir
+        self.per_particle_defoci = per_particle_defoci
         self.enable_progressbar = enable_progressbar
 
     def parse_df(self, df_particles):
@@ -439,11 +448,25 @@ class particle_data_star(object):
             and "defocus" in df_particles.columns
         ):
             df_particles["defocusU"] = df_particles["defocus"]
+            if self.per_particle_defoci:
+                # Add z coord to defocus - should only occur if ground truth
+                # is utilised
+                # Similar to analysis.plot_ctf main function
+                df_particles["defocusU"] = (
+                    df_particles["defocusU"] + df_particles["position_z"]
+                )
         if (
             "defocusV" not in df_particles.columns
             and "defocus" in df_particles.columns
         ):
             df_particles["defocusV"] = df_particles["defocus"]
+            if self.per_particle_defoci:
+                # Add z coord to defocus - should only occur if ground truth
+                # is utilised
+                # Similar to analysis.plot_ctf main function
+                df_particles["defocusV"] = (
+                    df_particles["defocusV"] + df_particles["position_z"]
+                )
 
         progressbar = tqdm(
             total=len(df_particles),
@@ -685,6 +708,7 @@ def main(args):
             args.pixel_size,
             args.optics_group,
             args.extract_dir,
+            args.pp_defoci,
             args.tqdm,
         )
         starfile.parse_df(df_particles)

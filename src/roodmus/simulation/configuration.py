@@ -192,7 +192,7 @@ class Configuration(object):
             args.margin_z,
         )
 
-        # sample->motion
+        # sample->motion ISN'T INCLUED IN PARAKEET VERSION
         self.config.sample.motion = config.SampleMotion()
         self.config.sample.motion.global_drift = [
             float(r) for r in args.global_drift_vector
