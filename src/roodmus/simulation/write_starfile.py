@@ -468,6 +468,10 @@ class particle_data_star(object):
                     df_particles["defocusV"] + df_particles["position_z"]
                 )
 
+        # by convention it appears that defocus is +ve in RELION
+        df_particles["defocusU"] = df_particles["defocusU"].abs()
+        df_particles["defocusV"] = df_particles["defocusV"].abs()
+
         progressbar = tqdm(
             total=len(df_particles),
             desc="Writing starfiles",
