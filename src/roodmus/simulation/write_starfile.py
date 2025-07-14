@@ -500,7 +500,7 @@ class particle_data_star(object):
                     str(row["position_y"] * self.pixel_size),
                     "1",  # figure of merit not used
                     str(row.get("Class2D", "0")),
-                    str(np.rad2deg(row.get("euler_phi", 0))),
+                    str(np.rad2deg(row.get("euler_psi", 0))),  # corr to psi
                     image_name,
                     micrograph_filename,
                     str(self.optics_group),
@@ -513,7 +513,7 @@ class particle_data_star(object):
                     "1",  # CTF scalefactor defaults to 1
                     "0",  # phase shift not used
                     "1",  # group number not used
-                    str(np.rad2deg(row.get("euler_psi", 0))),
+                    str(np.rad2deg(row.get("euler_phi", 0))),  # corr to phi
                     str(np.rad2deg(row.get("euler_theta", 0))),
                     "0",  # origin x not used
                     "0",  # origin y not used
