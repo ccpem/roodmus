@@ -449,11 +449,12 @@ class particle_data_star(object):
         ):
             df_particles["defocusU"] = df_particles["defocus"]
             if self.per_particle_defoci:
-                # Add z coord to defocus - should only occur if ground truth
-                # is utilised
-                # Similar to analysis.plot_ctf main function
-                df_particles["defocusU"] = (
-                    df_particles["defocusU"] + df_particles["position_z"]
+                # Adjust defocus - should only occur if ground truth
+                # is utilised. Assumes defocus plane is centre sample z
+                # and sample and microscope z axes co-align.
+                df_particles["defocusU"] = df_particles["defocusU"] - (
+                    df_particles["position_z"]
+                    - (df_particles["ice_thickness"] / 2.0)
                 )
         if (
             "defocusV" not in df_particles.columns
@@ -461,11 +462,12 @@ class particle_data_star(object):
         ):
             df_particles["defocusV"] = df_particles["defocus"]
             if self.per_particle_defoci:
-                # Add z coord to defocus - should only occur if ground truth
-                # is utilised
-                # Similar to analysis.plot_ctf main function
-                df_particles["defocusV"] = (
-                    df_particles["defocusV"] + df_particles["position_z"]
+                # Adjust defocus - should only occur if ground truth
+                # is utilised. Assumes defocus plane is centre sample z
+                # and sample and microscope z axes co-align.
+                df_particles["defocusV"] = df_particles["defocusV"] - (
+                    df_particles["position_z"]
+                    - (df_particles["ice_thickness"] / 2.0)
                 )
 
         # by convention it appears that defocus is +ve in RELION
