@@ -28,6 +28,8 @@ from typing import Tuple, List
 import numpy as np
 from tqdm import tqdm
 from joblib import Parallel, delayed
+import h5py
+import pickle
 
 import parakeet
 from .configuration import Configuration
@@ -1198,6 +1200,9 @@ def simulate_image(
         )
     )
 
+    # Save the particle trajectories as a pkl file
+    open_h5_save_trajectories(config.exit_wave_filename)
+
     # remove the intermediate files
     # os.system(
     #     "rm {} {} {} {}".format(
@@ -1212,6 +1217,26 @@ def simulate_image(
     config.update_config(sample)
 
     return
+
+
+def open_h5_save_trajectories(hdf_file):
+    file_id = hdf_file[-19:-12] + "positions.pkl"
+    destination_dir = os.path.dirname(hdf_file)
+    destination_file = os.path.join(destination_dir, file_id)
+
+    # Open the HDF5 file in read mode
+    with h5py.File(hdf_file, "r") as hdf:
+        # Navigate to the dataset
+        particle_positions = hdf["entry"]["sample"]["particle_positions"][:]
+
+        # Convert to a NumPy array
+        particle_positions_np = np.array(particle_positions)
+
+    # Save the NumPy array to a pickle file
+    with open(destination_file, "wb") as f:
+        pickle.dump(particle_positions_np, f)
+
+    pass
 
 
 def simulate_image_parallel(
