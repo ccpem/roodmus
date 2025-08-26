@@ -1199,14 +1199,14 @@ def simulate_image(
     )
 
     # remove the intermediate files
-    os.system(
-        "rm {} {} {} {}".format(
-            config.sample_filename,
-            config.exit_wave_filename,
-            config.optics_filename,
-            config.image_filename,
-        )
-    )
+    # os.system(
+    #     "rm {} {} {} {}".format(
+    #         config.sample_filename,
+    #         config.exit_wave_filename,
+    #         config.optics_filename,
+    #         config.image_filename,
+    #     )
+    # )
 
     # update the config from the sample and save/overwrite it
     config.update_config(sample)
