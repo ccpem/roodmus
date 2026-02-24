@@ -95,6 +95,12 @@ def add_arguments(
         action="store_true",
     )
     run_parakeet_parser.add_argument(
+        "--delete_hdf",
+        help="delete hdf5 images after ugraph generated",
+        default=False,
+        action="store_true",
+    )
+    run_parakeet_parser.add_argument(
         "--orientations",
         help="how to generate the orientations \
             for each particle. Default is random \
@@ -1038,13 +1044,13 @@ def sample_global_drift_vector(
 
 def get_pdb_files(pdb_dir: str) -> List[str]:
     """Grab a list of molecule/structure definition files (such as PDBs) to add
-    to micrographs
+    to micrographs and alphanumerically sort them
 
     Args:
         pdb_dir (str): Path to directory containing all molecules to use
 
     Returns:
-        list[str]: List of molecules file paths
+        list[str]: List of molecules file paths in alphanumerical order
     """
     pdb_dir = os.path.abspath(pdb_dir)
     pdb_files = []
@@ -1066,7 +1072,14 @@ def get_pdb_files(pdb_dir: str) -> List[str]:
             " directory {}!".format(pdb_dir)
         )
 
-    return pdb_files
+    """
+    # check that single filetype is used for structures
+    ftype = lambda x: os.path.basename(x).split(".")[-1]
+    assert len(
+        np.unique([ftype(x) for x in pdb_files])
+    )==1, "Multiple structure filetypes provided"
+    """
+    return sorted(pdb_files)
 
 
 def get_instances(
@@ -1119,7 +1132,13 @@ def get_instances(
 
 
 def simulate_image(
-    config, mrc_dir, mrc_filename, write_mtf=False, overwrite_mtf=False
+    config,
+    mrc_dir,
+    mrc_filename,
+    write_mtf=False,
+    overwrite_mtf=False,
+    delete_hdf=False,
+    verbose=False,
 ):
     """Call parakeet through the Python API and
     simulate a new micrograph based on the provided config file.
@@ -1191,23 +1210,30 @@ def simulate_image(
     )
 
     # remove the intermediate files
-    os.system(
-        "rm {} {} {} {}".format(
-            config.sample_filename,
-            config.exit_wave_filename,
-            config.optics_filename,
-            config.image_filename,
+    if delete_hdf:
+        os.system(
+            "rm {} {} {} {}".format(
+                config.sample_filename,
+                config.exit_wave_filename,
+                config.optics_filename,
+                config.image_filename,
+            )
         )
-    )
 
     # update the config from the sample and save/overwrite it
-    config.update_config(sample)
+    config.update_config(sample, verbose=verbose)
 
     return
 
 
 def simulate_image_parallel(
-    config, mrc_dir, leading_zeros=6, write_mtf=False, overwrite_mtf=False
+    config,
+    mrc_dir,
+    leading_zeros=6,
+    write_mtf=False,
+    overwrite_mtf=False,
+    delete_hdf=False,
+    verbose=False,
 ):
     mrc_filename = os.path.join(
         mrc_dir, f"{config.image_index}".zfill(leading_zeros) + ".mrc"
@@ -1218,6 +1244,8 @@ def simulate_image_parallel(
         mrc_filename,
         write_mtf=write_mtf,
         overwrite_mtf=overwrite_mtf,
+        delete_hdf=delete_hdf,
+        verbose=verbose,
     )
     return
 
@@ -1249,9 +1277,23 @@ def main(args):
 
     # the script will look at the files in the output directory
     # and continue with the numbering from the last image
-    images_in_directory = len(
+    images = sorted(
         [r for r in os.listdir(args.mrc_dir) if r.endswith(".mrc")]
     )
+    images_in_directory = len(images)
+    # check last of alphanumeric ordered mrc fnames is same
+    # index as the len of list of fnames
+    # relies on XXXXXX.mrc convention
+    if images_in_directory > 0:
+        last_index = os.path.basename(images[-1]).split(".")[0]
+        assert images_in_directory - 1 == int(last_index), (
+            "Ugraph names are not labelled with base-0 indices."
+            "{} ugraphs with last index {}".format(
+                images_in_directory, last_index
+            )
+        )
+
+    # get alphanumeric ordered structures to simulate
     frames = get_pdb_files(args.pdb_dir)
 
     # loop over the number of images to generate config files
@@ -1325,6 +1367,8 @@ def main(args):
                 mrc_filename,
                 write_mtf=i == 0,
                 overwrite_mtf=args.overwrite_metadata,
+                delete_hdf=args.delete_hdf,
+                verbose=args.verbose,
             )
 
             progressbar.update(1)
@@ -1346,6 +1390,8 @@ def main(args):
                 args.leading_zeros,
                 write_mtf=i == 0,
                 overwrite_mtf=args.overwrite_metadata,
+                delete_hdf=args.delete_hdf,
+                verbose=args.verbose,
             )
             for i, config in enumerate(list_of_configs)
         )
