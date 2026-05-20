@@ -33,8 +33,7 @@ from scipy.spatial.transform import Rotation as R
 from tqdm import tqdm
 import pandas as pd
 import pickle
-
-from pipeliner.starfile_handler import DataStarFile
+import gemmi
 
 
 class IO(object):
@@ -71,7 +70,7 @@ class IO(object):
         """
 
         if "location/micrograph_path" in metadata_cs.dtype.names:
-            ugraph_paths: list = metadata_cs[
+            ugraph_paths: List[np.bytes_] = metadata_cs[
                 "location/micrograph_path"
             ].tolist()
             # Cryosparc may add suffixes to the micrograph
@@ -251,29 +250,31 @@ class IO(object):
     # Loading .star files and parsing the ctf parameters,
     # the particle positions and orientations
     @classmethod
-    def load_star(self, star_path):
+    def load_star(self, star_path: str) -> gemmi.cif.Document:
         """Load metadata from .star file.
 
         Args:
             star_path (str): Relion metadata.
 
         Returns:
-            DataStarFile: Loaded Relion metadata.
+            gemmi.cif.Document: Loaded Relion metadata.
         """
-        return DataStarFile(star_path)
+        return gemmi.cif.read(star_path)
 
     @classmethod
-    def get_ugraph_star(self, metadata_star):
+    def get_ugraph_star(self, metadata_star: gemmi.cif.Document) -> List[str]:
         """Grab micrograph file paths from Relion metadata.
 
         Args:
-            metadata_star (DataStarFile): Loaded Relion metadata.
+            metadata_star (gemmi.cif.Block): Loaded Relion metadata.
 
         Returns:
             ugraph_paths (List[str]): Micrograph file paths.
         """
-        ugraph_paths = metadata_star.column_as_list(
-            "particles", "_rlnMicrographName"
+        ugraph_paths = list(
+            metadata_star.find_block("particles").find_loop(
+                "_rlnMicrographName"
+            )
         )
         # convert to basename and remove index
         ugraph_paths = [
@@ -284,38 +285,40 @@ class IO(object):
     @classmethod
     def get_ctf_star(
         self,
-        metadata_star,
+        metadata_star: gemmi.cif.Document,
     ) -> np.ndarray:
         """Grab ctf information from Relion metadata.
 
         Args:
-            metadata_star (DataStarFile): Loaded Relion metadata.
+            metadata_star (gemmi.cif.Document): Loaded Relion metadata.
 
         Returns:
             np.ndarray: ctf data.
         """
         kV = [
             float(r)
-            for r in metadata_star.column_as_list("optics", "_rlnVoltage")
+            for r in metadata_star.find_block("optics").find_loop(
+                "_rlnVoltage"
+            )
         ]
         Cs = [
             float(r)
-            for r in metadata_star.column_as_list(
-                "optics", "_rlnSphericalAberration"
+            for r in metadata_star.find_block("optics").find_loop(
+                "_rlnSphericalAberration"
             )
         ]
         amp = [
             float(r)
-            for r in metadata_star.column_as_list(
-                "optics", "_rlnAmplitudeContrast"
+            for r in metadata_star.find_block("optics").find_loop(
+                "_rlnAmplitudeContrast"
             )
         ]
 
         defocusU = np.array(
             [
                 float(r)
-                for r in metadata_star.column_as_list(
-                    "particles", "_rlnDefocusU"
+                for r in metadata_star.find_block("particles").find_loop(
+                    "_rlnDefocusU"
                 )
             ],
             dtype=float,
@@ -323,8 +326,8 @@ class IO(object):
         defocusV = np.array(
             [
                 float(r)
-                for r in metadata_star.column_as_list(
-                    "particles", "_rlnDefocusV"
+                for r in metadata_star.find_block("particles").find_loop(
+                    "_rlnDefocusV"
                 )
             ]
         ).tolist()
@@ -342,45 +345,53 @@ class IO(object):
         )
 
     @classmethod
-    def get_positions_star(self, metadata_star) -> np.ndarray:
+    def get_positions_star(
+        self, metadata_star: gemmi.cif.Document
+    ) -> np.ndarray:
         """Grab reconstructed particle positions from Relion metadata.
 
         Args:
-            metadata_star (DataStarFile): Loaded Relion metadata.
+            metadata_star (gemmi.cif.Document): Loaded Relion metadata.
 
         Returns:
             ps (np.ndarray): particle position data.
         """
         x = [
             float(r)
-            for r in metadata_star.column_as_list(
-                "particles", "_rlnCoordinateX"
+            for r in metadata_star.find_block("particles").find_loop(
+                "_rlnCoordinateX"
             )
         ]
         y = [
             float(r)
-            for r in metadata_star.column_as_list(
-                "particles", "_rlnCoordinateY"
+            for r in metadata_star.find_block("particles").find_loop(
+                "_rlnCoordinateY"
             )
         ]
         pos = np.stack([x, y], axis=1)
         return pos
 
     @classmethod
-    def get_orientations_star(self, metadata_star) -> np.ndarray:
+    def get_orientations_star(
+        self, metadata_star: gemmi.cif.Document
+    ) -> np.ndarray:
         """Grab reconstructed orientations from Relion metadata.
 
         Args:
-            metadata_star (DataStarFile): Loaded Relion metadata.
+            metadata_star (gemmi.cif.Document): Loaded Relion metadata.
 
         Returns:
             euler (np.ndarray): particle orientation data.
         """
-        euler_phi = metadata_star.column_as_list("particles", "_rlnAngleRot")
-        euler_theta = metadata_star.column_as_list(
-            "particles", "_rlnAngleTilt"
+        euler_phi = list(
+            metadata_star.find_block("particles").find_loop("_rlnAngleRot")
         )
-        euler_psi = metadata_star.column_as_list("particles", "_rlnAnglePsi")
+        euler_theta = list(
+            metadata_star.find_block("particles").find_loop("_rlnAngleTilt")
+        )
+        euler_psi = list(
+            metadata_star.find_block("particles").find_loop("_rlnAnglePsi")
+        )
 
         num_particles = np.max(
             [len(euler_phi), len(euler_theta), len(euler_psi)]
@@ -401,19 +412,21 @@ class IO(object):
         return euler
 
     @classmethod
-    def get_class2D_star(self, metadata_star):
+    def get_class2D_star(
+        self, metadata_star: gemmi.cif.Document
+    ) -> np.ndarray | None:
         """Grab 2D class from Relion metadata.
 
         Args:
-            metadata_star (DataStarFile): Loaded Relion metadata.
+            metadata_star (gemmi.cif.Document): Loaded Relion metadata.
 
         Returns:
-            class2d (np.ndarray): 2D class data.
+            class2d (np.ndarray | None): 2D class data.
         """
         class2d = [
             int(r)
-            for r in metadata_star.column_as_list(
-                "particles", "_rlnClassNumber"
+            for r in metadata_star.find_block("particles").find_loop(
+                "_rlnClassNumber"
             )
         ]
         if class2d:
@@ -1862,12 +1875,16 @@ class load_data(object):
                 matched_truth_dfs.append(ugraph_truth.iloc[t_match])
 
                 # Extract the unmatched picked particles
-                p_list: list = np.arange(len(picked_pos_x), dtype=int).tolist()
+                p_list: List[int] = np.arange(
+                    len(picked_pos_x), dtype=int
+                ).tolist()
                 p_unmatched = list(set(p_list).difference(p_match))
                 unmatched_picked_dfs.append(ugraph_picked.iloc[p_unmatched])
 
                 # Extract the unmatched truth particles
-                t_list: list = np.arange(len(truth_pos_x), dtype=int).tolist()
+                t_list: List[int] = np.arange(
+                    len(truth_pos_x), dtype=int
+                ).tolist()
                 t_unmatched = list(set(t_list).difference(t_match))
                 unmatched_truth_dfs.append(ugraph_truth.iloc[t_unmatched])
 
