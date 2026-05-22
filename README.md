@@ -130,7 +130,7 @@ export CUDACXX=/usr/local/cuda-12.3/bin/nvcc
 export CMAKE_CUDA_ARCHITECTURES=70
 #USE CMAKE COMPATIBLE WITH CMAKE<3.5
 pip install --upgrade pip
-pip install -e . --no-cache-dir -r requirements-dev.txt
+pip install -e . --no-cache-dir
 pre-commit install
 cd ../
 

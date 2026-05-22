@@ -29,6 +29,7 @@ importlib-metadata==6.0.0
 Jinja2==3.1.2
 joblib==1.2.0
 kiwisolver==1.4.4
+licensecheck
 locket==1.0.0
 lxml==4.9.2
 maptools==0.3.5

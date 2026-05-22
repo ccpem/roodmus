@@ -76,7 +76,6 @@ tifffile==2023.2.3
 toolz==0.12.0
 tornado==6.2
 tqdm==4.64.0
-twine
 types-pytz==2022.7.1.2
 types-tabulate==0.9.0.1
 typing_extensions
