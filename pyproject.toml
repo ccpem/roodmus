@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "roodmus"
-version = "0.0.43"
+version = "0.0.44"
 authors = [
   { name="Joel Greer", email="joel.greer@stfc.ac.uk" },
   { name="Maarten Joosten", email="m.j.joosten@tudelft.nl" },
@@ -20,7 +20,6 @@ classifiers = [
 ]
 dependencies = [
     "appdirs==1.4.4",
-    "astunparse==1.6.3",
     "beautifulsoup4==4.11.2",
     "bs4==0.0.1",
     "ccpem-utils==0.0.1.dev8",
