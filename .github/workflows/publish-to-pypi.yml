@@ -16,7 +16,7 @@ jobs:
     - name: install-pypa/build
       run: >-
         python3 -m
-        pip install [gpu]
+        pip install
         build
         --user
     - name: build-bin-whl
