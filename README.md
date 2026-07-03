@@ -137,3 +137,24 @@ cd ../
 cd ccpem-pipeliner
 pip install -e .
 ```
+
+# Modern (July 2026) developer install on V100
+
+```
+conda create -n roodmus python=3.10.20
+conda activate roodmus
+
+git clone git@github.com:ccpem/roodmus.git
+cd roodmus
+export CXX=/usr/bin/g++
+export CUDACXX=/usr/bin/nvcc
+export CMAKE_CUDA_ARCHITECTURES=70
+#USE CMAKE COMPATIBLE WITH CMAKE<3.5????
+pip install --upgrade pip
+pip install -e .[dev,gpu,docs] --no-cache-dir
+pre-commit install
+cd ../
+
+cd ccpem-pipeliner
+pip install -e .
+```
