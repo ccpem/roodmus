@@ -33,8 +33,7 @@ from scipy.spatial.transform import Rotation as R
 from tqdm import tqdm
 import pandas as pd
 import pickle
-
-from pipeliner.starfile_handler import DataStarFile
+import gemmi
 
 
 class IO(object):
@@ -71,7 +70,9 @@ class IO(object):
         """
 
         if "location/micrograph_path" in metadata_cs.dtype.names:
-            ugraph_paths = metadata_cs["location/micrograph_path"].tolist()
+            ugraph_paths: List[np.bytes_] = metadata_cs[
+                "location/micrograph_path"
+            ].tolist()
             # Cryosparc may add suffixes to the micrograph
             # name, such as _patch_aligned_doseweighted.mrc.
             # We remove these suffixes to match the micrograph
@@ -249,29 +250,31 @@ class IO(object):
     # Loading .star files and parsing the ctf parameters,
     # the particle positions and orientations
     @classmethod
-    def load_star(self, star_path):
+    def load_star(self, star_path: str) -> gemmi.cif.Document:
         """Load metadata from .star file.
 
         Args:
             star_path (str): Relion metadata.
 
         Returns:
-            DataStarFile: Loaded Relion metadata.
+            gemmi.cif.Document: Loaded Relion metadata.
         """
-        return DataStarFile(star_path)
+        return gemmi.cif.read(star_path)
 
     @classmethod
-    def get_ugraph_star(self, metadata_star):
+    def get_ugraph_star(self, metadata_star: gemmi.cif.Document) -> List[str]:
         """Grab micrograph file paths from Relion metadata.
 
         Args:
-            metadata_star (DataStarFile): Loaded Relion metadata.
+            metadata_star (gemmi.cif.Block): Loaded Relion metadata.
 
         Returns:
             ugraph_paths (List[str]): Micrograph file paths.
         """
-        ugraph_paths = metadata_star.column_as_list(
-            "particles", "_rlnMicrographName"
+        ugraph_paths = list(
+            metadata_star.find_block("particles").find_loop(
+                "_rlnMicrographName"
+            )
         )
         # convert to basename and remove index
         ugraph_paths = [
@@ -282,38 +285,40 @@ class IO(object):
     @classmethod
     def get_ctf_star(
         self,
-        metadata_star,
+        metadata_star: gemmi.cif.Document,
     ) -> np.ndarray:
         """Grab ctf information from Relion metadata.
 
         Args:
-            metadata_star (DataStarFile): Loaded Relion metadata.
+            metadata_star (gemmi.cif.Document): Loaded Relion metadata.
 
         Returns:
             np.ndarray: ctf data.
         """
         kV = [
             float(r)
-            for r in metadata_star.column_as_list("optics", "_rlnVoltage")
+            for r in metadata_star.find_block("optics").find_loop(
+                "_rlnVoltage"
+            )
         ]
         Cs = [
             float(r)
-            for r in metadata_star.column_as_list(
-                "optics", "_rlnSphericalAberration"
+            for r in metadata_star.find_block("optics").find_loop(
+                "_rlnSphericalAberration"
             )
         ]
         amp = [
             float(r)
-            for r in metadata_star.column_as_list(
-                "optics", "_rlnAmplitudeContrast"
+            for r in metadata_star.find_block("optics").find_loop(
+                "_rlnAmplitudeContrast"
             )
         ]
 
         defocusU = np.array(
             [
                 float(r)
-                for r in metadata_star.column_as_list(
-                    "particles", "_rlnDefocusU"
+                for r in metadata_star.find_block("particles").find_loop(
+                    "_rlnDefocusU"
                 )
             ],
             dtype=float,
@@ -321,8 +326,8 @@ class IO(object):
         defocusV = np.array(
             [
                 float(r)
-                for r in metadata_star.column_as_list(
-                    "particles", "_rlnDefocusV"
+                for r in metadata_star.find_block("particles").find_loop(
+                    "_rlnDefocusV"
                 )
             ]
         ).tolist()
@@ -340,45 +345,53 @@ class IO(object):
         )
 
     @classmethod
-    def get_positions_star(self, metadata_star) -> np.ndarray:
+    def get_positions_star(
+        self, metadata_star: gemmi.cif.Document
+    ) -> np.ndarray:
         """Grab reconstructed particle positions from Relion metadata.
 
         Args:
-            metadata_star (DataStarFile): Loaded Relion metadata.
+            metadata_star (gemmi.cif.Document): Loaded Relion metadata.
 
         Returns:
             ps (np.ndarray): particle position data.
         """
         x = [
             float(r)
-            for r in metadata_star.column_as_list(
-                "particles", "_rlnCoordinateX"
+            for r in metadata_star.find_block("particles").find_loop(
+                "_rlnCoordinateX"
             )
         ]
         y = [
             float(r)
-            for r in metadata_star.column_as_list(
-                "particles", "_rlnCoordinateY"
+            for r in metadata_star.find_block("particles").find_loop(
+                "_rlnCoordinateY"
             )
         ]
         pos = np.stack([x, y], axis=1)
         return pos
 
     @classmethod
-    def get_orientations_star(self, metadata_star) -> np.ndarray:
+    def get_orientations_star(
+        self, metadata_star: gemmi.cif.Document
+    ) -> np.ndarray:
         """Grab reconstructed orientations from Relion metadata.
 
         Args:
-            metadata_star (DataStarFile): Loaded Relion metadata.
+            metadata_star (gemmi.cif.Document): Loaded Relion metadata.
 
         Returns:
             euler (np.ndarray): particle orientation data.
         """
-        euler_phi = metadata_star.column_as_list("particles", "_rlnAngleRot")
-        euler_theta = metadata_star.column_as_list(
-            "particles", "_rlnAngleTilt"
+        euler_phi = list(
+            metadata_star.find_block("particles").find_loop("_rlnAngleRot")
         )
-        euler_psi = metadata_star.column_as_list("particles", "_rlnAnglePsi")
+        euler_theta = list(
+            metadata_star.find_block("particles").find_loop("_rlnAngleTilt")
+        )
+        euler_psi = list(
+            metadata_star.find_block("particles").find_loop("_rlnAnglePsi")
+        )
 
         num_particles = np.max(
             [len(euler_phi), len(euler_theta), len(euler_psi)]
@@ -399,19 +412,21 @@ class IO(object):
         return euler
 
     @classmethod
-    def get_class2D_star(self, metadata_star):
+    def get_class2D_star(
+        self, metadata_star: gemmi.cif.Document
+    ) -> np.ndarray | None:
         """Grab 2D class from Relion metadata.
 
         Args:
-            metadata_star (DataStarFile): Loaded Relion metadata.
+            metadata_star (gemmi.cif.Document): Loaded Relion metadata.
 
         Returns:
-            class2d (np.ndarray): 2D class data.
+            class2d (np.ndarray | None): 2D class data.
         """
         class2d = [
             int(r)
-            for r in metadata_star.column_as_list(
-                "particles", "_rlnClassNumber"
+            for r in metadata_star.find_block("particles").find_loop(
+                "_rlnClassNumber"
             )
         ]
         if class2d:
@@ -516,6 +531,78 @@ class geom(object):
                 beta = np.pi
                 gamma = np.arctan2(r[1, 0], -r[0, 0])
         return alpha, beta, gamma
+
+
+def get_closest_pdb_index(
+    closest_pdbs: pd.core.series.Series,
+    index_prefix=False,
+) -> Tuple[pd.core.series.Series, List[str]]:
+    """Get the index of the truth particle which is closest to the given
+    picked particle.
+
+    Args:
+        closest_pdbs (pandas.core.series.Series): picked particle
+        column with the closest
+
+    Raises:
+        ValueError: Try/except catches truth conformation filenames not
+        of format filename_XXX.pdb
+
+    Returns:
+        Tuple[List[int], List[str]]: the indices which map each picked
+        particle to the closest truth particle and the sorted list of truth
+        particle pdb filenames if we needed to create a list of indices.
+
+    """
+    # empty list if we don't need to create indices for each truth particle
+    # pdb
+    unique_pdbs = []
+
+    try:
+        closest_pdb_index = closest_pdbs.apply(
+            lambda x: int(os.path.basename(x).split("_")[-1].split(".")[0])
+        )
+        if index_prefix:
+            # if using prefix as index, instead do the following
+            closest_pdb_index = closest_pdbs.apply(
+                lambda x: int(os.path.basename(x).split("_")[0].split(".")[0])
+            )
+    # ValueError: invalid literal for int() with base 10: '6ttf'
+    except ValueError:
+        # find all pdb filenames and sort into a list
+        unique_pdbs = sorted(np.unique(closest_pdbs).tolist())
+        # iterate through closest_pdb filenames and grab the index
+        # from the sorted list of pdb filenames for each
+        closest_pdb_index = pd.Series(
+            int(unique_pdbs.index(closest_pdb)) for closest_pdb in closest_pdbs
+        )
+
+    return closest_pdb_index, unique_pdbs
+
+
+def convert_truth_idxs_to_df(truth_idxs: List[str]) -> pd.DataFrame:
+    """Convert unique_truth_pdb_idxs to pd.DataFrame to allow it to be
+    saved as csv by default along with any plots made using the indexes.
+
+    Args:
+        truth_idxs (List[str]): sorted list of truth particle pdb filenames
+
+    Returns:
+        pd.DataFrame: dataframe allowing truth_idxs to be saved to csv in
+        plotDataFrame class along with the dataframes used to create plots.
+        Allows easy interpretation of plots from indices.
+    """
+    if len(truth_idxs) < 1:
+        raise ValueError(
+            "Truth particles have not been assigned indices and must"
+            " therefore already have suitable pdb filename formats."
+            " No need to call this function!"
+        )
+    idxs = [str(x) for x in list(range(0, len(truth_idxs), 1))]
+    truth_pdb_idxs = {}
+    truth_pdb_idxs["truth_particle_filename"] = truth_idxs
+    truth_pdb_idxs["truth_particle_index"] = idxs
+    return pd.DataFrame(truth_pdb_idxs)
 
 
 class load_data(object):
@@ -1442,6 +1529,7 @@ class load_data(object):
             for instance in molecules["instances"]:
                 position = instance["position"]
                 orientation = instance["orientation"]  # rotation vector
+                orientation = -np.array(orientation)  # invert the orientation
                 # convert to euler angles
                 # euler = geom.rot2euler(geom.expmap(np.array(orientation)))
                 euler = R.from_rotvec(orientation).as_euler("ZYZ")
@@ -1787,12 +1875,16 @@ class load_data(object):
                 matched_truth_dfs.append(ugraph_truth.iloc[t_match])
 
                 # Extract the unmatched picked particles
-                p_list = np.arange(len(picked_pos_x), dtype=int).tolist()
+                p_list: List[int] = np.arange(
+                    len(picked_pos_x), dtype=int
+                ).tolist()
                 p_unmatched = list(set(p_list).difference(p_match))
                 unmatched_picked_dfs.append(ugraph_picked.iloc[p_unmatched])
 
                 # Extract the unmatched truth particles
-                t_list = np.arange(len(truth_pos_x), dtype=int).tolist()
+                t_list: List[int] = np.arange(
+                    len(truth_pos_x), dtype=int
+                ).tolist()
                 t_unmatched = list(set(t_list).difference(t_match))
                 unmatched_truth_dfs.append(ugraph_truth.iloc[t_unmatched])
 
@@ -1953,6 +2045,7 @@ class load_data(object):
         self,
         results_picking: pd.DataFrame,
         results_truth: pd.DataFrame,
+        index_prefix=False,
         verbose: bool = False,
     ):
         """This function produces another data frame containing the number
@@ -1970,8 +2063,13 @@ class load_data(object):
             calculation. Defaults to False.
 
         Returns:
-            pandas.DataFrame: a data frame containing the precision, recall
-            and multiplicity for each micrograph.
+            Tuple[pandas.DataFrame, pandas.DataFrame, List[str]]: a data frame
+            containing the precision, recall and multiplicity for each
+            micrograph. Followed by an updated version of results_picking with
+            new fields relating the picked particle and closest truth particle
+            as well as a alphanumeric sorted list of truth pdb filenames and
+            so that results_picking["losest_pdb_index"] indices can be mapped
+            to the corresponding truth pdb filename.
         """
 
         # define results data frame
@@ -2079,7 +2177,9 @@ class load_data(object):
                 0  # the number of false positives in the current micrograph
             )
             for particle in range(len(pos_picked_in_ugraph)):
-                TP += float(np.any(sdm[particle] < self.particle_diameter / 2))
+                TP += float(
+                    np.any(sdm[particle] <= self.particle_diameter / 2)
+                )
                 FP += float(np.all(sdm[particle] > self.particle_diameter / 2))
 
                 TP_all.append(
@@ -2153,9 +2253,13 @@ class load_data(object):
         results_picking["closest_dist"] = closest_dist_all
         results_picking["closest_particle"] = closest_particle_all
         results_picking["closest_pdb"] = closest_pdb_all
-        results_picking["closest_pdb_index"] = results_picking[
-            "closest_pdb"
-        ].apply(lambda x: int(x.split("_")[-1].split(".")[0]))
+        (
+            results_picking["closest_pdb_index"],
+            unique_pdbs,
+        ) = get_closest_pdb_index(
+            results_picking["closest_pdb"],
+            index_prefix=index_prefix,
+        )
         # set the closest_pdb_index to np.nan if the particle is not
         # closer to a truth particle thatn the particle diameter
         results_picking.loc[
@@ -2164,7 +2268,11 @@ class load_data(object):
         ] = np.nan
 
         # convert the results data frame to a pandas data frame
-        return pd.DataFrame(results_precision), results_picking
+        return (
+            pd.DataFrame(results_precision),
+            results_picking,
+            unique_pdbs,
+        )
 
     def compute_overlap(
         self,

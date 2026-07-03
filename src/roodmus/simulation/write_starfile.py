@@ -89,6 +89,13 @@ def add_arguments(
     )
 
     write_starfile_parser.add_argument(
+        "--pp_defoci",
+        action="store_true",
+        help="Allow truth particles to include particle ground truth \
+            z position in defocus to get per-particle defoci",
+    )
+
+    write_starfile_parser.add_argument(
         "--tqdm",
         action="store_true",
         help="Enable progressbar",
@@ -380,6 +387,7 @@ class particle_data_star(object):
         pixel_size,
         optics_group,
         extract_dir=None,
+        per_particle_defoci=False,
         enable_progressbar=False,
     ):
         self.cif_document = cif.Document()
@@ -392,8 +400,8 @@ class particle_data_star(object):
             "_rlnImageName",
             "_rlnMicrographName",
             "_rlnOpticsGroup",
-            "_rlnCtfMaxResolution",
-            "_rlnCtfFigureOfMerit",
+            # "_rlnCtfMaxResolution",
+            # "_rlnCtfFigureOfMerit",
             "_rlnDefocusU",
             "_rlnDefocusV",
             "_rlnDefocusAngle",
@@ -405,11 +413,10 @@ class particle_data_star(object):
             "_rlnAngleTilt",
             "_rlnOriginXAngst",
             "_rlnOriginYAngst",
-            "_rlnNormCorrection",
-            "_rlnLogLikeliContribution",
-            "_rlnMaxValueProbDistribution",
-            "_rlnNrOfSignificantSamples",
-            "_rlnRandomSubset",
+            # "_rlnNormCorrection",
+            # "_rlnLogLikeliContribution",
+            # "_rlnMaxValueProbDistribution",
+            # "_rlnNrOfSignificantSamples",
         ]
         self.particles = self.cif_document.add_new_block("particles")
         self.loop = self.particles.init_loop(prefix="", tags=self.tags)
@@ -419,6 +426,7 @@ class particle_data_star(object):
         self.pixel_size = pixel_size
         self.optics_group = optics_group
         self.extract_dir = extract_dir
+        self.per_particle_defoci = per_particle_defoci
         self.enable_progressbar = enable_progressbar
 
     def parse_df(self, df_particles):
@@ -430,6 +438,41 @@ class particle_data_star(object):
         The dataframe can also optionally contain:
         euler_phi, euler_psi, euler_theta, defocusU, defocusV, Class2D
         """
+
+        # check if the columns defocusU and defocusV are present
+        # if the columns are not present, but defocus is present,
+        # make a new column for defocusU and defocusV and copy the
+        # values from defocus
+        if (
+            "defocusU" not in df_particles.columns
+            and "defocus" in df_particles.columns
+        ):
+            df_particles["defocusU"] = df_particles["defocus"]
+            if self.per_particle_defoci:
+                # Adjust defocus - should only occur if ground truth
+                # is utilised. Assumes defocus plane is centre sample z
+                # and sample and microscope z axes co-align.
+                df_particles["defocusU"] = df_particles["defocusU"] - (
+                    df_particles["position_z"]
+                    - (df_particles["ice_thickness"] / 2.0)
+                )
+        if (
+            "defocusV" not in df_particles.columns
+            and "defocus" in df_particles.columns
+        ):
+            df_particles["defocusV"] = df_particles["defocus"]
+            if self.per_particle_defoci:
+                # Adjust defocus - should only occur if ground truth
+                # is utilised. Assumes defocus plane is centre sample z
+                # and sample and microscope z axes co-align.
+                df_particles["defocusV"] = df_particles["defocusV"] - (
+                    df_particles["position_z"]
+                    - (df_particles["ice_thickness"] / 2.0)
+                )
+
+        # by convention it appears that defocus is +ve in RELION
+        df_particles["defocusU"] = df_particles["defocusU"].abs()
+        df_particles["defocusV"] = df_particles["defocusV"].abs()
 
         progressbar = tqdm(
             total=len(df_particles),
@@ -459,12 +502,12 @@ class particle_data_star(object):
                     str(row["position_y"] * self.pixel_size),
                     "1",  # figure of merit not used
                     str(row.get("Class2D", "0")),
-                    str(np.rad2deg(row.get("euler_phi", "0"))),
+                    str(np.rad2deg(row.get("euler_psi", 0))),  # corr to psi
                     image_name,
                     micrograph_filename,
                     str(self.optics_group),
-                    "0",  # CTF max resolution not used
-                    "0",  # CTF figure of merit not used
+                    # "0",  # CTF max resolution not used
+                    # "1",  # CTF figure of merit not used
                     str(row.get("defocusU", "0")),
                     str(row.get("defocusV", "0")),
                     "0",  # defocus angle not used
@@ -472,15 +515,14 @@ class particle_data_star(object):
                     "1",  # CTF scalefactor defaults to 1
                     "0",  # phase shift not used
                     "1",  # group number not used
-                    str(np.rad2deg(row.get("euler_psi", "0"))),
-                    str(np.rad2deg(row.get("euler_theta", "0"))),
+                    str(np.rad2deg(row.get("euler_phi", 0))),  # corr to phi
+                    str(np.rad2deg(row.get("euler_theta", 0))),
                     "0",  # origin x not used
                     "0",  # origin y not used
-                    "0",  # norm correction not used
-                    "0",  # log likelihood contribution not used
-                    "0",  # max value prob distribution not used
-                    "1",  # nr of significant samples not used
-                    "1",  # random subset not used
+                    # "0",  # norm correction not used
+                    # "0",  # log likelihood contribution not used
+                    # "0",  # max value prob distribution not used
+                    # "1",  # nr of significant samples not used
                 ]
             )
             progressbar.update(1)
@@ -672,6 +714,7 @@ def main(args):
             args.pixel_size,
             args.optics_group,
             args.extract_dir,
+            args.pp_defoci,
             args.tqdm,
         )
         starfile.parse_df(df_particles)

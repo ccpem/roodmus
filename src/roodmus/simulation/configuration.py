@@ -24,6 +24,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 import os
+import re
 from typing import Any
 
 import yaml
@@ -192,6 +193,15 @@ class Configuration(object):
             args.margin_z,
         )
 
+        # sample->motion ISN'T INCLUED IN PARAKEET VERSION
+        self.config.sample.motion = config.SampleMotion()
+        self.config.sample.motion.global_drift = [
+            float(r) for r in args.global_drift_vector
+        ]
+        self.config.sample.motion.interaction_range = args.interaction_range
+        self.config.sample.motion.velocity = args.velocity
+        self.config.sample.motion.noise_magnitude = args.noise_magnitude
+
         # sample->sputter (not yet supported as user input)
         # self.config.sample.sputter.element =
         # self.config.sample.sputter.thickness =
@@ -348,18 +358,42 @@ class Configuration(object):
 
         self._save_config()
 
-    def update_config(self, sample):
+    def update_config(self, sample, verbose=False):
         """
         Updates the configuration file with the
         generated positions and orientations
 
         sample (parakeet.sample.Sample): Sample object from Parakeet
         """
-        frame_idx = 0
-        for molecule in sample.molecules:
-            _, positions, orientations = sample.get_molecule(molecule)
+        mciter = sample.iter_molecules()
+        for i in mciter:
+            print(i)
 
+        for frame_idx, molecule in enumerate(sample.molecules):
+            assert compare_roodmus_parakeet_fname(
+                molecule,
+                self.config.sample.molecules.local[frame_idx].filename,
+            ), (
+                "Molecule being updated in YAML is not the same as that "
+                "retrieved from Parakeet's sample!\n{}\n{}".format(
+                    self.config.sample.molecules.local[frame_idx].filename,
+                    molecule,
+                )
+            )
+
+            _, positions, orientations = sample.get_molecule(molecule)
             self.config.sample.molecules.local[frame_idx].instances = []
+            if verbose:
+                print(
+                    "Check mol {}: {}\n{} vs {}\n pos: {}\nori: {}".format(
+                        frame_idx,
+                        molecule,
+                        molecule,
+                        self.config.sample.molecules.local[frame_idx].filename,
+                        positions,
+                        orientations,
+                    )
+                )
 
             for position, orientation in zip(positions, orientations):
                 self.config.sample.molecules.local[frame_idx].instances.append(
@@ -371,6 +405,25 @@ class Configuration(object):
                 self.config.sample.molecules.local[frame_idx].instances[
                     -1
                 ].orientation = [float(o) for o in orientation]
-
-            frame_idx += 1
         self._save_config()
+
+
+def compare_roodmus_parakeet_fname(
+    parakeet: str,
+    roodmus: str,
+    verbose: bool = True,
+) -> bool:
+    # parakeet sample fnames are stored with / and . replaced by _
+    # so just compare the basename and put back the . with reference
+    # to the filename stored by roodmus' config class
+    r_fname = os.path.basename(roodmus)
+    p_fname = parakeet[-len(r_fname) :]
+    # put the .'s back in
+    for c in [match.start() for match in re.finditer(r"\.", r_fname)]:
+        p_fname_temp = list(p_fname)
+        p_fname_temp[c] = "."
+        p_fname = "".join(p_fname_temp)
+    if verbose:
+        print(r_fname)
+        print(p_fname)
+    return p_fname == r_fname

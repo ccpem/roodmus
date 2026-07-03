@@ -29,7 +29,11 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from roodmus.analysis.utils import load_data, plotDataFrame
+from roodmus.analysis.utils import (
+    load_data,
+    plotDataFrame,
+    convert_truth_idxs_to_df,
+)
 
 
 def add_arguments(parser):
@@ -118,10 +122,15 @@ class plotFrameDistribution(plotDataFrame):
         self,
         df_truth: pd.DataFrame,
         df_picked: pd.DataFrame,
+        unique_truth_pdb_idxs: list[str] = [],
     ):
         self.plot_data = {"frame_distribution": {}}
         self.plot_data["frame_distribution"]["df_truth"] = df_truth
         self.plot_data["frame_distribution"]["df_picked"] = df_picked
+        if unique_truth_pdb_idxs:
+            self.plot_data["frame_distribution"][
+                "truth_pdb_idxs"
+            ] = convert_truth_idxs_to_df(unique_truth_pdb_idxs)
 
     def setup_plot_data_empty(
         self,
@@ -279,7 +288,7 @@ def main(args):
     )  # data frame containing the ground-truth particles
 
     # compute the precision for the picked particles
-    _, df_picked = analysis.compute_precision(
+    _, df_picked, unique_truth_pdb_idxs = analysis.compute_precision(
         df_picked, df_truth, verbose=args.verbose
     )
 
@@ -290,7 +299,11 @@ def main(args):
         dpi=args.dpi,
         pdf=args.pdf,
     )
-    frame_distribution.setup_plot_data(df_truth, df_picked)
+    frame_distribution.setup_plot_data(
+        df_truth,
+        df_picked,
+        unique_truth_pdb_idxs=unique_truth_pdb_idxs,
+    )
     frame_distribution.make_and_save_plots(overwrite_data=True)
 
 

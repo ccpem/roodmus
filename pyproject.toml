@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "roodmus"
-version = "0.0.35"
+version = "0.0.47"
 authors = [
   { name="Joel Greer", email="joel.greer@stfc.ac.uk" },
   { name="Maarten Joosten", email="m.j.joosten@tudelft.nl" },
 ]
 description = "Synthetic SP micrograph creation and analysis"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">= 3.10"
 license = {file = "LICENSE"}
 keywords = ["parakeet", "cryo-em", "micrographs", "analysis", "roodmus", "single-particle"]
 classifiers = [
@@ -19,14 +19,55 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "lxml_html_clean",
-    "mdtraj",
-    "glob2",
-    "seaborn",
+    "appdirs==1.4.4",
+    "beautifulsoup4==4.11.2",
+    "gemmi==0.5.4",
+    "glob2==0.7",
+    "matplotlib==3.5.2",
     "MDAnalysis",
+    "mdtraj",
+    "mrcfile==1.5.4",
+    "numpy<2.0.0",
+    "pandas",
+    "pandas-stubs",
+    "Pillow",
+    "pydantic",
+    "PyWavelets",
+    "PyYAML",
+    "requests",
+    "requests-html",
+    "scikit-image",
+    "scikit-learn>=1.3.4",
+    "scipy",
+    "seaborn==0.12.2",
+    "setuptools==80.0",
+    "starfile==0.5.2",
+    "tqdm==4.64.0",
+    "types-pytz==2022.7.1.2",
+    "types-tabulate==0.9.0.1",
+    "typing_extensions",
     "umap-learn",
-    "scikit-learn>=1.3",
-    "python-parakeet==0.5.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit>=4.0.0",
+    "pytest",
+    "black==26.3.1",
+    "flake8==7.3.0",
+    "mypy==1.20.0",
+    "types-tabulate"
+]
+
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme>=1.2.0"
+]
+
+gpu = [
+    "guanaco==0.3.3",
+    "python-multem==0.4.0",
+    "python-parakeet==0.6.5",
 ]
 
 [project.scripts]
@@ -36,6 +77,3 @@ roodmus = "roodmus.cli:main"
 "Homepage" = "https://github.com/ccpem/roodmus"
 "Bug Tracker" = "https://github.com/ccpem/roodmus/issues"
 
-[tool.licensecheck]
-using = "requirements:requirements.txt;requirements-dev.txt"
-format = "json"

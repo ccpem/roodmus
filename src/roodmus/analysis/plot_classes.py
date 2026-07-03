@@ -32,7 +32,11 @@ import pandas as pd
 import seaborn as sns
 from scipy.ndimage import zoom
 
-from roodmus.analysis.utils import load_data, plotDataFrame
+from roodmus.analysis.utils import (
+    load_data,
+    plotDataFrame,
+    convert_truth_idxs_to_df,
+)
 
 
 def add_arguments(parser):
@@ -136,8 +140,16 @@ class plot2DClasses(plotDataFrame):
         self.dpi = dpi
         self.pdf = pdf
 
-    def setup_plot_data(self, df_picked: pd.DataFrame):
+    def setup_plot_data(
+        self,
+        df_picked: pd.DataFrame,
+        unique_truth_pdb_idxs: list[str] = [],
+    ):
         self.plot_data = {"plot_classes": {"df_picked": df_picked}}
+        if unique_truth_pdb_idxs:
+            self.plot_data["frame_distribution"][
+                "truth_pdb_idxs"
+            ] = convert_truth_idxs_to_df(unique_truth_pdb_idxs)
 
     def setup_plot_data_empty(self):
         self.plot_data = {"plot_classes": {"df_picked": None}}
@@ -379,7 +391,7 @@ def main(args):
     print(f"meta_files in df: {df_picked['metadata_filename'].unique()}")
 
     # compute the precision for the picked particles
-    _, df_picked = analysis.compute_precision(
+    _, df_picked, unique_truth_pdb_idxs = analysis.compute_precision(
         df_picked, df_truth, verbose=args.verbose
     )
 

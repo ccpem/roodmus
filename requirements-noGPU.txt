@@ -19,7 +19,6 @@ fonttools==4.38.0
 fsspec==2023.1.0
 gemmi==0.5.4
 glob2==0.7
-guanaco==0.3.3
 h5py==3.8.0
 HeapDict==1.0.1
 identify==2.5.19
@@ -29,7 +28,6 @@ importlib-metadata==6.0.0
 Jinja2==3.1.2
 joblib==1.2.0
 kiwisolver==1.4.4
-licensecheck
 locket==1.0.0
 lxml==4.9.2
 maptools==0.3.5
@@ -60,8 +58,6 @@ pyppeteer==1.0.2
 pyquery==2.0.0
 pytest
 python-dateutil==2.8.2
-python-multem==0.4.0
-python-parakeet==0.6.5
 PyWavelets==1.4.1
 PyYAML==6.0
 requests==2.28.2
@@ -80,7 +76,6 @@ tifffile==2023.2.3
 toolz==0.12.0
 tornado==6.2
 tqdm==4.64.0
-twine
 types-pytz==2022.7.1.2
 types-tabulate==0.9.0.1
 typing_extensions

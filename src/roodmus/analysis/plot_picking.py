@@ -2630,7 +2630,7 @@ def main(args):
 
         if plot_type == "precision":
             # first need to compute the precision statistics
-            df_precision, _ = analysis.compute_precision(
+            df_precision, _, _ = analysis.compute_precision(
                 df_picked, df_truth, verbose=args.verbose
             )
 

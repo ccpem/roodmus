@@ -95,6 +95,12 @@ def add_arguments(
         action="store_true",
     )
     run_parakeet_parser.add_argument(
+        "--delete_hdf",
+        help="delete hdf5 images after ugraph generated",
+        default=False,
+        action="store_true",
+    )
+    run_parakeet_parser.add_argument(
         "--orientations",
         help="how to generate the orientations \
             for each particle. Default is random \
@@ -117,6 +123,13 @@ def add_arguments(
         help="Turn on verbose output",
         default=False,
         action="store_true",
+    )
+    run_parakeet_parser.add_argument(
+        "--from_yaml",
+        action="store_true",
+        help="use .yaml files in mrc dir to generate micrographs instead of \
+            generating new ones",
+        required=False,
     )
 
     options_microscope_beam = run_parakeet_parser.add_argument_group(
@@ -699,6 +712,43 @@ def add_arguments(
         required=False,
     )
 
+    options_sample_motion = options_sample.add_argument_group("motion")
+    options_sample_motion.add_argument(
+        "--global_drift_magnitude",
+        help="magnitude of global drift in A/frame",
+        type=float,
+        default=0,
+        required=False,
+    )
+    options_sample_motion.add_argument(
+        "--global_drift_std",
+        help="standard deviation on direction of global drift in rad",
+        type=float,
+        default=0,
+        required=False,
+    )
+    options_sample_motion.add_argument(
+        "--interaction_range",
+        help="radius within which to average particle directions",
+        type=float,
+        default=700,
+        required=False,
+    )
+    options_sample_motion.add_argument(
+        "--velocity",
+        help="local velocity magnitude of particles in A/frame",
+        type=float,
+        default=1,
+        required=False,
+    )
+    options_sample_motion.add_argument(
+        "--noise_magnitude",
+        help="noise on directional alilgnment of particles",
+        type=float,
+        default=0,
+        required=False,
+    )
+
     # scan args
     options_scan = run_parakeet_parser.add_argument_group("scan")
     options_scan.add_argument(
@@ -978,15 +1028,29 @@ def sample_defocus(c_10: float, c_10_stddev: float) -> float:
     return np.random.normal(c_10, c_10_stddev)
 
 
+def sample_global_drift_vector(
+    global_drift_magnitude: float, global_drift_std: float
+) -> np.ndarray:
+    """
+    based one the specified magnitude and standard deviation sample
+    a random vector for global drift
+    """
+
+    random_direction = np.random.normal(0, global_drift_std)
+    rx = np.cos(random_direction)
+    ry = np.sin(random_direction)
+    return global_drift_magnitude * np.array([rx, ry])
+
+
 def get_pdb_files(pdb_dir: str) -> List[str]:
     """Grab a list of molecule/structure definition files (such as PDBs) to add
-    to micrographs
+    to micrographs and alphanumerically sort them
 
     Args:
         pdb_dir (str): Path to directory containing all molecules to use
 
     Returns:
-        list[str]: List of molecules file paths
+        list[str]: List of molecules file paths in alphanumerical order
     """
     pdb_dir = os.path.abspath(pdb_dir)
     pdb_files = []
@@ -1000,7 +1064,22 @@ def get_pdb_files(pdb_dir: str) -> List[str]:
         elif file.endswith(".cif.gz"):
             # untested as to whether parakeet can unpack .cif.gz
             pdb_files.append(os.path.join(pdb_dir, file))
-    return pdb_files
+
+    # ensure list is not empty to avoid zero divs in get_instances
+    if len(pdb_files) == 0:
+        raise ValueError(
+            "Found 0 atomic structure (pdb/cif/mmcif/cif.gz) files in"
+            " directory {}!".format(pdb_dir)
+        )
+
+    """
+    # check that single filetype is used for structures
+    ftype = lambda x: os.path.basename(x).split(".")[-1]
+    assert len(
+        np.unique([ftype(x) for x in pdb_files])
+    )==1, "Multiple structure filetypes provided"
+    """
+    return sorted(pdb_files)
 
 
 def get_instances(
@@ -1053,7 +1132,13 @@ def get_instances(
 
 
 def simulate_image(
-    config, mrc_dir, mrc_filename, write_mtf=False, overwrite_mtf=False
+    config,
+    mrc_dir,
+    mrc_filename,
+    write_mtf=False,
+    overwrite_mtf=False,
+    delete_hdf=False,
+    verbose=False,
 ):
     """Call parakeet through the Python API and
     simulate a new micrograph based on the provided config file.
@@ -1079,7 +1164,7 @@ def simulate_image(
     # run_parakeet session or if overwrite requested
     if write_mtf:
         metadata_exporter = parakeet.metadata.RelionMetadataExporter(
-            config.config, sample, mrc_dir
+            config.config, sample, None, mrc_dir
         )
         if not os.path.exists(
             os.path.join(
@@ -1125,23 +1210,30 @@ def simulate_image(
     )
 
     # remove the intermediate files
-    os.system(
-        "rm {} {} {} {}".format(
-            config.sample_filename,
-            config.exit_wave_filename,
-            config.optics_filename,
-            config.image_filename,
+    if delete_hdf:
+        os.system(
+            "rm {} {} {} {}".format(
+                config.sample_filename,
+                config.exit_wave_filename,
+                config.optics_filename,
+                config.image_filename,
+            )
         )
-    )
 
     # update the config from the sample and save/overwrite it
-    config.update_config(sample)
+    config.update_config(sample, verbose=verbose)
 
     return
 
 
 def simulate_image_parallel(
-    config, mrc_dir, leading_zeros=6, write_mtf=False, overwrite_mtf=False
+    config,
+    mrc_dir,
+    leading_zeros=6,
+    write_mtf=False,
+    overwrite_mtf=False,
+    delete_hdf=False,
+    verbose=False,
 ):
     mrc_filename = os.path.join(
         mrc_dir, f"{config.image_index}".zfill(leading_zeros) + ".mrc"
@@ -1152,6 +1244,8 @@ def simulate_image_parallel(
         mrc_filename,
         write_mtf=write_mtf,
         overwrite_mtf=overwrite_mtf,
+        delete_hdf=delete_hdf,
+        verbose=verbose,
     )
     return
 
@@ -1183,9 +1277,23 @@ def main(args):
 
     # the script will look at the files in the output directory
     # and continue with the numbering from the last image
-    images_in_directory = len(
+    images = sorted(
         [r for r in os.listdir(args.mrc_dir) if r.endswith(".mrc")]
     )
+    images_in_directory = len(images)
+    # check last of alphanumeric ordered mrc fnames is same
+    # index as the len of list of fnames
+    # relies on XXXXXX.mrc convention
+    if images_in_directory > 0:
+        last_index = os.path.basename(images[-1]).split(".")[0]
+        assert images_in_directory - 1 == int(last_index), (
+            "Ugraph names are not labelled with base-0 indices."
+            "{} ugraphs with last index {}".format(
+                images_in_directory, last_index
+            )
+        )
+
+    # get alphanumeric ordered structures to simulate
     frames = get_pdb_files(args.pdb_dir)
 
     # loop over the number of images to generate config files
@@ -1201,6 +1309,11 @@ def main(args):
     ):
         config_filename = os.path.join(
             args.mrc_dir, f"{n_image}".zfill(args.leading_zeros) + ".yaml"
+        )
+
+        # sample a drift vector for the micrograph
+        args.global_drift_vector = sample_global_drift_vector(
+            args.global_drift_magnitude, args.global_drift_std
         )
 
         # initialise the configuration
@@ -1254,6 +1367,8 @@ def main(args):
                 mrc_filename,
                 write_mtf=i == 0,
                 overwrite_mtf=args.overwrite_metadata,
+                delete_hdf=args.delete_hdf,
+                verbose=args.verbose,
             )
 
             progressbar.update(1)
@@ -1275,6 +1390,8 @@ def main(args):
                 args.leading_zeros,
                 write_mtf=i == 0,
                 overwrite_mtf=args.overwrite_metadata,
+                delete_hdf=args.delete_hdf,
+                verbose=args.verbose,
             )
             for i, config in enumerate(list_of_configs)
         )
