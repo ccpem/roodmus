@@ -33,7 +33,7 @@ locket==1.0.0
 lxml==4.9.2
 maptools==0.3.5
 MarkupSafe==2.1.2
-matplotlib==3.5.2
+matplotlib==3.10.8
 MDAnalysis
 mdtraj
 mrcfile==1.5.4

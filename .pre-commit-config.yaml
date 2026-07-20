@@ -29,7 +29,12 @@ repos:
     rev: v1.20.0
     hooks:
       - id: mypy
-        additional_dependencies: [pandas-stubs, types-Pillow, types-setuptools, types-PyYAML]
+        additional_dependencies: 
+          - pandas-stubs
+          - types-Pillow
+          - types-setuptools
+          - types-PyYAML
+          - "numpy<2.5" # numpy 2.5 has no compatible wheel on my old build platform
   - repo: local
     hooks:
       - id: pytest
